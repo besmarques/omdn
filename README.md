@@ -204,7 +204,7 @@ The project is intended to run on Hostinger as a Node.js application.
 The Node.js entry point is:
 
 ```text
-server/index.js
+server/server.js
 ```
 
 The frontend production files are generated with:

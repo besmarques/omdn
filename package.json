@@ -3,9 +3,12 @@
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
+	"imports": {
+		"#/*": "./server/*.js"
+	},
 	"scripts": {
 		"dev": "vite",
-		"dev:server": "node --watch server/server.js",
+		"dev:server": "node --env-file=.env.development --watch server/server.js",
 		"build": "vite build",
 		"prestart": "npm run build",
 		"start": "node server/server.js",
@@ -20,6 +23,7 @@
 		"dotenv": "^17.4.2",
 		"express": "^5.2.1",
 		"lucide-react": "^1.27.0",
+		"mysql2": "^3.23.2",
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7",
 		"react-router": "^8.3.0",
