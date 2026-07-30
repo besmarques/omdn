@@ -5,10 +5,10 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"dev:server": "node --watch server/index.js",
+		"dev:server": "node --watch server/server.js",
 		"build": "vite build",
 		"prestart": "npm run build",
-		"start": "node server/index.js",
+		"start": "node server/server.js",
 		"lint": "eslint .",
 		"preview": "vite preview"
 	},
