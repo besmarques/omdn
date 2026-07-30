@@ -1,6 +1,6 @@
 # O Melhor do Natal
 
-A new full-stack version of **O Melhor do Natal**, built with React and Vite on the frontend and Express on the backend.
+A full-stack version of **O Melhor do Natal**, built with React and Vite on the frontend and Express with MySQL on the backend.
 
 ## Stack
 
@@ -17,7 +17,7 @@ A new full-stack version of **O Melhor do Natal**, built with React and Vite on 
 | Tailwind Vite plugin (`@tailwindcss/vite`) | Tailwind integration for Vite | [Vite guide](https://tailwindcss.com/docs/installation/using-vite) | [npm](https://www.npmjs.com/package/@tailwindcss/vite) |
 | shadcn/ui (`shadcn`) | Customizable UI components | [ui.shadcn.com](https://ui.shadcn.com/) | [npm](https://www.npmjs.com/package/shadcn) |
 | Base UI (`@base-ui/react`) | Accessible primitives used by the selected shadcn base | [base-ui.com](https://base-ui.com/react/overview/quick-start) | [npm](https://www.npmjs.com/package/@base-ui/react) |
-| Motion (`motion`) | React animations | [motion.dev](https://motion.dev/docs/react) | [npm](https://www.npmjs.com/package/motion) |
+| tw-animate-css (`tw-animate-css`) | Tailwind animation utilities | [GitHub](https://github.com/Wombosvideo/tw-animate-css) | [npm](https://www.npmjs.com/package/tw-animate-css) |
 | Lucide React (`lucide-react`) | Icon library | [lucide.dev](https://lucide.dev/guide/packages/lucide-react) | [npm](https://www.npmjs.com/package/lucide-react) |
 | Class Variance Authority (`class-variance-authority`) | Component variants | [cva.style](https://cva.style/docs) | [npm](https://www.npmjs.com/package/class-variance-authority) |
 | clsx (`clsx`) | Conditional class names | [GitHub](https://github.com/lukeed/clsx) | [npm](https://www.npmjs.com/package/clsx) |
@@ -27,6 +27,9 @@ A new full-stack version of **O Melhor do Natal**, built with React and Vite on 
 
 | Technology / package | Purpose | Documentation | npm |
 |---|---|---|---|
+| MySQL2 (`mysql2`) | Promise-based MySQL connection pool | [GitHub](https://github.com/sidorares/node-mysql2) | [npm](https://www.npmjs.com/package/mysql2) |
+| Express Session (`express-session`) | Server-side session middleware | [GitHub](https://github.com/expressjs/session) | [npm](https://www.npmjs.com/package/express-session) |
+| Express MySQL Session (`express-mysql-session`) | MySQL-backed session storage | [GitHub](https://github.com/chill117/express-mysql-session) | [npm](https://www.npmjs.com/package/express-mysql-session) |
 | Node.js | JavaScript runtime | [nodejs.org](https://nodejs.org/) | — |
 | Express (`express`) | Backend HTTP server and API | [expressjs.com](https://expressjs.com/) | [npm](https://www.npmjs.com/package/express) |
 | dotenv (`dotenv`) | Loads local development variables from `.env` | [GitHub](https://github.com/motdotla/dotenv) | [npm](https://www.npmjs.com/package/dotenv) |
@@ -103,10 +106,10 @@ npm run dev:server
 ```json
 {
   "dev": "vite",
-  "dev:server": "node --watch server/index.js",
+  "dev:server": "node --env-file=.env.development --watch server/server.js",
   "build": "vite build",
   "prestart": "npm run build",
-  "start": "node server/index.js",
+  "start": "node server/server.js",
   "lint": "eslint .",
   "preview": "vite preview"
 }
@@ -115,7 +118,7 @@ npm run dev:server
 | Command | Description |
 |---|---|
 | `npm run dev` | Starts the Vite development server |
-| `npm run dev:server` | Starts the Express backend with Node watch mode |
+| `npm run dev:server` | Loads `.env.development` and starts the Express backend with Node watch mode |
 | `npm run build` | Creates the Vite production build in `dist` |
 | `npm start` | Runs `prestart` and then starts the Express backend |
 | `npm run lint` | Runs ESLint |
@@ -145,6 +148,45 @@ The development-only design-system route is:
 ```
 
 Development routes are registered only when Vite is running in development mode.
+
+## Backend and database structure
+
+The backend extends the existing frontend structure without moving its files:
+
+```text
+server/
+|-- database/
+|   |-- migrations/
+|   |   `-- 001_create_auth_tables.sql
+|   `-- seeds/
+|       `-- 001_seed_roles_permissions.sql
+|-- dbConnect/
+|   `-- createPool.js
+|-- routes/
+|   |-- adminRoutes.js
+|   `-- apiRoutes.js
+`-- server.js
+```
+
+- `server/server.js` creates the Express app, mounts routes, serves `dist/`, and provides the React Router fallback.
+- `server/dbConnect/createPool.js` creates the promise-based MySQL connection pool.
+- `server/routes/apiRoutes.js` contains the API health and test-items endpoints.
+- `server/routes/adminRoutes.js` reserves the `/admin` namespace.
+- `server/database/migrations/` contains schema changes for authentication, authorization, sessions, tokens, TOTP, recovery codes, and audit events.
+- `server/database/seeds/` contains the initial roles, permissions, and role-permission assignments.
+
+Run migrations before their corresponding seeds. These are explicit SQL files; there is currently no npm migration command.
+
+### Backend routes
+
+| Route | Purpose |
+|---|---|
+| `GET /api` | Returns the API health response |
+| `GET /api/test-items` | Reads test items from MySQL |
+| `/admin/*` | Reserved admin router; currently returns a JSON 404 |
+| `/api/*` | Unknown API routes return a JSON 404 |
+
+In production, Express serves the built frontend and sends `dist/index.html` for non-API routes so React Router can handle navigation.
 
 ## Design system
 
@@ -213,6 +255,6 @@ The frontend production files are generated with:
 npm run build
 ```
 
-When Hostinger runs `npm start`, the `prestart` script builds the Vite frontend before Express starts. If Hostinger invokes `server/index.js` directly, the frontend must be built separately by the deployment process.
+When Hostinger runs `npm start`, the `prestart` script builds the Vite frontend before Express starts. If the platform invokes `server/server.js` directly, the frontend must be built separately by the deployment process.
 
 Production environment variables are configured in Hostinger and are read by the backend through `process.env`.

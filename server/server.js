@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 
 import express from 'express';
 
-import createPool from '#/dbConnect/createPool';
-import createApiRoutes from '#/routes/apiRoutes';
-import createAdminRoutes from '#/routes/adminRoutes';
+import createPool from '#server/dbConnect/createPool';
+import createApiRoutes from '#server/routes/apiRoutes';
+import createAdminRoutes from '#server/routes/adminRoutes';
 
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
