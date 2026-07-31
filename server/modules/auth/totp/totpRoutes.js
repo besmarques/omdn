@@ -2,6 +2,10 @@ import express from 'express';
 
 import requireGuest from '#server/modules/auth/shared/middleware/requireGuest';
 
+import {
+	createTotpLoginRateLimiter,
+} from '#server/modules/auth/shared/middleware/authRateLimiters';
+
 export default function createTotpRoutes({
 	authenticated,
 	disableTotpController,
@@ -12,6 +16,9 @@ export default function createTotpRoutes({
 	verifyTotpLoginController,
 }) {
 	const router = express.Router();
+
+	const totpLoginRateLimiter =
+		createTotpLoginRateLimiter();
 
 	router.get(
 		'/totp/status',
@@ -46,6 +53,7 @@ export default function createTotpRoutes({
 	router.post(
 		'/totp/login/verify',
 		requireGuest,
+		totpLoginRateLimiter,
 		verifyTotpLoginController,
 	);
 
