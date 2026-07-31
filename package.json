@@ -21,7 +21,8 @@
 		"maps": "npm run diagram && npm run logic-map",
 		"diagram:all": "npm run diagram && npm run logic-map",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"check:all": "node scripts/dev/run-all.js"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",

@@ -6,20 +6,21 @@ A full-stack application built with React and Vite on the frontend and Express w
 
 ### Runtime dependencies
 
-| Package                                              | Purpose                                                    |
-| ---------------------------------------------------- | ---------------------------------------------------------- |
-| `react`, `react-dom`, `react-router`                 | Browser UI, rendering, and client-side routing             |
-| `tailwindcss`, `@tailwindcss/vite`, `tw-animate-css` | Styling, Vite integration, and animations                  |
-| `shadcn`, `@base-ui/react`, `lucide-react`           | Accessible UI components and icons                         |
-| `class-variance-authority`, `clsx`, `tailwind-merge` | Component variants and class composition                   |
-| `express`                                            | HTTP server, API routing, and production frontend delivery |
-| `mysql2`                                             | Promise-based MySQL connection pool                        |
-| `express-session`, `express-mysql-session`           | Server-side sessions stored in MySQL                       |
-| `argon2`                                             | Password hashing and verification                          |
-| `otplib`                                             | TOTP and one-time-password support                         |
-| `qrcode`                                             | QR-code generation support for authenticator setup         |
-| `zod`                                                | Authentication request validation                          |
-| `dotenv`                                             | Environment-variable loading support                       |
+| Package                                              | Purpose                                                       |
+| ---------------------------------------------------- | ------------------------------------------------------------- |
+| `react`, `react-dom`, `react-router`                 | Browser UI, rendering, and client-side routing                |
+| `tailwindcss`, `@tailwindcss/vite`, `tw-animate-css` | Styling, Vite integration, and animations                     |
+| `shadcn`, `@base-ui/react`, `lucide-react`           | Accessible UI components and icons                            |
+| `class-variance-authority`, `clsx`, `tailwind-merge` | Component variants and class composition                      |
+| `express`                                            | HTTP server, API routing, and production frontend delivery    |
+| `express-rate-limit`                                 | Per-IP/account throttling for sensitive authentication routes |
+| `mysql2`                                             | Promise-based MySQL connection pool                           |
+| `express-session`, `express-mysql-session`           | Server-side sessions stored in MySQL                          |
+| `argon2`                                             | Password hashing and verification                             |
+| `otplib`                                             | TOTP and one-time-password support                            |
+| `qrcode`                                             | QR-code generation support for authenticator setup            |
+| `zod`                                                | Authentication request validation                             |
+| `dotenv`                                             | Environment-variable loading support                          |
 
 ### Development dependencies
 
@@ -30,8 +31,9 @@ A full-stack application built with React and Vite on the frontend and Express w
 | `eslint`, `@eslint/js`, React ESLint plugins, `globals` | JavaScript and React linting                  |
 | `@types/react`, `@types/react-dom`                      | React editor/tooling types                    |
 | `dependency-cruiser`                                    | Source dependency analysis and DOT generation |
+| `prettier`                                              | Repository formatting and formatting checks   |
 
-The repository contains Prettier configuration, but Prettier is not currently declared in `package.json`. Graphviz is an external prerequisite for converting DOT files to SVG.
+Prettier is configured for repository formatting. Graphviz remains an external prerequisite for converting DOT files to SVG.
 
 ## Project structure
 
@@ -60,6 +62,10 @@ omdn/
 |   |   |   |-- getCurrent/
 |   |   |   |   |-- getCurrentAccountController.js
 |   |   |   |   `-- getCurrentAccountService.js
+|   |   |   |-- changePassword/
+|   |   |   |   |-- changePasswordController.js
+|   |   |   |   |-- changePasswordService.js
+|   |   |   |   `-- changePassword.test.js
 |   |   |   |-- accountModule.js
 |   |   |   |-- accountRoutes.js
 |   |   |   `-- accountRoutes.test.js
@@ -92,7 +98,9 @@ omdn/
 |   |       |   |-- registrationModule.js
 |   |       |   `-- registrationRoutes.js
 |   |       |-- shared/
+|   |       |   |-- events/
 |   |       |   |-- middleware/
+|   |       |   |   `-- authRateLimiters.js and middleware tests
 |   |       |   |-- authRepository.js
 |   |       |   `-- authSchemas.js
 |   |       |-- totp/
@@ -167,20 +175,22 @@ npm run dev:server
 
 ## Available scripts
 
-| Command               | Description                                                 |
-| --------------------- | ----------------------------------------------------------- |
-| `npm test`            | Runs Vitest once                                            |
-| `npm run test:watch`  | Runs Vitest in watch mode                                   |
-| `npm run dev`         | Starts Vite                                                 |
-| `npm run dev:server`  | Loads `.env.development` and starts Express in watch mode   |
-| `npm run build`       | Builds the frontend into `dist/`                            |
-| `npm start`           | Builds the frontend through `prestart`, then starts Express |
-| `npm run lint`        | Runs ESLint                                                 |
-| `npm run preview`     | Previews the production frontend build                      |
-| `npm run diagram`     | Generates the DOT dependency graph and SVG                  |
-| `npm run logic-map`   | Regenerates Mermaid logic maps under `docs/logic/`          |
-| `npm run maps`        | Regenerates dependency and logic maps                       |
-| `npm run diagram:all` | Alias for regenerating both map sets                        |
+| Command                | Description                                                 |
+| ---------------------- | ----------------------------------------------------------- |
+| `npm test`             | Runs Vitest once                                            |
+| `npm run test:watch`   | Runs Vitest in watch mode                                   |
+| `npm run dev`          | Starts Vite                                                 |
+| `npm run dev:server`   | Loads `.env.development` and starts Express in watch mode   |
+| `npm run build`        | Builds the frontend into `dist/`                            |
+| `npm start`            | Builds the frontend through `prestart`, then starts Express |
+| `npm run lint`         | Runs ESLint                                                 |
+| `npm run preview`      | Previews the production frontend build                      |
+| `npm run diagram`      | Generates the DOT dependency graph and SVG                  |
+| `npm run logic-map`    | Regenerates Mermaid logic maps under `docs/logic/`          |
+| `npm run maps`         | Regenerates dependency and logic maps                       |
+| `npm run diagram:all`  | Alias for regenerating both map sets                        |
+| `npm run format`       | Formats the repository with Prettier                        |
+| `npm run format:check` | Checks formatting without writing files                     |
 
 ## Architecture maps
 
@@ -224,6 +234,10 @@ Sessions are stored in MySQL for seven days. Cookies are HTTP-only, use `SameSit
 
 TOTP setup uses `otplib` and `qrcode`. Secrets are encrypted with AES-256-GCM and user-bound additional authenticated data; recovery codes are supported for second-factor login.
 
+Sensitive authentication routes use account/IP-aware rate limits. Authentication outcomes are recorded asynchronously in `auth_events` with normalized session, IP, user-agent, status, and rate-limit metadata.
+
+Authenticated users can change their password through the account module. The flow verifies the current password, updates it transactionally, revokes other sessions, regenerates the current session, and records the outcome in the authentication audit log.
+
 ### Frontend routes
 
 | Route                | Availability     | Purpose                     |
@@ -234,27 +248,28 @@ TOTP setup uses `otplib` and `qrcode`. Secrets are encrypted with AES-256-GCM an
 
 ### Backend routes
 
-| Method and route                                | Access                    | Purpose                                                       |
-| ----------------------------------------------- | ------------------------- | ------------------------------------------------------------- |
-| `GET /api`                                      | Public                    | API health response                                           |
-| `GET /api/test-items`                           | Public                    | Reads test items from MySQL                                   |
-| `GET /api/auth/status`                          | Public                    | Reports session authentication status                         |
-| `GET /api/auth/guest-test`                      | Guests only               | Exercises guest middleware                                    |
-| `POST /api/auth/register`                       | Guests only               | Registers a pending subscriber                                |
-| `POST /api/auth/login`                          | Guests only               | Authenticates and creates a session                           |
-| `POST /api/auth/logout`                         | Session-aware             | Destroys the session and clears its cookie                    |
-| `POST /api/auth/email/verify`                   | Public                    | Activates an account with a valid token                       |
-| `POST /api/auth/email/resend`                   | Guests only               | Replaces an eligible verification token                       |
-| `POST /api/auth/password/forgot`                | Guests only               | Creates a reset token without exposing account existence      |
-| `POST /api/auth/password/reset`                 | Guests only               | Resets a password with a valid token                          |
-| `GET /api/auth/totp/status`                     | Authenticated             | Reports whether TOTP is enabled                               |
-| `POST /api/auth/totp/setup`                     | Authenticated             | Creates an encrypted pending secret and authenticator QR code |
-| `POST /api/auth/totp/enable`                    | Authenticated             | Verifies setup and enables TOTP                               |
-| `POST /api/auth/totp/recovery-codes/regenerate` | Authenticated             | Replaces recovery codes                                       |
-| `POST /api/auth/totp/disable`                   | Authenticated             | Disables TOTP                                                 |
-| `POST /api/auth/totp/login/verify`              | Guests with pending login | Completes login using a TOTP or recovery code                 |
-| `GET /api/account/me`                           | Authenticated             | Returns the current user, roles, and permissions              |
-| `GET /api/admin/test`                           | `users.manage` permission | Tests protected admin access                                  |
+| Method and route                                | Access                    | Purpose                                                                           |
+| ----------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------- |
+| `GET /api`                                      | Public                    | API health response                                                               |
+| `GET /api/test-items`                           | Public                    | Reads test items from MySQL                                                       |
+| `GET /api/auth/status`                          | Public                    | Reports session authentication status                                             |
+| `GET /api/auth/guest-test`                      | Guests only               | Exercises guest middleware                                                        |
+| `POST /api/auth/register`                       | Guests only               | Registers a pending subscriber                                                    |
+| `POST /api/auth/login`                          | Guests only               | Authenticates and creates a session                                               |
+| `POST /api/auth/logout`                         | Session-aware             | Destroys the session and clears its cookie                                        |
+| `POST /api/auth/email/verify`                   | Public                    | Activates an account with a valid token                                           |
+| `POST /api/auth/email/resend`                   | Guests only               | Replaces an eligible verification token                                           |
+| `POST /api/auth/password/forgot`                | Guests only               | Creates a reset token without exposing account existence                          |
+| `POST /api/auth/password/reset`                 | Guests only               | Resets a password with a valid token                                              |
+| `GET /api/auth/totp/status`                     | Authenticated             | Reports whether TOTP is enabled                                                   |
+| `POST /api/auth/totp/setup`                     | Authenticated             | Creates an encrypted pending secret and authenticator QR code                     |
+| `POST /api/auth/totp/enable`                    | Authenticated             | Verifies setup and enables TOTP                                                   |
+| `POST /api/auth/totp/recovery-codes/regenerate` | Authenticated             | Replaces recovery codes                                                           |
+| `POST /api/auth/totp/disable`                   | Authenticated             | Disables TOTP                                                                     |
+| `POST /api/auth/totp/login/verify`              | Guests with pending login | Completes login using a TOTP or recovery code                                     |
+| `GET /api/account/me`                           | Authenticated             | Returns the current user, roles, and permissions                                  |
+| `POST /api/account/password/change`             | Authenticated             | Changes the password, revokes other sessions, and regenerates the current session |
+| `GET /api/admin/test`                           | `users.manage` permission | Tests protected admin access                                                      |
 
 The generic `/api` router and JSON 404 handler are mounted last. With `APP_ENV=production`, Express serves `dist/` and provides the SPA fallback.
 

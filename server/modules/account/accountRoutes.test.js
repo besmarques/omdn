@@ -1,18 +1,25 @@
 import express from 'express';
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+
+import { describe, expect, it, vi } from 'vitest';
 
 import createAccountModule from '#server/modules/account/accountModule';
 
 function createTestApp(auth) {
 	const app = express();
 
+	const db = {
+		execute: vi.fn(),
+		getConnection: vi.fn(),
+	};
+
 	app.use((req, res, next) => {
 		req.auth = auth;
+
 		next();
 	});
 
-	app.use('/api/account', createAccountModule());
+	app.use('/api/account', createAccountModule(db));
 
 	return app;
 }
@@ -24,7 +31,9 @@ describe('account routes', () => {
 				id: 42,
 				email: 'test@example.com',
 			},
+
 			roles: ['subscriber'],
+
 			permissions: [],
 		};
 

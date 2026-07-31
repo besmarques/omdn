@@ -41,6 +41,32 @@ export const resetPasswordSchema = z.object({
 	password: passwordSchema,
 });
 
+export const changePasswordSchema = z
+	.object({
+		currentPassword: z.string().min(1, 'Current password is required').max(128, 'Current password is too long'),
+
+		newPassword: passwordSchema,
+
+		confirmPassword: z.string().min(1, 'Password confirmation is required').max(128, 'Password confirmation is too long'),
+	})
+	.superRefine((data, context) => {
+		if (data.newPassword !== data.confirmPassword) {
+			context.addIssue({
+				code: 'custom',
+				path: ['confirmPassword'],
+				message: 'Password confirmation does not match',
+			});
+		}
+
+		if (data.currentPassword === data.newPassword) {
+			context.addIssue({
+				code: 'custom',
+				path: ['newPassword'],
+				message: 'New password must be different from the current password',
+			});
+		}
+	});
+
 export const totpCodeSchema = z.object({
 	code: z
 		.string()

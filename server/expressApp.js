@@ -9,6 +9,7 @@ import createSessionMiddleware from '#server/middleware/sessionMiddleware';
 import createAccountModule from '#server/modules/account/accountModule';
 import createAdminModule from '#server/modules/admin/adminModule';
 import createAuthModule from '#server/modules/auth/authModule';
+
 import requireAuth from '#server/modules/auth/shared/middleware/requireAuth';
 
 import createApiRoutes from '#server/routes/apiRoutes';
@@ -27,15 +28,20 @@ export default function createApp(db) {
 	const authenticated = requireAuth(db);
 
 	app.use('/api/auth', createAuthModule(db));
-	app.use('/api/admin', authenticated, createAdminModule());
-	app.use('/api/account', authenticated, createAccountModule());
 
-	// Generic API routes and API 404 handling must stay last.
+	app.use('/api/admin', authenticated, createAdminModule());
+
+	app.use('/api/account', authenticated, createAccountModule(db));
+
+	// Generic API routes and API 404 handling
+	// must stay last.
 	app.use('/api', createApiRoutes(db));
 
 	if (process.env.APP_ENV === 'production') {
 		const __filename = fileURLToPath(import.meta.url);
+
 		const __dirname = path.dirname(__filename);
+
 		const distPath = path.resolve(__dirname, '../dist');
 
 		app.use(express.static(distPath));
