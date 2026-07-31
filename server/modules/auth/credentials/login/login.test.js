@@ -21,13 +21,15 @@ function createSession() {
 	};
 }
 
-function createTestApp(db, session = createSession()) {
+function createTestApp(db, session = createSession(), sessionId = 'current-session') {
 	const app = express();
 
 	app.use(express.json());
 
 	app.use((req, res, next) => {
 		req.session = session;
+		req.sessionID = sessionId;
+
 		next();
 	});
 
@@ -66,7 +68,7 @@ describe('POST /api/auth/login', () => {
 
 		expect(db.execute).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO auth_events'), [
 			null,
-			null,
+			'current-session',
 			'login_failed',
 			0,
 			'127.0.0.1',
@@ -176,10 +178,75 @@ describe('POST /api/auth/login', () => {
 		expect(session.userId).toBeUndefined();
 	});
 
-	it('creates a session for an active user with a valid password', async () => {
+	it('creates one session and removes older sessions', async () => {
 		const db = {
 			execute: vi
 				.fn()
+				.mockResolvedValue([
+					{
+						affectedRows: 1,
+					},
+				])
+				.mockResolvedValueOnce([
+					[
+						{
+							id: 42,
+							email: 'test@example.com',
+							display_name: 'Test User',
+							password_hash: '$argon2id$stored-hash',
+							status: 'active',
+							email_verified_at: new Date(),
+						},
+					],
+				])
+				.mockResolvedValueOnce([[]])
+				.mockResolvedValueOnce([
+					{
+						affectedRows: 2,
+					},
+				]),
+		};
+
+		argon2.verify.mockResolvedValueOnce(true);
+
+		const { app, session } = createTestApp(db, createSession(), 'new-session-id');
+
+		const response = await request(app).post('/api/auth/login').send({
+			email: 'TEST@EXAMPLE.COM',
+			password: 'this is a long test password',
+		});
+
+		expect(response.status).toBe(200);
+
+		expect(response.body).toMatchObject({
+			status: true,
+			message: 'Login successful',
+		});
+
+		expect(session.regenerate).toHaveBeenCalledOnce();
+
+		expect(session.userId).toBe(42);
+
+		expect(session.save).toHaveBeenCalledOnce();
+
+		expect(db.execute.mock.calls[0][1]).toEqual(['test@example.com']);
+
+		expect(db.execute.mock.calls[2][1]).toEqual(['new-session-id', 42, 42]);
+
+		expect(String(db.execute.mock.calls[2][0])).toContain('DELETE FROM sessions');
+
+		expect(db.execute.mock.calls[3][1]).toEqual([42]);
+	});
+
+	it('does not remove old sessions before TOTP succeeds', async () => {
+		const db = {
+			execute: vi
+				.fn()
+				.mockResolvedValue([
+					{
+						affectedRows: 1,
+					},
+				])
 				.mockResolvedValueOnce([
 					[
 						{
@@ -193,31 +260,30 @@ describe('POST /api/auth/login', () => {
 					],
 				])
 				.mockResolvedValueOnce([
-					{
-						affectedRows: 1,
-					},
+					[
+						{
+							user_id: 42,
+							is_enabled: 1,
+						},
+					],
 				]),
 		};
 
 		argon2.verify.mockResolvedValueOnce(true);
 
-		const { app, session } = createTestApp(db);
+		const { app, session } = createTestApp(db, createSession(), 'pending-session-id');
 
 		const response = await request(app).post('/api/auth/login').send({
-			email: 'TEST@EXAMPLE.COM',
+			email: 'test@example.com',
 			password: 'this is a long test password',
 		});
 
-		expect(response.status).toBe(200);
-		expect(response.body).toMatchObject({
-			status: true,
-			message: 'Login successful',
-		});
+		expect(response.status).toBe(202);
 
-		expect(session.regenerate).toHaveBeenCalledOnce();
-		expect(session.userId).toBe(42);
-		expect(session.save).toHaveBeenCalledOnce();
+		expect(session.pendingTwoFactorUserId).toBe(42);
 
-		expect(db.execute.mock.calls[0][1]).toEqual(['test@example.com']);
+		const sessionDeletes = db.execute.mock.calls.filter(([sql]) => String(sql).includes('DELETE FROM sessions'));
+
+		expect(sessionDeletes).toHaveLength(0);
 	});
 });

@@ -1,6 +1,4 @@
-import {
-	totpLoginSchema,
-} from '#server/modules/auth/shared/authSchemas';
+import { totpLoginSchema } from '#server/modules/auth/shared/authSchemas';
 
 const maximumAttempts = 5;
 
@@ -39,54 +37,29 @@ function clearPendingChallenge(session) {
 function invalidCodeResponse(res) {
 	return res.status(401).json({
 		status: false,
-		message:
-			'Invalid or expired authentication code',
+		message: 'Invalid or expired authentication code',
 	});
 }
 
-export default function createVerifyTotpLoginController(
-	verifyTotpLoginService,
-) {
-	return async function verifyTotpLogin(
-		req,
-		res,
-		next,
-	) {
-		const validation = totpLoginSchema.safeParse(
-			req.body,
-		);
+export default function createVerifyTotpLoginController(verifyTotpLoginService) {
+	return async function verifyTotpLogin(req, res, next) {
+		const validation = totpLoginSchema.safeParse(req.body);
 
 		if (!validation.success) {
 			return res.status(400).json({
 				status: false,
-				message:
-					'Invalid authentication code',
+				message: 'Invalid authentication code',
 			});
 		}
 
 		try {
-			const pendingUserId = Number(
-				req.session
-					?.pendingTwoFactorUserId,
-			);
+			const pendingUserId = Number(req.session?.pendingTwoFactorUserId);
 
-			const expiresAt = Number(
-				req.session
-					?.pendingTwoFactorExpiresAt,
-			);
+			const expiresAt = Number(req.session?.pendingTwoFactorExpiresAt);
 
-			if (
-				!Number.isSafeInteger(
-					pendingUserId,
-				) ||
-				pendingUserId <= 0 ||
-				!Number.isFinite(expiresAt) ||
-				expiresAt <= Date.now()
-			) {
+			if (!Number.isSafeInteger(pendingUserId) || pendingUserId <= 0 || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
 				if (req.session) {
-					clearPendingChallenge(
-						req.session,
-					);
+					clearPendingChallenge(req.session);
 
 					await saveSession(req);
 				}
@@ -94,28 +67,18 @@ export default function createVerifyTotpLoginController(
 				return invalidCodeResponse(res);
 			}
 
-			const result =
-				await verifyTotpLoginService.verifySecondFactor(
-					{
-						userId: pendingUserId,
-						code: validation.data.code,
-					},
-				);
+			const result = await verifyTotpLoginService.verifySecondFactor({
+				userId: pendingUserId,
+				code: validation.data.code,
+			});
 
 			if (!result.verified) {
-				const attempts =
-					Number(
-						req.session
-							.pendingTwoFactorAttempts,
-					) + 1;
+				const attempts = Number(req.session.pendingTwoFactorAttempts) + 1;
 
-				req.session.pendingTwoFactorAttempts =
-					attempts;
+				req.session.pendingTwoFactorAttempts = attempts;
 
 				if (attempts >= maximumAttempts) {
-					clearPendingChallenge(
-						req.session,
-					);
+					clearPendingChallenge(req.session);
 				}
 
 				await saveSession(req);
@@ -129,9 +92,10 @@ export default function createVerifyTotpLoginController(
 
 			await saveSession(req);
 
-			await verifyTotpLoginService.recordSuccessfulLogin(
-				result.user.id,
-			);
+			await verifyTotpLoginService.recordSuccessfulLogin({
+				userId: result.user.id,
+				currentSessionId: req.sessionID,
+			});
 
 			return res.json({
 				status: true,
@@ -139,11 +103,8 @@ export default function createVerifyTotpLoginController(
 				data: {
 					id: result.user.id,
 					email: result.user.email,
-					displayName:
-						result.user.display_name,
-					recoveryCodeUsed:
-						result.method ===
-						'recovery_code',
+					displayName: result.user.display_name,
+					recoveryCodeUsed: result.method === 'recovery_code',
 				},
 			});
 		} catch (error) {

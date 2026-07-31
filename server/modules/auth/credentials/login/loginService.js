@@ -1,9 +1,16 @@
 import argon2 from 'argon2';
 
-export default function createLoginService(authRepository) {
-	async function authenticateWithPassword(email, password) {
+export default function createLoginService(
+	authRepository,
+) {
+	async function authenticateWithPassword(
+		email,
+		password,
+	) {
 		const user =
-			await authRepository.findUserByEmail(email);
+			await authRepository.findUserByEmail(
+				email,
+			);
 
 		if (!user || !user.password_hash) {
 			return {
@@ -12,10 +19,11 @@ export default function createLoginService(authRepository) {
 			};
 		}
 
-		const passwordIsValid = await argon2.verify(
-			user.password_hash,
-			password,
-		);
+		const passwordIsValid =
+			await argon2.verify(
+				user.password_hash,
+				password,
+			);
 
 		if (!passwordIsValid) {
 			return {
@@ -30,7 +38,8 @@ export default function createLoginService(authRepository) {
 		) {
 			return {
 				success: false,
-				code: 'EMAIL_VERIFICATION_REQUIRED',
+				code:
+					'EMAIL_VERIFICATION_REQUIRED',
 			};
 		}
 
@@ -54,8 +63,24 @@ export default function createLoginService(authRepository) {
 		};
 	}
 
-	async function recordSuccessfulLogin(userId) {
-		await authRepository.updateLastLogin(userId);
+	async function recordSuccessfulLogin({
+		userId,
+		currentSessionId,
+	}) {
+		if (!currentSessionId) {
+			throw new Error(
+				'Current session identifier is unavailable',
+			);
+		}
+
+		await authRepository.deleteOtherUserSessions(
+			userId,
+			currentSessionId,
+		);
+
+		await authRepository.updateLastLogin(
+			userId,
+		);
 	}
 
 	return {
