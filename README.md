@@ -57,48 +57,57 @@ omdn/
 |   |-- middleware/sessionMiddleware.js
 |   |-- modules/
 |   |   |-- account/
-|   |   |   |-- __tests__/accountRoutes.test.js
-|   |   |   |-- controllers/getCurrentAccountController.js
-|   |   |   |-- services/getCurrentAccountService.js
+|   |   |   |-- getCurrent/
+|   |   |   |   |-- getCurrentAccountController.js
+|   |   |   |   `-- getCurrentAccountService.js
 |   |   |   |-- accountModule.js
-|   |   |   `-- accountRoutes.js
+|   |   |   |-- accountRoutes.js
+|   |   |   `-- accountRoutes.test.js
 |   |   |-- admin/
-|   |   |   |-- __tests__/adminRoutes.test.js
-|   |   |   |-- controllers/testAdminAccessController.js
-|   |   |   |-- services/testAdminAccessService.js
+|   |   |   |-- testAccess/
+|   |   |   |   |-- testAdminAccessController.js
+|   |   |   |   `-- testAdminAccessService.js
 |   |   |   |-- adminModule.js
-|   |   |   `-- adminRoutes.js
+|   |   |   |-- adminRoutes.js
+|   |   |   `-- adminRoutes.test.js
 |   |   `-- auth/
-|   |       |-- __tests__/
 |   |       |-- credentials/
-|   |       |   |-- controllers/
-|   |       |   |-- services/
+|   |       |   |-- login/
+|   |       |   |-- logout/
 |   |       |   |-- credentialsModule.js
 |   |       |   `-- credentialsRoutes.js
 |   |       |-- emailVerification/
-|   |       |   |-- controllers/
-|   |       |   |-- services/
+|   |       |   |-- resend/
+|   |       |   |-- verify/
 |   |       |   |-- emailVerificationModule.js
 |   |       |   `-- emailVerificationRoutes.js
-|   |       |-- middleware/
-|   |       |   |-- __tests__/
-|   |       |   |-- requireAuth.js
-|   |       |   |-- requireGuest.js
-|   |       |   `-- requirePermission.js
 |   |       |-- passwordRecovery/
-|   |       |   |-- controllers/
-|   |       |   |-- services/
+|   |       |   |-- forgot/
+|   |       |   |-- reset/
 |   |       |   |-- passwordRecoveryModule.js
-|   |       |   `-- passwordRecoveryRoutes.js
+|   |       |   |-- passwordRecoveryRoutes.js
+|   |       |   `-- passwordRecovery.test.js
 |   |       |-- registration/
-|   |       |   |-- controllers/
-|   |       |   |-- services/
+|   |       |   |-- register/
 |   |       |   |-- registrationModule.js
 |   |       |   `-- registrationRoutes.js
+|   |       |-- shared/
+|   |       |   |-- middleware/
+|   |       |   |-- authRepository.js
+|   |       |   `-- authSchemas.js
+|   |       |-- totp/
+|   |       |   |-- disable/
+|   |       |   |-- enable/
+|   |       |   |-- login/
+|   |       |   |-- recoveryCodes/
+|   |       |   |-- setup/
+|   |       |   |-- shared/
+|   |       |   |-- status/
+|   |       |   |-- totpModule.js
+|   |       |   `-- totpRoutes.js
 |   |       |-- authModule.js
-|   |       |-- authRepository.js
 |   |       |-- authRoutes.js
-|   |       `-- authSchemas.js
+|   |       `-- authRoutes.test.js
 |   |-- routes/apiRoutes.js
 |   |-- expressApp.js
 |   `-- server.js
@@ -137,7 +146,7 @@ Generated `node_modules/`, `dist/`, and local environment files are omitted.
 - `src/` contains the browser application.
 - `server/modules/` contains feature-owned composition, routes, controllers, services, schemas, repositories, middleware, and colocated tests.
 - Each `*Module.js` file wires its feature dependencies and returns a router.
-- Auth is divided into credentials, registration, email-verification, and password-recovery submodules.
+- Auth is divided into credentials, registration, email-verification, password-recovery, and TOTP submodules; shared schemas, persistence, and middleware live under `auth/shared/`.
 - `server/routes/` contains shared/cross-feature routers; `server/middleware/` contains shared middleware.
 - `server/expressApp.js` composes the application; `server/server.js` starts the listener.
 - Frontend imports use `@/*`; backend imports use `#server/*`.
@@ -194,10 +203,11 @@ npm run dev:server
 | `DB_CONNECTION_LIMIT` | Maximum pool connections | `10` |
 | `DB_SSL`, `DB_SSL_CA` | Reserved SSL settings; not currently consumed | None |
 | `SESSION_SECRET` | Required session signing secret | None |
+| `TOTP_ENCRYPTION_KEY` | Base64-encoded 32-byte key used to encrypt TOTP secrets | None |
 
 Never put secrets in `VITE_*` variables because Vite exposes them to the browser.
 
-> The server consumes `APP_ENV`, but `.env.example` currently lists only `NODE_ENV`. Set both to `production` in production.
+> Set both `APP_ENV=production` and `NODE_ENV=production` in production. `TOTP_ENCRYPTION_KEY` must be the Base64 representation of 32 random bytes.
 
 ## Database
 
@@ -211,6 +221,8 @@ They create the authentication, authorization, session, token, TOTP, recovery-co
 ## Authentication and routing
 
 Sessions are stored in MySQL for seven days. Cookies are HTTP-only, use `SameSite=Lax`, and become secure in production.
+
+TOTP setup uses `otplib` and `qrcode`. Secrets are encrypted with AES-256-GCM and user-bound additional authenticated data; recovery codes are supported for second-factor login.
 
 ### Frontend routes
 
@@ -235,6 +247,12 @@ Sessions are stored in MySQL for seven days. Cookies are HTTP-only, use `SameSit
 | `POST /api/auth/email/resend` | Guests only | Replaces an eligible verification token |
 | `POST /api/auth/password/forgot` | Guests only | Creates a reset token without exposing account existence |
 | `POST /api/auth/password/reset` | Guests only | Resets a password with a valid token |
+| `GET /api/auth/totp/status` | Authenticated | Reports whether TOTP is enabled |
+| `POST /api/auth/totp/setup` | Authenticated | Creates an encrypted pending secret and authenticator QR code |
+| `POST /api/auth/totp/enable` | Authenticated | Verifies setup and enables TOTP |
+| `POST /api/auth/totp/recovery-codes/regenerate` | Authenticated | Replaces recovery codes |
+| `POST /api/auth/totp/disable` | Authenticated | Disables TOTP |
+| `POST /api/auth/totp/login/verify` | Guests with pending login | Completes login using a TOTP or recovery code |
 | `GET /api/account/me` | Authenticated | Returns the current user, roles, and permissions |
 | `GET /api/admin/test` | `users.manage` permission | Tests protected admin access |
 
