@@ -6,86 +6,120 @@ A full-stack version of **O Melhor do Natal**, built with React and Vite on the 
 
 ### Frontend
 
-| Technology / package | Purpose | Documentation | npm |
-|---|---|---|---|
-| React (`react`) | User interface | [react.dev](https://react.dev/) | [npm](https://www.npmjs.com/package/react) |
-| React DOM (`react-dom`) | Browser rendering | [React DOM](https://react.dev/reference/react-dom) | [npm](https://www.npmjs.com/package/react-dom) |
-| Vite (`vite`) | Development server and production build | [vite.dev](https://vite.dev/) | [npm](https://www.npmjs.com/package/vite) |
-| React plugin for Vite (`@vitejs/plugin-react`) | React integration for Vite | [GitHub](https://github.com/vitejs/vite-plugin-react) | [npm](https://www.npmjs.com/package/@vitejs/plugin-react) |
-| React Router (`react-router`) | Client-side routing | [reactrouter.com](https://reactrouter.com/) | [npm](https://www.npmjs.com/package/react-router) |
-| Tailwind CSS (`tailwindcss`) | Utility-first CSS framework | [tailwindcss.com](https://tailwindcss.com/) | [npm](https://www.npmjs.com/package/tailwindcss) |
-| Tailwind Vite plugin (`@tailwindcss/vite`) | Tailwind integration for Vite | [Vite guide](https://tailwindcss.com/docs/installation/using-vite) | [npm](https://www.npmjs.com/package/@tailwindcss/vite) |
-| shadcn/ui (`shadcn`) | Customizable UI components | [ui.shadcn.com](https://ui.shadcn.com/) | [npm](https://www.npmjs.com/package/shadcn) |
-| Base UI (`@base-ui/react`) | Accessible primitives used by the selected shadcn base | [base-ui.com](https://base-ui.com/react/overview/quick-start) | [npm](https://www.npmjs.com/package/@base-ui/react) |
-| tw-animate-css (`tw-animate-css`) | Tailwind animation utilities | [GitHub](https://github.com/Wombosvideo/tw-animate-css) | [npm](https://www.npmjs.com/package/tw-animate-css) |
-| Lucide React (`lucide-react`) | Icon library | [lucide.dev](https://lucide.dev/guide/packages/lucide-react) | [npm](https://www.npmjs.com/package/lucide-react) |
-| Class Variance Authority (`class-variance-authority`) | Component variants | [cva.style](https://cva.style/docs) | [npm](https://www.npmjs.com/package/class-variance-authority) |
-| clsx (`clsx`) | Conditional class names | [GitHub](https://github.com/lukeed/clsx) | [npm](https://www.npmjs.com/package/clsx) |
-| tailwind-merge (`tailwind-merge`) | Tailwind class conflict resolution | [GitHub](https://github.com/dcastil/tailwind-merge) | [npm](https://www.npmjs.com/package/tailwind-merge) |
+| Technology / package | Purpose |
+|---|---|
+| React and React DOM | User interface and browser rendering |
+| Vite and `@vitejs/plugin-react` | Development server and production build |
+| React Router | Client-side routing |
+| Tailwind CSS and `@tailwindcss/vite` | Utility-first styling and Vite integration |
+| shadcn/ui and Base UI | Reusable, accessible UI components |
+| Lucide React | Icons |
+| Class Variance Authority, `clsx`, and `tailwind-merge` | Component variants and class composition |
+| `tw-animate-css` | Tailwind animation utilities |
 
 ### Backend
 
-| Technology / package | Purpose | Documentation | npm |
-|---|---|---|---|
-| MySQL2 (`mysql2`) | Promise-based MySQL connection pool | [GitHub](https://github.com/sidorares/node-mysql2) | [npm](https://www.npmjs.com/package/mysql2) |
-| Express Session (`express-session`) | Server-side session middleware | [GitHub](https://github.com/expressjs/session) | [npm](https://www.npmjs.com/package/express-session) |
-| Express MySQL Session (`express-mysql-session`) | MySQL-backed session storage | [GitHub](https://github.com/chill117/express-mysql-session) | [npm](https://www.npmjs.com/package/express-mysql-session) |
-| Node.js | JavaScript runtime | [nodejs.org](https://nodejs.org/) | — |
-| Express (`express`) | Backend HTTP server and API | [expressjs.com](https://expressjs.com/) | [npm](https://www.npmjs.com/package/express) |
-| dotenv (`dotenv`) | Loads local development variables from `.env` | [GitHub](https://github.com/motdotla/dotenv) | [npm](https://www.npmjs.com/package/dotenv) |
-| MySQL | Database server | [MySQL documentation](https://dev.mysql.com/doc/) | — |
+| Technology / package | Purpose |
+|---|---|
+| Node.js and Express | HTTP server, API routes, and production frontend delivery |
+| MySQL2 | Promise-based MySQL connection pool |
+| Express Session | Server-side session middleware |
+| Express MySQL Session | MySQL-backed session storage |
+| Argon2 | Password hashing support |
+| Zod | Request and data validation support |
+| dotenv | Environment variable loading support |
 
 ### Development tools
 
-| Technology / package | Purpose | Documentation | npm |
-|---|---|---|---|
-| ESLint (`eslint`) | JavaScript and React linting | [eslint.org](https://eslint.org/) | [npm](https://www.npmjs.com/package/eslint) |
-| Prettier (`prettier`) | Code formatting | [prettier.io](https://prettier.io/) | [npm](https://www.npmjs.com/package/prettier) |
+| Technology / package | Purpose |
+|---|---|
+| ESLint | JavaScript and React linting |
+| Prettier configuration | Formatting rules used by compatible editors and tools |
+| Dependency Cruiser | Source dependency analysis and DOT graph generation |
+| Graphviz | Converts the generated DOT graph to SVG |
 
-## Current project structure
+## Project structure
 
 ```text
 omdn/
-├── public/
-├── server/
-│   └── server.js
-├── src/
-│   ├── assets/
-│   ├── components/
-│   │   └── ui/
-│   │       └── button.jsx
-│   ├── lib/
-│   │   └── utils.js
-│   ├── pages/
-│   │   ├── HomePage.jsx
-│   │   └── dev/
-│   │       └── DesignSystemPage.jsx
-│   ├── router/
-│   │   ├── AppRoutes.jsx
-│   │   └── DevRoutes.jsx
-│   ├── App.css
-│   ├── App.jsx
-│   ├── index.css
-│   └── main.jsx
-├── .env
-├── .env.example
-├── .gitignore
-├── .prettierignore
-├── .prettierrc
-├── components.json
-├── eslint.config.js
-├── index.html
-├── jsconfig.json
-├── package.json
-├── README.md
-└── vite.config.js
+|-- docs/
+|   |-- dependency-graph.dot
+|   `-- dependency-graph.svg
+|-- .dependency-cruiser.cjs
+|-- server/
+|   |-- database/
+|   |   |-- migrations/
+|   |   |   `-- 001_create_auth_tables.sql
+|   |   `-- seeds/
+|   |       `-- 001_seed_roles_permissions.sql
+|   |-- dbConnect/
+|   |   `-- createPool.js
+|   |-- middleware/
+|   |   |-- auth/
+|   |   |   |-- requireAuth.js
+|   |   |   |-- requireGuest.js
+|   |   |   `-- requirePermission.js
+|   |   `-- sessionMiddleware.js
+|   |-- routes/
+|   |   |-- accountRoutes.js
+|   |   |-- adminRoutes.js
+|   |   |-- apiRoutes.js
+|   |   `-- authRoutes.js
+|   `-- server.js
+|-- src/
+|   |-- components/
+|   |   `-- ui/
+|   |       `-- button.jsx
+|   |-- lib/
+|   |   `-- utils.js
+|   |-- pages/
+|   |   |-- dev/
+|   |   |   `-- DesignSystemPage.jsx
+|   |   `-- HomePage.jsx
+|   |-- router/
+|   |   |-- AppRoutes.jsx
+|   |   `-- DevRoutes.jsx
+|   |-- App.css
+|   |-- App.jsx
+|   |-- index.css
+|   `-- main.jsx
+|-- .env.example
+|-- .gitignore
+|-- .prettierignore
+|-- .prettierrc
+|-- components.json
+|-- eslint.config.js
+|-- index.html
+|-- jsconfig.json
+|-- package-lock.json
+|-- package.json
+|-- README.md
+`-- vite.config.js
 ```
+
+Generated directories such as `node_modules/` and `dist/`, along with local `.env.development` and `.env.production` files, are intentionally omitted from the source tree above.
+
+### Structure conventions
+
+- `src/` contains browser-side application code.
+- `src/pages/` contains route-level screens.
+- `src/components/ui/` contains reusable UI primitives.
+- `src/router/` contains frontend route definitions.
+- `server/routes/` contains Express routers grouped by API area.
+- `server/middleware/` contains session, authentication, and authorization middleware.
+- `server/dbConnect/` contains database connection setup.
+- `server/database/migrations/` and `server/database/seeds/` contain ordered SQL files.
+- Frontend imports use the `@/*` alias for `src/*`.
+- Backend imports use the `#server/*` package import alias for `server/*.js`.
+- `.dependency-cruiser.cjs` defines dependency validation rules and graph styling; `docs/` contains its generated graph artifacts.
 
 ## Installation
 
 ```bash
 npm install
 ```
+
+Copy `.env.example` to `.env.development` and fill in the local values before starting the backend.
 
 ## Development
 
@@ -101,106 +135,106 @@ Start the Express backend in a second terminal:
 npm run dev:server
 ```
 
-## Available scripts
+The backend command loads `.env.development` and restarts when server files change.
 
-```json
-{
-  "dev": "vite",
-  "dev:server": "node --env-file=.env.development --watch server/server.js",
-  "build": "vite build",
-  "prestart": "npm run build",
-  "start": "node server/server.js",
-  "lint": "eslint .",
-  "preview": "vite preview"
-}
-```
+## Available scripts
 
 | Command | Description |
 |---|---|
 | `npm run dev` | Starts the Vite development server |
-| `npm run dev:server` | Loads `.env.development` and starts the Express backend with Node watch mode |
-| `npm run build` | Creates the Vite production build in `dist` |
-| `npm start` | Runs `prestart` and then starts the Express backend |
-| `npm run lint` | Runs ESLint |
+| `npm run dev:server` | Loads `.env.development` and starts Express in watch mode |
+| `npm run build` | Creates the production frontend in `dist/` |
+| `npm start` | Runs `prestart`, builds the frontend, and starts Express |
+| `npm run lint` | Runs ESLint across the project |
 | `npm run preview` | Previews the Vite production build |
+| `npm run diagram` | Analyzes `src/` and `server/`, then regenerates the DOT and SVG dependency graphs |
+
+## Dependency graph
+
+Run:
+
+```bash
+npm run diagram
+```
+
+This uses Dependency Cruiser to analyze imports under `src/` and `server/`, writes `docs/dependency-graph.dot`, and invokes Graphviz `dot` to create `docs/dependency-graph.svg`. Graphviz must be installed and its `dot` executable must be available on `PATH`.
 
 ## Environment variables
 
-The local `.env` file is for development only and must not be committed or deployed.
+| Variable | Purpose | Code default |
+|---|---|---|
+| `PORT` | Express HTTP port | `3000` |
+| `APP_ENV` | Enables production proxy trust and SPA fallback when set to `production` | None |
+| `NODE_ENV` | Enables secure session cookies when set to `production` | None |
+| `DB_HOST` | MySQL host | None |
+| `DB_PORT` | MySQL port | `3306` |
+| `DB_NAME` | MySQL database | None |
+| `DB_USER` | MySQL user | None |
+| `DB_PASSWORD` | MySQL password | None |
+| `DB_CONNECTION_LIMIT` | Maximum MySQL pool connections | `10` |
+| `DB_SSL` | Reserved database SSL setting; not currently consumed | None |
+| `DB_SSL_CA` | Reserved database CA setting; not currently consumed | None |
+| `SESSION_SECRET` | Required secret used to sign session cookies | None |
 
-Production variables are configured directly in the hosting platform.
+Local environment files must not be committed. `.env.example` documents variable names without secret values. Variables prefixed with `VITE_` are exposed to the browser bundle and must not contain secrets.
 
-```text
-.env          # local values, ignored by Git
-.env.example  # variable names only, committed to Git
-```
+> `server/server.js` checks `APP_ENV`, while `.env.example` currently lists `NODE_ENV`. Set both to `production` in production unless the runtime configuration is consolidated later.
 
-Do not place secrets in frontend variables. Vite variables prefixed with `VITE_` are included in the browser bundle.
+## Database
+
+Run the migration before the seed:
+
+1. `server/database/migrations/001_create_auth_tables.sql`
+2. `server/database/seeds/001_seed_roles_permissions.sql`
+
+The migration creates users, external authentication identities, roles, permissions, role assignments, sessions, verification and reset tokens, TOTP settings, recovery codes, and authentication audit events.
+
+Registration validates names, normalized email addresses, and passwords of 15-128 characters. Passwords are hashed with Argon2id, verification tokens are stored as SHA-256 hashes for 24 hours, and development mode logs the raw token until email delivery is connected. Verification activates pending users and invalidates their unused verification tokens. Resending replaces any unused token with a new 24-hour token while returning a neutral response that does not reveal whether an account exists.
+
+The seed creates the built-in `administrator`, `editor`, `author`, `contributor`, and `subscriber` roles, then assigns their initial permissions. SQL execution remains explicit; the project does not currently provide an npm migration command.
+
+## Sessions and authorization
+
+Sessions are stored in MySQL for seven days using the `sessions` table. Cookies are HTTP-only, use `SameSite=Lax`, and become secure when `NODE_ENV=production`.
+
+The middleware is layered as follows:
+
+- `sessionMiddleware.js` configures the MySQL session store and cookie.
+- `requireGuest.js` rejects requests from authenticated users.
+- `requireAuth.js` loads the active user, roles, and permissions into `req.auth`.
+- `requirePermission.js` checks a required permission from `req.auth.permissions`.
 
 ## Routing
 
-The project uses React Router.
+### Frontend routes
 
-The development-only design-system route is:
-
-```text
-/dev/design-system
-```
-
-Development routes are registered only when Vite is running in development mode.
-
-## Backend and database structure
-
-The backend extends the existing frontend structure without moving its files:
-
-```text
-server/
-|-- database/
-|   |-- migrations/
-|   |   `-- 001_create_auth_tables.sql
-|   `-- seeds/
-|       `-- 001_seed_roles_permissions.sql
-|-- dbConnect/
-|   `-- createPool.js
-|-- routes/
-|   |-- adminRoutes.js
-|   `-- apiRoutes.js
-`-- server.js
-```
-
-- `server/server.js` creates the Express app, mounts routes, serves `dist/`, and provides the React Router fallback.
-- `server/dbConnect/createPool.js` creates the promise-based MySQL connection pool.
-- `server/routes/apiRoutes.js` contains the API health and test-items endpoints.
-- `server/routes/adminRoutes.js` reserves the `/admin` namespace.
-- `server/database/migrations/` contains schema changes for authentication, authorization, sessions, tokens, TOTP, recovery codes, and audit events.
-- `server/database/seeds/` contains the initial roles, permissions, and role-permission assignments.
-
-Run migrations before their corresponding seeds. These are explicit SQL files; there is currently no npm migration command.
+| Route | Availability | Purpose |
+|---|---|---|
+| `/` | All environments | Home page |
+| `/dev/design-system` | Vite development only | Design-system preview |
+| `*` | All environments | Frontend not-found response |
 
 ### Backend routes
 
-| Route | Purpose |
-|---|---|
-| `GET /api` | Returns the API health response |
-| `GET /api/test-items` | Reads test items from MySQL |
-| `/admin/*` | Reserved admin router; currently returns a JSON 404 |
-| `/api/*` | Unknown API routes return a JSON 404 |
+| Method and route | Access | Purpose |
+|---|---|---|
+| `POST /api/auth/register` | Guests only | Validates registration, creates a pending subscriber, and stores a verification token |
+| `GET /api` | Public | API health response |
+| `GET /api/test-items` | Public | Reads test items from MySQL |
+| `POST /api/auth/email/verify` | Public | Activates a pending account using a valid verification token |
+| `POST /api/auth/email/resend` | Guests only | Replaces the verification token for an eligible pending account |
+| `GET /api/auth/status` | Public | Reports whether the session is authenticated |
+| `GET /api/auth/guest-test` | Guests only | Tests guest-only middleware |
+| `GET /api/account/me` | Authenticated users | Returns the current user, roles, and permissions |
+| `GET /api/admin/test` | Authenticated users with `users.manage` | Tests permission-protected access |
 
-In production, Express serves the built frontend and sends `dist/index.html` for non-API routes so React Router can handle navigation.
+Unknown routes under the general `/api` router return a JSON 404. In production, Express serves `dist/` and returns `dist/index.html` for client-side routes when `APP_ENV=production`.
 
 ## Design system
 
-The interface uses:
+The UI uses Tailwind CSS, shadcn/ui with Base UI primitives, Lucide icons, and shared variant/class utilities. The development-only design-system page previews component variations, sizes, states, and usage examples.
 
-- Tailwind CSS for layout and styling
-- shadcn/ui for reusable components
-- Base UI for accessible primitives
-- Motion for animations
-- Lucide React for icons
-
-The design-system page is used to preview component variations, sizes, states, and usage examples during development.
-
-## Color palette
+### Color palette
 
 | Name | Hex | OKLCH |
 |---|---|---|
@@ -215,46 +249,14 @@ The design-system page is used to preview component variations, sizes, states, a
 | Pearl Beige | `#e7d6ba` | `oklch(0.8827 0.0418 80.3)` |
 | Dust Grey | `#e2ddd5` | `oklch(0.8993 0.0121 79.78)` |
 
-### CSS reference
-
-```css
-/* Reds */
---intense-cherry: oklch(0.5553 0.1739 19.78);
---wine-plum: oklch(0.437 0.1151 8.38);
-
-/* Greens */
---dark-slate-grey: oklch(0.3906 0.0508 187.67);
---pine-blue: oklch(0.4967 0.0514 186.79);
-
-/* Blues */
---ocean-blue: oklch(0.6111 0.1133 241.37);
---baltic-blue: oklch(0.4677 0.083 235.24);
-
-/* Golds */
---dark-goldenrod: oklch(0.617 0.1261 90.65);
---golden-bronze: oklch(0.732 0.1496 90.57);
-
-/* Neutrals */
---pearl-beige: oklch(0.8827 0.0418 80.3);
---dust-grey: oklch(0.8993 0.0121 79.78);
-```
-
 ## Deployment
 
-The project is intended to run on Hostinger as a Node.js application.
-
-The Node.js entry point is:
+The intended production entry point is:
 
 ```text
 server/server.js
 ```
 
-The frontend production files are generated with:
+`npm start` first runs `npm run build` through `prestart`, then starts Express. If the hosting platform invokes `server/server.js` directly, build the frontend separately first.
 
-```bash
-npm run build
-```
-
-When Hostinger runs `npm start`, the `prestart` script builds the Vite frontend before Express starts. If the platform invokes `server/server.js` directly, the frontend must be built separately by the deployment process.
-
-Production environment variables are configured in Hostinger and are read by the backend through `process.env`.
+Configure production environment variables in the hosting platform. Set `APP_ENV=production` for proxy trust and SPA routing, and `NODE_ENV=production` for secure session cookies.

@@ -1,0 +1,36 @@
+strict digraph "dependency-cruiser output"{
+    rankdir="LR" splines="true" overlap="false" nodesep="0.16" ranksep="0.18" fontname="Helvetica-bold" fontsize="9" style="rounded,bold,filled" fillcolor="#ffffff" compound="true" bgcolor="#E2DDD5"
+    node [shape="box" style="rounded,filled" height="0.2" color="#204E4A" fillcolor="#E7D6BA" fontcolor="#204E4A" fontname="Helvetica" fontsize="9"]
+    edge [arrowhead="vee" arrowsize="0.7" penwidth="2.0" color="#3E6C67" fontname="Helvetica" fontsize="9" fontcolor="#3E6C67"]
+
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/dbConnect" {label="dbConnect" "server/dbConnect/createPool.js" [label=<createPool.js> tooltip="createPool.js" URL="server/dbConnect/createPool.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } }
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/middleware" {label="middleware" subgraph "cluster_server/middleware/auth" {label="auth" "server/middleware/auth/requireAuth.js" [label=<requireAuth.js> tooltip="requireAuth.js" URL="server/middleware/auth/requireAuth.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } } }
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/middleware" {label="middleware" subgraph "cluster_server/middleware/auth" {label="auth" "server/middleware/auth/requireGuest.js" [label=<requireGuest.js> tooltip="requireGuest.js" URL="server/middleware/auth/requireGuest.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } } }
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/middleware" {label="middleware" subgraph "cluster_server/middleware/auth" {label="auth" "server/middleware/auth/requirePermission.js" [label=<requirePermission.js> tooltip="requirePermission.js" URL="server/middleware/auth/requirePermission.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } } }
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/middleware" {label="middleware" "server/middleware/sessionMiddleware.js" [label=<sessionMiddleware.js> tooltip="sessionMiddleware.js" URL="server/middleware/sessionMiddleware.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } }
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/routes" {label="routes" "server/routes/accountRoutes.js" [label=<accountRoutes.js> tooltip="accountRoutes.js" URL="server/routes/accountRoutes.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } }
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/routes" {label="routes" "server/routes/adminRoutes.js" [label=<adminRoutes.js> tooltip="adminRoutes.js" URL="server/routes/adminRoutes.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } }
+    "server/routes/adminRoutes.js" -> "server/middleware/auth/requirePermission.js"
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/routes" {label="routes" "server/routes/apiRoutes.js" [label=<apiRoutes.js> tooltip="apiRoutes.js" URL="server/routes/apiRoutes.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } }
+    subgraph "cluster_server" {label="server" subgraph "cluster_server/routes" {label="routes" "server/routes/authRoutes.js" [label=<authRoutes.js> tooltip="authRoutes.js" URL="server/routes/authRoutes.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] } }
+    "server/routes/authRoutes.js" -> "server/middleware/auth/requireGuest.js"
+    subgraph "cluster_server" {label="server" "server/server.js" [label=<server.js> tooltip="server.js" URL="server/server.js" fillcolor="#C43A47" color="#843145" fontcolor="#FFFFFF"] }
+    "server/server.js" -> "server/dbConnect/createPool.js"
+    "server/server.js" -> "server/middleware/auth/requireAuth.js"
+    "server/server.js" -> "server/middleware/sessionMiddleware.js"
+    "server/server.js" -> "server/routes/accountRoutes.js"
+    "server/server.js" -> "server/routes/adminRoutes.js"
+    "server/server.js" -> "server/routes/apiRoutes.js"
+    "server/server.js" -> "server/routes/authRoutes.js"
+    subgraph "cluster_src" {label="src" "src/App.jsx" [label=<App.jsx> tooltip="App.jsx" URL="src/App.jsx" fillcolor="#3A8BC1" color="#216182" fontcolor="#FFFFFF"] }
+    subgraph "cluster_src" {label="src" subgraph "cluster_src/components" {label="components" subgraph "cluster_src/components/ui" {label="ui" "src/components/ui/button.jsx" [label=<button.jsx> tooltip="no-orphans" URL="src/components/ui/button.jsx" fillcolor="#3A8BC1" fontcolor="#FFFFFF" color="#216182"] } } }
+    subgraph "cluster_src" {label="src" "src/index.css" [label=<index.css> tooltip="index.css" URL="src/index.css" fillcolor="#3A8BC1" color="#216182" fontcolor="#FFFFFF"] }
+    subgraph "cluster_src" {label="src" subgraph "cluster_src/lib" {label="lib" "src/lib/utils.js" [label=<utils.js> tooltip="no-orphans" URL="src/lib/utils.js" fillcolor="#3A8BC1" fontcolor="#FFFFFF" color="#216182"] } }
+    subgraph "cluster_src" {label="src" "src/main.jsx" [label=<main.jsx> tooltip="main.jsx" URL="src/main.jsx" fillcolor="#3A8BC1" color="#216182" fontcolor="#FFFFFF"] }
+    "src/main.jsx" -> "src/App.jsx"
+    "src/main.jsx" -> "src/index.css"
+    subgraph "cluster_src" {label="src" subgraph "cluster_src/pages" {label="pages" "src/pages/HomePage.jsx" [label=<HomePage.jsx> tooltip="no-orphans" URL="src/pages/HomePage.jsx" fillcolor="#3A8BC1" fontcolor="#FFFFFF" color="#216182"] } }
+    subgraph "cluster_src" {label="src" subgraph "cluster_src/pages" {label="pages" subgraph "cluster_src/pages/dev" {label="dev" "src/pages/dev/DesignSystemPage.jsx" [label=<DesignSystemPage.jsx> tooltip="no-orphans" URL="src/pages/dev/DesignSystemPage.jsx" fillcolor="#3A8BC1" fontcolor="#FFFFFF" color="#216182"] } } }
+    subgraph "cluster_src" {label="src" subgraph "cluster_src/router" {label="router" "src/router/AppRoutes.jsx" [label=<AppRoutes.jsx> tooltip="no-orphans" URL="src/router/AppRoutes.jsx" fillcolor="#3A8BC1" fontcolor="#FFFFFF" color="#216182"] } }
+    subgraph "cluster_src" {label="src" subgraph "cluster_src/router" {label="router" "src/router/DevRoutes.jsx" [label=<DevRoutes.jsx> tooltip="no-orphans" URL="src/router/DevRoutes.jsx" fillcolor="#3A8BC1" fontcolor="#FFFFFF" color="#216182"] } }
+}

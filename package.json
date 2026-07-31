@@ -7,17 +7,21 @@
 		"#server/*": "./server/*.js"
 	},
 	"scripts": {
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"dev": "vite",
 		"dev:server": "node --env-file=.env.development --watch server/server.js",
 		"build": "vite build",
 		"prestart": "npm run build",
 		"start": "node server/server.js",
 		"lint": "eslint .",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"diagram": "depcruise src server --include-only \"^(src|server)\" --output-type dot --output-to docs/dependency-graph.dot && dot -Tsvg docs/dependency-graph.dot -o docs/dependency-graph.svg"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",
 		"@tailwindcss/vite": "^4.3.3",
+		"argon2": "^0.45.1",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"dotenv": "^17.4.2",
@@ -32,17 +36,24 @@
 		"shadcn": "^4.16.0",
 		"tailwind-merge": "^3.6.0",
 		"tailwindcss": "^4.3.3",
-		"tw-animate-css": "^1.4.0"
+		"tw-animate-css": "^1.4.0",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.3",
+		"dependency-cruiser": "^18.1.0",
 		"eslint": "^10.6.0",
 		"eslint-plugin-react-hooks": "^7.1.1",
 		"eslint-plugin-react-refresh": "^0.5.3",
 		"globals": "^17.7.0",
-		"vite": "^8.1.1"
+		"supertest": "^7.2.2",
+		"vite": "^8.1.1",
+		"vitest": "^4.1.10"
+	},
+	"allowScripts": {
+		"argon2@0.45.1": true
 	}
 }
