@@ -1,56 +1,29 @@
-import createAuthRoutes from '#server/modules/auth/authRoutes';
-
-import createLoginController from '#server/modules/auth/controllers/loginController';
-import createLogoutController from '#server/modules/auth/controllers/logoutController';
-import createRegisterController from '#server/modules/auth/controllers/registerController';
-import createResendVerificationEmailController from '#server/modules/auth/controllers/resendVerificationEmailController';
-import createVerifyEmailController from '#server/modules/auth/controllers/verifyEmailController';
+import express from 'express';
 
 import createAuthRepository from '#server/modules/auth/authRepository';
+import createAuthRoutes from '#server/modules/auth/authRoutes';
 
-import createLoginService from '#server/modules/auth/services/loginService';
-import createLogoutService from '#server/modules/auth/services/logoutService';
-import createRegisterService from '#server/modules/auth/services/registerService';
-import createResendVerificationEmailService from '#server/modules/auth/services/resendVerificationEmailService';
-import createVerifyEmailService from '#server/modules/auth/services/verifyEmailService';
+import createCredentialsModule from '#server/modules/auth/credentials/credentialsModule';
+import createEmailVerificationModule from '#server/modules/auth/emailVerification/emailVerificationModule';
+import createRegistrationModule from '#server/modules/auth/registration/registrationModule';
 
 export default function createAuthModule(db) {
+	const router = express.Router();
 	const authRepository = createAuthRepository(db);
 
-	const loginService = createLoginService(authRepository);
-	const logoutService = createLogoutService();
+	router.use(createAuthRoutes());
 
-	const registerService =
-		createRegisterService(authRepository);
+	router.use(
+		createCredentialsModule(authRepository),
+	);
 
-	const resendVerificationEmailService =
-		createResendVerificationEmailService(authRepository);
+	router.use(
+		createRegistrationModule(authRepository),
+	);
 
-	const verifyEmailService =
-		createVerifyEmailService(authRepository);
+	router.use(
+		createEmailVerificationModule(authRepository),
+	);
 
-	const loginController =
-		createLoginController(loginService);
-
-	const logoutController =
-		createLogoutController(logoutService);
-
-	const registerController =
-		createRegisterController(registerService);
-
-	const resendVerificationEmailController =
-		createResendVerificationEmailController(
-			resendVerificationEmailService,
-		);
-
-	const verifyEmailController =
-		createVerifyEmailController(verifyEmailService);
-
-	return createAuthRoutes({
-		loginController,
-		logoutController,
-		registerController,
-		resendVerificationEmailController,
-		verifyEmailController,
-	});
+	return router;
 }

@@ -2,13 +2,7 @@ import express from 'express';
 
 import requireGuest from '#server/modules/auth/middleware/requireGuest';
 
-export default function createAuthRoutes({
-	loginController,
-	logoutController,
-	registerController,
-	resendVerificationEmailController,
-	verifyEmailController,
-}) {
+export default function createAuthRoutes() {
 	const router = express.Router();
 
 	router.get('/status', (req, res) => {
@@ -24,31 +18,6 @@ export default function createAuthRoutes({
 			message: 'This route is available only to guests',
 		});
 	});
-
-	router.post(
-		'/register',
-		requireGuest,
-		registerController,
-	);
-
-	router.post(
-		'/email/verify',
-		verifyEmailController,
-	);
-
-	router.post(
-		'/email/resend',
-		requireGuest,
-		resendVerificationEmailController,
-	);
-
-	router.post(
-		'/login',
-		requireGuest,
-		loginController,
-	);
-
-	router.post('/logout', logoutController);
 
 	return router;
 }
