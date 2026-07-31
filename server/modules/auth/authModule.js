@@ -1,6 +1,6 @@
 import express from 'express';
 
-import createAuthRepository from '#server/modules/auth/authRepository';
+import createAuthRepository from '#server/modules/auth/shared/authRepository';
 import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 import createCredentialsModule from '#server/modules/auth/credentials/credentialsModule';

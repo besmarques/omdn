@@ -1,10 +1,10 @@
 import createCredentialsRoutes from '#server/modules/auth/credentials/credentialsRoutes';
 
-import createLoginController from '#server/modules/auth/credentials/controllers/loginController';
-import createLogoutController from '#server/modules/auth/credentials/controllers/logoutController';
+import createLoginController from '#server/modules/auth/credentials/login/loginController';
+import createLogoutController from '#server/modules/auth/credentials/logout/logoutController';
 
-import createLoginService from '#server/modules/auth/credentials/services/loginService';
-import createLogoutService from '#server/modules/auth/credentials/services/logoutService';
+import createLoginService from '#server/modules/auth/credentials/login/loginService';
+import createLogoutService from '#server/modules/auth/credentials/logout/logoutService';
 
 export default function createCredentialsModule(authRepository) {
 	const loginService = createLoginService(authRepository);

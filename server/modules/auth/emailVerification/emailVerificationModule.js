@@ -1,10 +1,10 @@
 import createEmailVerificationRoutes from '#server/modules/auth/emailVerification/emailVerificationRoutes';
 
-import createResendVerificationEmailController from '#server/modules/auth/emailVerification/controllers/resendVerificationEmailController';
-import createVerifyEmailController from '#server/modules/auth/emailVerification/controllers/verifyEmailController';
+import createResendVerificationEmailController from '#server/modules/auth/emailVerification/resend/resendVerificationEmailController';
+import createVerifyEmailController from '#server/modules/auth/emailVerification/verify/verifyEmailController';
 
-import createResendVerificationEmailService from '#server/modules/auth/emailVerification/services/resendVerificationEmailService';
-import createVerifyEmailService from '#server/modules/auth/emailVerification/services/verifyEmailService';
+import createResendVerificationEmailService from '#server/modules/auth/emailVerification/resend/resendVerificationEmailService';
+import createVerifyEmailService from '#server/modules/auth/emailVerification/verify/verifyEmailService';
 
 export default function createEmailVerificationModule(
 	authRepository,

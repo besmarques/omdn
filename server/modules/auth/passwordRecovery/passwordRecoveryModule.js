@@ -1,10 +1,10 @@
 import createPasswordRecoveryRoutes from '#server/modules/auth/passwordRecovery/passwordRecoveryRoutes';
 
-import createForgotPasswordController from '#server/modules/auth/passwordRecovery/controllers/forgotPasswordController';
-import createResetPasswordController from '#server/modules/auth/passwordRecovery/controllers/resetPasswordController';
+import createForgotPasswordController from '#server/modules/auth/passwordRecovery/forgot/forgotPasswordController';
+import createResetPasswordController from '#server/modules/auth/passwordRecovery/reset/resetPasswordController';
 
-import createForgotPasswordService from '#server/modules/auth/passwordRecovery/services/forgotPasswordService';
-import createResetPasswordService from '#server/modules/auth/passwordRecovery/services/resetPasswordService';
+import createForgotPasswordService from '#server/modules/auth/passwordRecovery/forgot/forgotPasswordService';
+import createResetPasswordService from '#server/modules/auth/passwordRecovery/reset/resetPasswordService';
 
 export default function createPasswordRecoveryModule(
 	authRepository,

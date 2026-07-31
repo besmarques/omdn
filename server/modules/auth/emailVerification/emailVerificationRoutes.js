@@ -1,6 +1,6 @@
 import express from 'express';
 
-import requireGuest from '#server/modules/auth/middleware/requireGuest';
+import requireGuest from '#server/modules/auth/shared/middleware/requireGuest';
 
 export default function createEmailVerificationRoutes({
 	resendVerificationEmailController,

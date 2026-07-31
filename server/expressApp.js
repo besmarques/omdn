@@ -9,7 +9,7 @@ import createSessionMiddleware from '#server/middleware/sessionMiddleware';
 import createAccountModule from '#server/modules/account/accountModule';
 import createAdminModule from '#server/modules/admin/adminModule';
 import createAuthModule from '#server/modules/auth/authModule';
-import requireAuth from '#server/modules/auth/middleware/requireAuth';
+import requireAuth from '#server/modules/auth/shared/middleware/requireAuth';
 
 import createApiRoutes from '#server/routes/apiRoutes';
 

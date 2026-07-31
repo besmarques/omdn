@@ -1,6 +1,6 @@
 import express from 'express';
 
-import requirePermission from '#server/modules/auth/middleware/requirePermission';
+import requirePermission from '#server/modules/auth/shared/middleware/requirePermission';
 
 export default function createAdminRoutes({
 	testAdminAccessController,

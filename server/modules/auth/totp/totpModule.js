@@ -1,20 +1,20 @@
 import createTotpRoutes from '#server/modules/auth/totp/totpRoutes';
 
-import createDisableTotpController from '#server/modules/auth/totp/controllers/disableTotpController';
-import createEnableTotpController from '#server/modules/auth/totp/controllers/enableTotpController';
-import createGetTotpStatusController from '#server/modules/auth/totp/controllers/getTotpStatusController';
-import createRegenerateRecoveryCodesController from '#server/modules/auth/totp/controllers/regenerateRecoveryCodesController';
-import createSetupTotpController from '#server/modules/auth/totp/controllers/setupTotpController';
-import createVerifyTotpLoginController from '#server/modules/auth/totp/controllers/verifyTotpLoginController';
+import createDisableTotpController from '#server/modules/auth/totp/disable/disableTotpController';
+import createEnableTotpController from '#server/modules/auth/totp/enable/enableTotpController';
+import createGetTotpStatusController from '#server/modules/auth/totp/status/getTotpStatusController';
+import createRegenerateRecoveryCodesController from '#server/modules/auth/totp/recoveryCodes/regenerateRecoveryCodesController';
+import createSetupTotpController from '#server/modules/auth/totp/setup/setupTotpController';
+import createVerifyTotpLoginController from '#server/modules/auth/totp/login/verifyTotpLoginController';
 
-import createDisableTotpService from '#server/modules/auth/totp/services/disableTotpService';
-import createEnableTotpService from '#server/modules/auth/totp/services/enableTotpService';
-import createGetTotpStatusService from '#server/modules/auth/totp/services/getTotpStatusService';
-import createRegenerateRecoveryCodesService from '#server/modules/auth/totp/services/regenerateRecoveryCodesService';
-import createSetupTotpService from '#server/modules/auth/totp/services/setupTotpService';
-import createVerifyTotpLoginService from '#server/modules/auth/totp/services/verifyTotpLoginService';
+import createDisableTotpService from '#server/modules/auth/totp/disable/disableTotpService';
+import createEnableTotpService from '#server/modules/auth/totp/enable/enableTotpService';
+import createGetTotpStatusService from '#server/modules/auth/totp/status/getTotpStatusService';
+import createRegenerateRecoveryCodesService from '#server/modules/auth/totp/recoveryCodes/regenerateRecoveryCodesService';
+import createSetupTotpService from '#server/modules/auth/totp/setup/setupTotpService';
+import createVerifyTotpLoginService from '#server/modules/auth/totp/login/verifyTotpLoginService';
 
-import requireAuth from '#server/modules/auth/middleware/requireAuth';
+import requireAuth from '#server/modules/auth/shared/middleware/requireAuth';
 
 export default function createTotpModule(authRepository, db) {
 	const authenticated = requireAuth(db);
