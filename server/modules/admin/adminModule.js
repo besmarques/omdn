@@ -5,10 +5,7 @@ import createTestAdminAccessService from '#server/modules/admin/testAccess/testA
 export default function createAdminModule() {
 	const testAdminAccessService = createTestAdminAccessService();
 
-	const testAdminAccessController =
-		createTestAdminAccessController(
-			testAdminAccessService,
-		);
+	const testAdminAccessController = createTestAdminAccessController(testAdminAccessService);
 
 	return createAdminRoutes({
 		testAdminAccessController,

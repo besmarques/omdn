@@ -29,25 +29,13 @@ function normalizeIpAddress(value) {
 }
 
 export default function createAuthEventContext(req) {
-	const userAgent =
-		typeof req.get === 'function'
-			? req.get('user-agent')
-			: req.headers?.['user-agent'];
+	const userAgent = typeof req.get === 'function' ? req.get('user-agent') : req.headers?.['user-agent'];
 
 	return {
-		sessionId: normalizeText(
-			req.sessionID,
-			128,
-		),
+		sessionId: normalizeText(req.sessionID, 128),
 
-		ipAddress: normalizeIpAddress(
-			req.ip ??
-				req.socket?.remoteAddress,
-		),
+		ipAddress: normalizeIpAddress(req.ip ?? req.socket?.remoteAddress),
 
-		userAgent: normalizeText(
-			userAgent,
-			512,
-		),
+		userAgent: normalizeText(userAgent, 512),
 	};
 }

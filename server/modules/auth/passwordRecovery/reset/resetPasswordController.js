@@ -1,53 +1,32 @@
-import {
-	resetPasswordSchema,
-} from '#server/modules/auth/shared/authSchemas';
+import { resetPasswordSchema } from '#server/modules/auth/shared/authSchemas';
 
-export default function createResetPasswordController(
-	resetPasswordService,
-) {
-	return async function resetPassword(
-		req,
-		res,
-		next,
-	) {
-		const validation =
-			resetPasswordSchema.safeParse(
-				req.body,
-			);
+export default function createResetPasswordController(resetPasswordService) {
+	return async function resetPassword(req, res, next) {
+		const validation = resetPasswordSchema.safeParse(req.body);
 
 		if (!validation.success) {
 			return res.status(400).json({
 				status: false,
-				message:
-					'Invalid password reset data',
-				errors:
-					validation.error
-						.flatten()
-						.fieldErrors,
+				message: 'Invalid password reset data',
+				errors: validation.error.flatten().fieldErrors,
 			});
 		}
 
 		try {
-			const result =
-				await resetPasswordService(
-					validation.data,
-				);
+			const result = await resetPasswordService(validation.data);
 
 			if (!result.reset) {
 				return res.status(400).json({
 					status: false,
-					message:
-						'Invalid or expired password reset token',
+					message: 'Invalid or expired password reset token',
 				});
 			}
 
-			res.locals.authEventUserId =
-				result.userId;
+			res.locals.authEventUserId = result.userId;
 
 			return res.json({
 				status: true,
-				message:
-					'Password reset successfully',
+				message: 'Password reset successfully',
 			});
 		} catch (error) {
 			return next(error);

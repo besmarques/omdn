@@ -2,13 +2,7 @@ import express from 'express';
 import request from 'supertest';
 import { setImmediate } from 'node:timers/promises';
 
-import {
-	afterEach,
-	describe,
-	expect,
-	it,
-	vi,
-} from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import createAuthEventMiddleware from '#server/modules/auth/shared/events/authEventMiddleware';
 import createAuthEventRepository from '#server/modules/auth/shared/events/authEventRepository';
@@ -25,17 +19,14 @@ describe('authentication event logging', () => {
 
 	it('stores an authentication event', async () => {
 		const db = {
-			execute: vi
-				.fn()
-				.mockResolvedValue([
-					{
-						affectedRows: 1,
-					},
-				]),
+			execute: vi.fn().mockResolvedValue([
+				{
+					affectedRows: 1,
+				},
+			]),
 		};
 
-		const repository =
-			createAuthEventRepository(db);
+		const repository = createAuthEventRepository(db);
 
 		await repository.create({
 			userId: 42,
@@ -51,12 +42,9 @@ describe('authentication event logging', () => {
 
 		expect(db.execute).toHaveBeenCalledOnce();
 
-		const [sql, parameters] =
-			db.execute.mock.calls[0];
+		const [sql, parameters] = db.execute.mock.calls[0];
 
-		expect(sql).toContain(
-			'INSERT INTO auth_events',
-		);
+		expect(sql).toContain('INSERT INTO auth_events');
 
 		expect(sql).toContain('INET6_ATON(?)');
 
@@ -75,19 +63,12 @@ describe('authentication event logging', () => {
 
 	it('does not throw when event storage fails', async () => {
 		const repository = {
-			create: vi
-				.fn()
-				.mockRejectedValue(
-					new Error('Database unavailable'),
-				),
+			create: vi.fn().mockRejectedValue(new Error('Database unavailable')),
 		};
 
-		const consoleError = vi
-			.spyOn(console, 'error')
-			.mockImplementation(() => {});
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-		const service =
-			createAuthEventService(repository);
+		const service = createAuthEventService(repository);
 
 		const result = await service.record({
 			eventType: 'login_failed',
@@ -98,28 +79,20 @@ describe('authentication event logging', () => {
 			recorded: false,
 		});
 
-		expect(consoleError).toHaveBeenCalledWith(
-			'Unable to record authentication event',
-			{
-				eventType: 'login_failed',
-				error: 'Database unavailable',
-			},
-		);
+		expect(consoleError).toHaveBeenCalledWith('Unable to record authentication event', {
+			eventType: 'login_failed',
+			error: 'Database unavailable',
+		});
 	});
 
 	it('records request information after the response finishes', async () => {
 		const authEventService = {
-			record: vi
-				.fn()
-				.mockResolvedValue({
-					recorded: true,
-				}),
+			record: vi.fn().mockResolvedValue({
+				recorded: true,
+			}),
 		};
 
-		const authEvent =
-			createAuthEventMiddleware(
-				authEventService,
-			);
+		const authEvent = createAuthEventMiddleware(authEventService);
 
 		const app = express();
 
@@ -137,10 +110,7 @@ describe('authentication event logging', () => {
 			'/login',
 
 			authEvent({
-				eventType: ({ statusCode }) =>
-					statusCode < 400
-						? 'login_succeeded'
-						: 'login_failed',
+				eventType: ({ statusCode }) => (statusCode < 400 ? 'login_succeeded' : 'login_failed'),
 
 				metadata: ({ statusCode }) => ({
 					statusCode,
@@ -156,20 +126,15 @@ describe('authentication event logging', () => {
 			},
 		);
 
-		const response = await request(app)
-			.post('/login')
-			.set('User-Agent', 'Vitest Browser')
-			.send({
-				email: 'test@example.com',
-			});
+		const response = await request(app).post('/login').set('User-Agent', 'Vitest Browser').send({
+			email: 'test@example.com',
+		});
 
 		expect(response.status).toBe(200);
 
 		await waitForEventLoop();
 
-		expect(
-			authEventService.record,
-		).toHaveBeenCalledWith({
+		expect(authEventService.record).toHaveBeenCalledWith({
 			userId: 42,
 			sessionId: 'session-123',
 			eventType: 'login_succeeded',
@@ -184,17 +149,12 @@ describe('authentication event logging', () => {
 
 	it('keeps the original user for logout events', async () => {
 		const authEventService = {
-			record: vi
-				.fn()
-				.mockResolvedValue({
-					recorded: true,
-				}),
+			record: vi.fn().mockResolvedValue({
+				recorded: true,
+			}),
 		};
 
-		const authEvent =
-			createAuthEventMiddleware(
-				authEventService,
-			);
+		const authEvent = createAuthEventMiddleware(authEventService);
 
 		const app = express();
 
@@ -224,16 +184,13 @@ describe('authentication event logging', () => {
 			},
 		);
 
-		const response = await request(app)
-			.post('/logout');
+		const response = await request(app).post('/logout');
 
 		expect(response.status).toBe(200);
 
 		await waitForEventLoop();
 
-		expect(
-			authEventService.record,
-		).toHaveBeenCalledWith(
+		expect(authEventService.record).toHaveBeenCalledWith(
 			expect.objectContaining({
 				userId: 42,
 				sessionId: 'session-logout',

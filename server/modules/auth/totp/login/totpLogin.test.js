@@ -1,12 +1,6 @@
 import express from 'express';
 import request from 'supertest';
-import {
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
-} from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('otplib', () => ({
 	generateSecret: vi.fn(),
@@ -14,15 +8,10 @@ vi.mock('otplib', () => ({
 	verify: vi.fn(),
 }));
 
-vi.mock(
-	'#server/modules/auth/totp/shared/totpEncryption',
-	() => ({
-		encryptTotpSecret: vi.fn(),
-		decryptTotpSecret: vi.fn(
-			() => 'BASE32SECRET',
-		),
-	}),
-);
+vi.mock('#server/modules/auth/totp/shared/totpEncryption', () => ({
+	encryptTotpSecret: vi.fn(),
+	decryptTotpSecret: vi.fn(() => 'BASE32SECRET'),
+}));
 
 import { verify } from 'otplib';
 
@@ -30,13 +19,9 @@ import createAuthModule from '#server/modules/auth/authModule';
 
 function createSession(values = {}) {
 	return {
-		regenerate: vi.fn((callback) =>
-			callback(),
-		),
+		regenerate: vi.fn((callback) => callback()),
 
-		save: vi.fn((callback) =>
-			callback(),
-		),
+		save: vi.fn((callback) => callback()),
 
 		...values,
 	};
@@ -46,31 +31,23 @@ function createDatabaseMock() {
 	const connection = {
 		execute: vi.fn(),
 
-		beginTransaction:
-			vi.fn().mockResolvedValue(),
+		beginTransaction: vi.fn().mockResolvedValue(),
 
-		commit:
-			vi.fn().mockResolvedValue(),
+		commit: vi.fn().mockResolvedValue(),
 
-		rollback:
-			vi.fn().mockResolvedValue(),
+		rollback: vi.fn().mockResolvedValue(),
 
 		release: vi.fn(),
 	};
 
 	const db = {
-		execute: vi
-			.fn()
-			.mockResolvedValue([
-				{
-					affectedRows: 1,
-				},
-			]),
+		execute: vi.fn().mockResolvedValue([
+			{
+				affectedRows: 1,
+			},
+		]),
 
-		getConnection:
-			vi.fn().mockResolvedValue(
-				connection,
-			),
+		getConnection: vi.fn().mockResolvedValue(connection),
 	};
 
 	return {
@@ -79,11 +56,7 @@ function createDatabaseMock() {
 	};
 }
 
-function createTestApp(
-	db,
-	session,
-	sessionId = 'current-session',
-) {
+function createTestApp(db, session, sessionId = 'current-session') {
 	const app = express();
 
 	app.use(express.json());
@@ -95,308 +68,197 @@ function createTestApp(
 		next();
 	});
 
-	app.use(
-		'/api/auth',
-		createAuthModule(db),
-	);
+	app.use('/api/auth', createAuthModule(db));
 
 	return app;
 }
 
 function findDatabaseCall(db, text) {
-	return db.execute.mock.calls.find(
-		([sql]) =>
-			String(sql).includes(text),
-	);
+	return db.execute.mock.calls.find(([sql]) => String(sql).includes(text));
 }
 
-describe(
-	'POST /api/auth/totp/login/verify',
-	() => {
-		beforeEach(() => {
-			vi.clearAllMocks();
+describe('POST /api/auth/totp/login/verify', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('rejects a request without a pending challenge', async () => {
+		const { db } = createDatabaseMock();
+
+		const session = createSession();
+
+		const app = createTestApp(db, session, 'pending-session');
+
+		const response = await request(app).post('/api/auth/totp/login/verify').send({
+			code: '123456',
 		});
 
-		it('rejects a request without a pending challenge', async () => {
-			const { db } =
-				createDatabaseMock();
+		expect(response.status).toBe(401);
+		expect(response.body.status).toBe(false);
 
-			const session =
-				createSession();
+		expect(db.getConnection).not.toHaveBeenCalled();
 
-			const app = createTestApp(
-				db,
-				session,
-				'pending-session',
-			);
+		const deleteSessionCall = findDatabaseCall(db, 'DELETE FROM sessions');
 
-			const response = await request(app)
-				.post(
-					'/api/auth/totp/login/verify',
-				)
-				.send({
-					code: '123456',
-				});
+		expect(deleteSessionCall).toBeUndefined();
+	});
 
-			expect(response.status).toBe(401);
-			expect(response.body.status).toBe(
-				false,
-			);
+	it('authenticates a valid TOTP code and removes older sessions', async () => {
+		const { db, connection } = createDatabaseMock();
 
-			expect(
-				db.getConnection,
-			).not.toHaveBeenCalled();
+		const session = createSession({
+			pendingTwoFactorUserId: 42,
 
-			const deleteSessionCall =
-				findDatabaseCall(
-					db,
-					'DELETE FROM sessions',
-				);
+			pendingTwoFactorExpiresAt: Date.now() + 300000,
 
-			expect(
-				deleteSessionCall,
-			).toBeUndefined();
+			pendingTwoFactorAttempts: 0,
 		});
 
-		it('authenticates a valid TOTP code and removes older sessions', async () => {
-			const { db, connection } =
-				createDatabaseMock();
-
-			const session = createSession({
-				pendingTwoFactorUserId: 42,
-
-				pendingTwoFactorExpiresAt:
-					Date.now() + 300000,
-
-				pendingTwoFactorAttempts: 0,
-			});
-
-			connection.execute
-				.mockResolvedValueOnce([
-					[
-						{
-							user_id: 42,
-
-							secret_encrypted:
-								'encrypted',
-
-							algorithm: 'SHA1',
-							digits: 6,
-							period: 30,
-							is_enabled: 1,
-
-							last_used_step:
-								100,
-						},
-					],
-				])
-				.mockResolvedValueOnce([
-					{
-						affectedRows: 1,
-					},
-				])
-				.mockResolvedValueOnce([
-					[
-						{
-							id: 42,
-
-							email:
-								'test@example.com',
-
-							display_name:
-								'Test User',
-
-							status: 'active',
-
-							email_verified_at:
-								new Date(),
-						},
-					],
-				]);
-
-			verify.mockResolvedValueOnce({
-				valid: true,
-				timeStep: 101,
-				epoch: 3030,
-				delta: 0,
-			});
-
-			const app = createTestApp(
-				db,
-				session,
-				'new-totp-session',
-			);
-
-			const response = await request(app)
-				.post(
-					'/api/auth/totp/login/verify',
-				)
-				.send({
-					code: '123456',
-				});
-
-			expect(response.status).toBe(200);
-
-			expect(response.body).toMatchObject({
-				status: true,
-				message: 'Login successful',
-			});
-
-			expect(verify).toHaveBeenCalledWith(
-				expect.objectContaining({
-					secret:
-						'BASE32SECRET',
-
-					token: '123456',
-
-					afterTimeStep:
-						100,
-				}),
-			);
-
-			expect(
-				connection.execute.mock
-					.calls[1][1],
-			).toEqual([
-				101,
-				42,
-				101,
-			]);
-
-			expect(
-				connection.commit,
-			).toHaveBeenCalledOnce();
-
-			expect(
-				session.regenerate,
-			).toHaveBeenCalledOnce();
-
-			expect(session.userId).toBe(42);
-
-			expect(
-				session.save,
-			).toHaveBeenCalledOnce();
-
-			const deleteSessionCall =
-				findDatabaseCall(
-					db,
-					'DELETE FROM sessions',
-				);
-
-			expect(
-				deleteSessionCall,
-			).toBeDefined();
-
-			expect(
-				deleteSessionCall[1],
-			).toEqual([
-				'new-totp-session',
-				42,
-				42,
-			]);
-
-			const updateLastLoginCall =
-				findDatabaseCall(
-					db,
-					'last_login_at',
-				);
-
-			expect(
-				updateLastLoginCall,
-			).toBeDefined();
-
-			expect(
-				updateLastLoginCall[1],
-			).toEqual([42]);
-		});
-
-		it('rejects a reused or invalid TOTP code without removing sessions', async () => {
-			const { db, connection } =
-				createDatabaseMock();
-
-			const session = createSession({
-				pendingTwoFactorUserId: 42,
-
-				pendingTwoFactorExpiresAt:
-					Date.now() + 300000,
-
-				pendingTwoFactorAttempts: 0,
-			});
-
-			connection.execute.mockResolvedValueOnce([
+		connection.execute
+			.mockResolvedValueOnce([
 				[
 					{
 						user_id: 42,
 
-						secret_encrypted:
-							'encrypted',
+						secret_encrypted: 'encrypted',
 
 						algorithm: 'SHA1',
 						digits: 6,
 						period: 30,
 						is_enabled: 1,
 
-						last_used_step:
-							100,
+						last_used_step: 100,
+					},
+				],
+			])
+			.mockResolvedValueOnce([
+				{
+					affectedRows: 1,
+				},
+			])
+			.mockResolvedValueOnce([
+				[
+					{
+						id: 42,
+
+						email: 'test@example.com',
+
+						display_name: 'Test User',
+
+						status: 'active',
+
+						email_verified_at: new Date(),
 					},
 				],
 			]);
 
-			verify.mockResolvedValueOnce({
-				valid: false,
-			});
-
-			const app = createTestApp(
-				db,
-				session,
-				'new-totp-session',
-			);
-
-			const response = await request(app)
-				.post(
-					'/api/auth/totp/login/verify',
-				)
-				.send({
-					code: '123456',
-				});
-
-			expect(response.status).toBe(401);
-
-			expect(
-				session.userId,
-			).toBeUndefined();
-
-			expect(
-				session.pendingTwoFactorAttempts,
-			).toBe(1);
-
-			expect(
-				connection.rollback,
-			).toHaveBeenCalledOnce();
-
-			expect(
-				connection.commit,
-			).not.toHaveBeenCalled();
-
-			const deleteSessionCall =
-				findDatabaseCall(
-					db,
-					'DELETE FROM sessions',
-				);
-
-			expect(
-				deleteSessionCall,
-			).toBeUndefined();
-
-			const updateLastLoginCall =
-				findDatabaseCall(
-					db,
-					'last_login_at',
-				);
-
-			expect(
-				updateLastLoginCall,
-			).toBeUndefined();
+		verify.mockResolvedValueOnce({
+			valid: true,
+			timeStep: 101,
+			epoch: 3030,
+			delta: 0,
 		});
-	},
-);
+
+		const app = createTestApp(db, session, 'new-totp-session');
+
+		const response = await request(app).post('/api/auth/totp/login/verify').send({
+			code: '123456',
+		});
+
+		expect(response.status).toBe(200);
+
+		expect(response.body).toMatchObject({
+			status: true,
+			message: 'Login successful',
+		});
+
+		expect(verify).toHaveBeenCalledWith(
+			expect.objectContaining({
+				secret: 'BASE32SECRET',
+
+				token: '123456',
+
+				afterTimeStep: 100,
+			}),
+		);
+
+		expect(connection.execute.mock.calls[1][1]).toEqual([101, 42, 101]);
+
+		expect(connection.commit).toHaveBeenCalledOnce();
+
+		expect(session.regenerate).toHaveBeenCalledOnce();
+
+		expect(session.userId).toBe(42);
+
+		expect(session.save).toHaveBeenCalledOnce();
+
+		const deleteSessionCall = findDatabaseCall(db, 'DELETE FROM sessions');
+
+		expect(deleteSessionCall).toBeDefined();
+
+		expect(deleteSessionCall[1]).toEqual(['new-totp-session', 42, 42]);
+
+		const updateLastLoginCall = findDatabaseCall(db, 'last_login_at');
+
+		expect(updateLastLoginCall).toBeDefined();
+
+		expect(updateLastLoginCall[1]).toEqual([42]);
+	});
+
+	it('rejects a reused or invalid TOTP code without removing sessions', async () => {
+		const { db, connection } = createDatabaseMock();
+
+		const session = createSession({
+			pendingTwoFactorUserId: 42,
+
+			pendingTwoFactorExpiresAt: Date.now() + 300000,
+
+			pendingTwoFactorAttempts: 0,
+		});
+
+		connection.execute.mockResolvedValueOnce([
+			[
+				{
+					user_id: 42,
+
+					secret_encrypted: 'encrypted',
+
+					algorithm: 'SHA1',
+					digits: 6,
+					period: 30,
+					is_enabled: 1,
+
+					last_used_step: 100,
+				},
+			],
+		]);
+
+		verify.mockResolvedValueOnce({
+			valid: false,
+		});
+
+		const app = createTestApp(db, session, 'new-totp-session');
+
+		const response = await request(app).post('/api/auth/totp/login/verify').send({
+			code: '123456',
+		});
+
+		expect(response.status).toBe(401);
+
+		expect(session.userId).toBeUndefined();
+
+		expect(session.pendingTwoFactorAttempts).toBe(1);
+
+		expect(connection.rollback).toHaveBeenCalledOnce();
+
+		expect(connection.commit).not.toHaveBeenCalled();
+
+		const deleteSessionCall = findDatabaseCall(db, 'DELETE FROM sessions');
+
+		expect(deleteSessionCall).toBeUndefined();
+
+		const updateLastLoginCall = findDatabaseCall(db, 'last_login_at');
+
+		expect(updateLastLoginCall).toBeUndefined();
+	});
+});

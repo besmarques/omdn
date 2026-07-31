@@ -10,11 +10,9 @@ export default function createCredentialsModule(authRepository) {
 	const loginService = createLoginService(authRepository);
 	const logoutService = createLogoutService();
 
-	const loginController =
-		createLoginController(loginService);
+	const loginController = createLoginController(loginService);
 
-	const logoutController =
-		createLogoutController(logoutService);
+	const logoutController = createLogoutController(logoutService);
 
 	return createCredentialsRoutes({
 		loginController,

@@ -1,10 +1,7 @@
 function normalizeUserId(value) {
 	const userId = Number(value);
 
-	if (
-		!Number.isSafeInteger(userId) ||
-		userId <= 0
-	) {
+	if (!Number.isSafeInteger(userId) || userId <= 0) {
 		return null;
 	}
 
@@ -12,10 +9,7 @@ function normalizeUserId(value) {
 }
 
 function normalizeEventType(value) {
-	if (
-		typeof value !== 'string' ||
-		!/^[a-z0-9_:-]{1,64}$/.test(value)
-	) {
+	if (typeof value !== 'string' || !/^[a-z0-9_:-]{1,64}$/.test(value)) {
 		throw new Error('Invalid authentication event type');
 	}
 

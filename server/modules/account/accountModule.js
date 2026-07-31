@@ -3,13 +3,9 @@ import createGetCurrentAccountController from '#server/modules/account/getCurren
 import createGetCurrentAccountService from '#server/modules/account/getCurrent/getCurrentAccountService';
 
 export default function createAccountModule() {
-	const getCurrentAccountService =
-		createGetCurrentAccountService();
+	const getCurrentAccountService = createGetCurrentAccountService();
 
-	const getCurrentAccountController =
-		createGetCurrentAccountController(
-			getCurrentAccountService,
-		);
+	const getCurrentAccountController = createGetCurrentAccountController(getCurrentAccountService);
 
 	return createAccountRoutes({
 		getCurrentAccountController,

@@ -19,7 +19,9 @@
 		"diagram": "depcruise src server --include-only \"^(src|server)\" --output-type dot --output-to docs/dependency-graph.dot && dot -Tsvg docs/dependency-graph.dot -o docs/dependency-graph.svg",
 		"logic-map": "node scripts/dev/generate-logic-map.js",
 		"maps": "npm run diagram && npm run logic-map",
-		"diagram:all": "npm run diagram && npm run logic-map"
+		"diagram:all": "npm run diagram && npm run logic-map",
+		"format": "prettier --write .",
+		"format:check": "prettier --check ."
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",
@@ -55,6 +57,7 @@
 		"eslint-plugin-react-hooks": "^7.1.1",
 		"eslint-plugin-react-refresh": "^0.5.3",
 		"globals": "^17.7.0",
+		"prettier": "^3.9.6",
 		"supertest": "^7.2.2",
 		"vite": "^8.1.1",
 		"vitest": "^4.1.10"

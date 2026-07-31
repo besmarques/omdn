@@ -28,9 +28,7 @@ describe('account routes', () => {
 			permissions: [],
 		};
 
-		const response = await request(createTestApp(auth)).get(
-			'/api/account/me',
-		);
+		const response = await request(createTestApp(auth)).get('/api/account/me');
 
 		expect(response.status).toBe(200);
 

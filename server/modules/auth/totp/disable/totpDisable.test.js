@@ -1,12 +1,6 @@
 import express from 'express';
 import request from 'supertest';
-import {
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
-} from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('argon2', () => ({
 	default: {
@@ -22,15 +16,10 @@ vi.mock('otplib', () => ({
 	verify: vi.fn(),
 }));
 
-vi.mock(
-	'#server/modules/auth/totp/shared/totpEncryption',
-	() => ({
-		encryptTotpSecret: vi.fn(),
-		decryptTotpSecret: vi.fn(
-			() => 'BASE32SECRET',
-		),
-	}),
-);
+vi.mock('#server/modules/auth/totp/shared/totpEncryption', () => ({
+	encryptTotpSecret: vi.fn(),
+	decryptTotpSecret: vi.fn(() => 'BASE32SECRET'),
+}));
 
 import argon2 from 'argon2';
 import { verify } from 'otplib';
@@ -40,8 +29,7 @@ import createAuthModule from '#server/modules/auth/authModule';
 function createDatabaseMock() {
 	const connection = {
 		execute: vi.fn(),
-		beginTransaction:
-			vi.fn().mockResolvedValue(),
+		beginTransaction: vi.fn().mockResolvedValue(),
 		commit: vi.fn().mockResolvedValue(),
 		rollback: vi.fn().mockResolvedValue(),
 		release: vi.fn(),
@@ -57,8 +45,7 @@ function createDatabaseMock() {
 						email: 'test@example.com',
 						display_name: 'Test User',
 						status: 'active',
-						email_verified_at:
-							new Date(),
+						email_verified_at: new Date(),
 						last_login_at: null,
 						created_at: new Date(),
 					},
@@ -67,8 +54,7 @@ function createDatabaseMock() {
 			.mockResolvedValueOnce([[]])
 			.mockResolvedValueOnce([[]]),
 
-		getConnection:
-			vi.fn().mockResolvedValue(connection),
+		getConnection: vi.fn().mockResolvedValue(connection),
 	};
 
 	return {
@@ -106,31 +92,25 @@ describe('POST /api/auth/totp/disable', () => {
 		const { db } = createDatabaseMock();
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/totp/disable')
-			.send({
-				password: '',
-				code: '',
-			});
+		const response = await request(app).post('/api/auth/totp/disable').send({
+			password: '',
+			code: '',
+		});
 
 		expect(response.status).toBe(400);
 		expect(response.body.status).toBe(false);
 
-		expect(
-			db.getConnection,
-		).not.toHaveBeenCalled();
+		expect(db.getConnection).not.toHaveBeenCalled();
 	});
 
 	it('rejects an incorrect current password', async () => {
-		const { db, connection } =
-			createDatabaseMock();
+		const { db, connection } = createDatabaseMock();
 
 		connection.execute.mockResolvedValueOnce([
 			[
 				{
 					id: 42,
-					password_hash:
-						'$argon2id$stored-hash',
+					password_hash: '$argon2id$stored-hash',
 				},
 			],
 		]);
@@ -139,41 +119,29 @@ describe('POST /api/auth/totp/disable', () => {
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/totp/disable')
-			.send({
-				password:
-					'incorrect current password',
-				code: '123456',
-			});
+		const response = await request(app).post('/api/auth/totp/disable').send({
+			password: 'incorrect current password',
+			code: '123456',
+		});
 
 		expect(response.status).toBe(400);
 
-		expect(argon2.verify).toHaveBeenCalledWith(
-			'$argon2id$stored-hash',
-			'incorrect current password',
-		);
+		expect(argon2.verify).toHaveBeenCalledWith('$argon2id$stored-hash', 'incorrect current password');
 
-		expect(
-			connection.rollback,
-		).toHaveBeenCalledOnce();
+		expect(connection.rollback).toHaveBeenCalledOnce();
 
-		expect(
-			connection.commit,
-		).not.toHaveBeenCalled();
+		expect(connection.commit).not.toHaveBeenCalled();
 	});
 
 	it('disables TOTP with a valid authenticator code', async () => {
-		const { db, connection } =
-			createDatabaseMock();
+		const { db, connection } = createDatabaseMock();
 
 		connection.execute
 			.mockResolvedValueOnce([
 				[
 					{
 						id: 42,
-						password_hash:
-							'$argon2id$stored-hash',
+						password_hash: '$argon2id$stored-hash',
 					},
 				],
 			])
@@ -181,8 +149,7 @@ describe('POST /api/auth/totp/disable', () => {
 				[
 					{
 						user_id: 42,
-						secret_encrypted:
-							'encrypted',
+						secret_encrypted: 'encrypted',
 						algorithm: 'SHA1',
 						digits: 6,
 						period: 30,
@@ -216,20 +183,16 @@ describe('POST /api/auth/totp/disable', () => {
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/totp/disable')
-			.send({
-				password:
-					'correct current password',
-				code: '123456',
-			});
+		const response = await request(app).post('/api/auth/totp/disable').send({
+			password: 'correct current password',
+			code: '123456',
+		});
 
 		expect(response.status).toBe(200);
 
 		expect(response.body).toEqual({
 			status: true,
-			message:
-				'Two-factor authentication disabled',
+			message: 'Two-factor authentication disabled',
 		});
 
 		expect(verify).toHaveBeenCalledWith(
@@ -240,42 +203,26 @@ describe('POST /api/auth/totp/disable', () => {
 			}),
 		);
 
-		expect(
-			connection.execute.mock.calls[2][1],
-		).toEqual([42]);
+		expect(connection.execute.mock.calls[2][1]).toEqual([42]);
 
-		expect(
-			connection.execute.mock.calls[3][1],
-		).toEqual([42]);
+		expect(connection.execute.mock.calls[3][1]).toEqual([42]);
 
-		expect(
-			connection.execute.mock.calls[4][1],
-		).toEqual([
-			'current-session',
-			42,
-			42,
-		]);
+		expect(connection.execute.mock.calls[4][1]).toEqual(['current-session', 42, 42]);
 
-		expect(
-			connection.commit,
-		).toHaveBeenCalledOnce();
+		expect(connection.commit).toHaveBeenCalledOnce();
 
-		expect(
-			connection.rollback,
-		).not.toHaveBeenCalled();
+		expect(connection.rollback).not.toHaveBeenCalled();
 	});
 
 	it('disables TOTP with a valid recovery code', async () => {
-		const { db, connection } =
-			createDatabaseMock();
+		const { db, connection } = createDatabaseMock();
 
 		connection.execute
 			.mockResolvedValueOnce([
 				[
 					{
 						id: 42,
-						password_hash:
-							'$argon2id$stored-hash',
+						password_hash: '$argon2id$stored-hash',
 					},
 				],
 			])
@@ -283,8 +230,7 @@ describe('POST /api/auth/totp/disable', () => {
 				[
 					{
 						user_id: 42,
-						secret_encrypted:
-							'encrypted',
+						secret_encrypted: 'encrypted',
 						algorithm: 'SHA1',
 						digits: 6,
 						period: 30,
@@ -320,27 +266,17 @@ describe('POST /api/auth/totp/disable', () => {
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/totp/disable')
-			.send({
-				password:
-					'correct current password',
-				code: 'AAAA-BBBB-CCCC-DDDD-EEEE',
-			});
+		const response = await request(app).post('/api/auth/totp/disable').send({
+			password: 'correct current password',
+			code: 'AAAA-BBBB-CCCC-DDDD-EEEE',
+		});
 
 		expect(response.status).toBe(200);
 
 		expect(verify).not.toHaveBeenCalled();
 
-		expect(
-			connection.execute.mock.calls[2][1],
-		).toEqual([
-			42,
-			expect.stringMatching(/^[a-f0-9]{64}$/),
-		]);
+		expect(connection.execute.mock.calls[2][1]).toEqual([42, expect.stringMatching(/^[a-f0-9]{64}$/)]);
 
-		expect(
-			connection.commit,
-		).toHaveBeenCalledOnce();
+		expect(connection.commit).toHaveBeenCalledOnce();
 	});
 });

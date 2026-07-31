@@ -49,15 +49,11 @@ describe('POST /api/auth/logout', () => {
 
 		expect(destroy).toHaveBeenCalledOnce();
 
-		expect(response.headers['set-cookie'][0]).toContain(
-			'omdn_session=;',
-		);
+		expect(response.headers['set-cookie'][0]).toContain('omdn_session=;');
 	});
 
 	it('returns success when no session exists', async () => {
-		const response = await request(
-			createTestApp(undefined),
-		).post('/api/auth/logout');
+		const response = await request(createTestApp(undefined)).post('/api/auth/logout');
 
 		expect(response.status).toBe(200);
 

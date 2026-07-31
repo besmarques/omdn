@@ -29,8 +29,7 @@ describe('admin routes', () => {
 
 		expect(response.body).toEqual({
 			status: false,
-			message:
-				'You do not have permission to perform this action',
+			message: 'You do not have permission to perform this action',
 		});
 	});
 

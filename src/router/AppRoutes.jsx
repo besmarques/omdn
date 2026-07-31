@@ -8,9 +8,7 @@ export default function AppRoutes() {
 		<Routes>
 			<Route path="/" element={<HomePage />} />
 
-			{import.meta.env.DEV && (
-				<Route path="/dev/*" element={<DevRoutes />} />
-			)}
+			{import.meta.env.DEV && <Route path="/dev/*" element={<DevRoutes />} />}
 
 			<Route path="*" element={<div>Page not found</div>} />
 		</Routes>

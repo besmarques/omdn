@@ -1,6 +1,4 @@
-export default function createGetCurrentAccountController(
-	getCurrentAccountService,
-) {
+export default function createGetCurrentAccountController(getCurrentAccountService) {
 	return function getCurrentAccount(req, res) {
 		const account = getCurrentAccountService(req.auth);
 

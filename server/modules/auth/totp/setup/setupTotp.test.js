@@ -1,10 +1,4 @@
-import {
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
-} from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('otplib', () => ({
 	generateSecret: vi.fn(),
@@ -17,30 +11,20 @@ vi.mock('qrcode', () => ({
 	},
 }));
 
-vi.mock(
-	'#server/modules/auth/totp/shared/totpEncryption',
-	() => ({
-		encryptTotpSecret: vi.fn(),
-	}),
-);
+vi.mock('#server/modules/auth/totp/shared/totpEncryption', () => ({
+	encryptTotpSecret: vi.fn(),
+}));
 
-import {
-	generateSecret,
-	generateURI,
-} from 'otplib';
+import { generateSecret, generateURI } from 'otplib';
 
 import QRCode from 'qrcode';
 
-import {
-	encryptTotpSecret,
-} from '#server/modules/auth/totp/shared/totpEncryption';
+import { encryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncryption';
 
 import createSetupTotpController from '#server/modules/auth/totp/setup/setupTotpController';
 import createSetupTotpService from '#server/modules/auth/totp/setup/setupTotpService';
 
-function createRepositoryMock({
-	existingTotp = null,
-} = {}) {
+function createRepositoryMock({ existingTotp = null } = {}) {
 	const connection = {
 		beginTransaction: vi.fn().mockResolvedValue(),
 		commit: vi.fn().mockResolvedValue(),
@@ -48,17 +32,11 @@ function createRepositoryMock({
 	};
 
 	const authRepository = {
-		withConnection: vi.fn(async (callback) =>
-			callback(connection),
-		),
+		withConnection: vi.fn(async (callback) => callback(connection)),
 
-		findTotpByUserIdForUpdate: vi
-			.fn()
-			.mockResolvedValue(existingTotp),
+		findTotpByUserIdForUpdate: vi.fn().mockResolvedValue(existingTotp),
 
-		savePendingTotp: vi
-			.fn()
-			.mockResolvedValue(),
+		savePendingTotp: vi.fn().mockResolvedValue(),
 	};
 
 	return {
@@ -83,31 +61,19 @@ describe('setup TOTP', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 
-		generateSecret.mockReturnValue(
-			'BASE32SECRET',
-		);
+		generateSecret.mockReturnValue('BASE32SECRET');
 
-		generateURI.mockReturnValue(
-			'otpauth://totp/example',
-		);
+		generateURI.mockReturnValue('otpauth://totp/example');
 
-		QRCode.toDataURL.mockResolvedValue(
-			'data:image/png;base64,QRCode',
-		);
+		QRCode.toDataURL.mockResolvedValue('data:image/png;base64,QRCode');
 
-		encryptTotpSecret.mockReturnValue(
-			'encrypted-secret',
-		);
+		encryptTotpSecret.mockReturnValue('encrypted-secret');
 	});
 
 	it('creates a pending TOTP configuration', async () => {
-		const {
-			authRepository,
-			connection,
-		} = createRepositoryMock();
+		const { authRepository, connection } = createRepositoryMock();
 
-		const setupTotpService =
-			createSetupTotpService(authRepository);
+		const setupTotpService = createSetupTotpService(authRepository);
 
 		const result = await setupTotpService({
 			userId: 42,
@@ -125,37 +91,21 @@ describe('setup TOTP', () => {
 			period: 30,
 		});
 
-		expect(QRCode.toDataURL).toHaveBeenCalledWith(
-			'otpauth://totp/example',
-			{
-				errorCorrectionLevel: 'M',
-				margin: 2,
-				width: 320,
-			},
-		);
+		expect(QRCode.toDataURL).toHaveBeenCalledWith('otpauth://totp/example', {
+			errorCorrectionLevel: 'M',
+			margin: 2,
+			width: 320,
+		});
 
-		expect(encryptTotpSecret).toHaveBeenCalledWith(
-			'BASE32SECRET',
-			42,
-		);
+		expect(encryptTotpSecret).toHaveBeenCalledWith('BASE32SECRET', 42);
 
-		expect(
-			authRepository.findTotpByUserIdForUpdate,
-		).toHaveBeenCalledWith(42, connection);
+		expect(authRepository.findTotpByUserIdForUpdate).toHaveBeenCalledWith(42, connection);
 
-		expect(
-			authRepository.savePendingTotp,
-		).toHaveBeenCalledWith(
-			42,
-			'encrypted-secret',
-			connection,
-		);
+		expect(authRepository.savePendingTotp).toHaveBeenCalledWith(42, 'encrypted-secret', connection);
 
 		expect(connection.commit).toHaveBeenCalledOnce();
 
-		expect(
-			connection.rollback,
-		).not.toHaveBeenCalled();
+		expect(connection.rollback).not.toHaveBeenCalled();
 
 		expect(result).toEqual({
 			created: true,
@@ -165,18 +115,14 @@ describe('setup TOTP', () => {
 	});
 
 	it('rejects setup when TOTP is already enabled', async () => {
-		const {
-			authRepository,
-			connection,
-		} = createRepositoryMock({
+		const { authRepository, connection } = createRepositoryMock({
 			existingTotp: {
 				user_id: 42,
 				is_enabled: 1,
 			},
 		});
 
-		const setupTotpService =
-			createSetupTotpService(authRepository);
+		const setupTotpService = createSetupTotpService(authRepository);
 
 		const result = await setupTotpService({
 			userId: 42,
@@ -188,40 +134,27 @@ describe('setup TOTP', () => {
 			code: 'TOTP_ALREADY_ENABLED',
 		});
 
-		expect(
-			authRepository.savePendingTotp,
-		).not.toHaveBeenCalled();
+		expect(authRepository.savePendingTotp).not.toHaveBeenCalled();
 
-		expect(
-			connection.rollback,
-		).toHaveBeenCalledOnce();
+		expect(connection.rollback).toHaveBeenCalledOnce();
 
-		expect(
-			connection.commit,
-		).not.toHaveBeenCalled();
+		expect(connection.commit).not.toHaveBeenCalled();
 	});
 
 	it('returns the setup data through the controller', async () => {
-		const setupTotpService = vi
-			.fn()
-			.mockResolvedValue({
-				created: true,
-				secret: 'BASE32SECRET',
-				qrCode:
-					'data:image/png;base64,QRCode',
-			});
+		const setupTotpService = vi.fn().mockResolvedValue({
+			created: true,
+			secret: 'BASE32SECRET',
+			qrCode: 'data:image/png;base64,QRCode',
+		});
 
-		const controller =
-			createSetupTotpController(
-				setupTotpService,
-			);
+		const controller = createSetupTotpController(setupTotpService);
 
 		const req = {
 			auth: {
 				user: {
 					id: 42,
-					email:
-						'test@example.com',
+					email: 'test@example.com',
 				},
 			},
 		};
@@ -238,12 +171,10 @@ describe('setup TOTP', () => {
 
 		expect(res.json).toHaveBeenCalledWith({
 			status: true,
-			message:
-				'Scan the QR code and confirm with your authenticator code',
+			message: 'Scan the QR code and confirm with your authenticator code',
 			data: {
 				secret: 'BASE32SECRET',
-				qrCode:
-					'data:image/png;base64,QRCode',
+				qrCode: 'data:image/png;base64,QRCode',
 			},
 		});
 
@@ -251,24 +182,18 @@ describe('setup TOTP', () => {
 	});
 
 	it('returns conflict when TOTP is already enabled', async () => {
-		const setupTotpService = vi
-			.fn()
-			.mockResolvedValue({
-				created: false,
-				code: 'TOTP_ALREADY_ENABLED',
-			});
+		const setupTotpService = vi.fn().mockResolvedValue({
+			created: false,
+			code: 'TOTP_ALREADY_ENABLED',
+		});
 
-		const controller =
-			createSetupTotpController(
-				setupTotpService,
-			);
+		const controller = createSetupTotpController(setupTotpService);
 
 		const req = {
 			auth: {
 				user: {
 					id: 42,
-					email:
-						'test@example.com',
+					email: 'test@example.com',
 				},
 			},
 		};
@@ -282,8 +207,7 @@ describe('setup TOTP', () => {
 
 		expect(res.json).toHaveBeenCalledWith({
 			status: false,
-			message:
-				'Two-factor authentication is already enabled',
+			message: 'Two-factor authentication is already enabled',
 		});
 
 		expect(next).not.toHaveBeenCalled();

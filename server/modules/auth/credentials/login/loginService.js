@@ -1,16 +1,8 @@
 import argon2 from 'argon2';
 
-export default function createLoginService(
-	authRepository,
-) {
-	async function authenticateWithPassword(
-		email,
-		password,
-	) {
-		const user =
-			await authRepository.findUserByEmail(
-				email,
-			);
+export default function createLoginService(authRepository) {
+	async function authenticateWithPassword(email, password) {
+		const user = await authRepository.findUserByEmail(email);
 
 		if (!user || !user.password_hash) {
 			return {
@@ -19,11 +11,7 @@ export default function createLoginService(
 			};
 		}
 
-		const passwordIsValid =
-			await argon2.verify(
-				user.password_hash,
-				password,
-			);
+		const passwordIsValid = await argon2.verify(user.password_hash, password);
 
 		if (!passwordIsValid) {
 			return {
@@ -32,14 +20,10 @@ export default function createLoginService(
 			};
 		}
 
-		if (
-			user.status === 'pending' ||
-			!user.email_verified_at
-		) {
+		if (user.status === 'pending' || !user.email_verified_at) {
 			return {
 				success: false,
-				code:
-					'EMAIL_VERIFICATION_REQUIRED',
+				code: 'EMAIL_VERIFICATION_REQUIRED',
 			};
 		}
 
@@ -50,37 +34,23 @@ export default function createLoginService(
 			};
 		}
 
-		const totp =
-			await authRepository.findTotpByUserId(
-				user.id,
-			);
+		const totp = await authRepository.findTotpByUserId(user.id);
 
 		return {
 			success: true,
 			user,
-			requiresTwoFactor:
-				Boolean(totp?.is_enabled),
+			requiresTwoFactor: Boolean(totp?.is_enabled),
 		};
 	}
 
-	async function recordSuccessfulLogin({
-		userId,
-		currentSessionId,
-	}) {
+	async function recordSuccessfulLogin({ userId, currentSessionId }) {
 		if (!currentSessionId) {
-			throw new Error(
-				'Current session identifier is unavailable',
-			);
+			throw new Error('Current session identifier is unavailable');
 		}
 
-		await authRepository.deleteOtherUserSessions(
-			userId,
-			currentSessionId,
-		);
+		await authRepository.deleteOtherUserSessions(userId, currentSessionId);
 
-		await authRepository.updateLastLogin(
-			userId,
-		);
+		await authRepository.updateLastLogin(userId);
 	}
 
 	return {

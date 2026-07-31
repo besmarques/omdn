@@ -31,9 +31,7 @@ function createDatabaseMock() {
 	};
 
 	const db = {
-		getConnection: vi.fn().mockResolvedValue(
-			connection,
-		),
+		getConnection: vi.fn().mockResolvedValue(connection),
 	};
 
 	return {
@@ -47,36 +45,30 @@ describe('POST /api/auth/password/forgot', () => {
 		const { db } = createDatabaseMock();
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/password/forgot')
-			.send({
-				email: 'invalid-email',
-			});
+		const response = await request(app).post('/api/auth/password/forgot').send({
+			email: 'invalid-email',
+		});
 
 		expect(response.status).toBe(200);
 
 		expect(response.body).toEqual({
 			status: true,
-			message:
-				'If the account exists, a password reset email will be sent.',
+			message: 'If the account exists, a password reset email will be sent.',
 		});
 
 		expect(db.getConnection).not.toHaveBeenCalled();
 	});
 
 	it('returns a generic response when the user does not exist', async () => {
-		const { db, connection } =
-			createDatabaseMock();
+		const { db, connection } = createDatabaseMock();
 
 		connection.execute.mockResolvedValueOnce([[]]);
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/password/forgot')
-			.send({
-				email: 'unknown@example.com',
-			});
+		const response = await request(app).post('/api/auth/password/forgot').send({
+			email: 'unknown@example.com',
+		});
 
 		expect(response.status).toBe(200);
 
@@ -85,8 +77,7 @@ describe('POST /api/auth/password/forgot', () => {
 	});
 
 	it('replaces old tokens and creates a new reset token', async () => {
-		const { db, connection } =
-			createDatabaseMock();
+		const { db, connection } = createDatabaseMock();
 
 		connection.execute
 			.mockResolvedValueOnce([
@@ -109,26 +100,17 @@ describe('POST /api/auth/password/forgot', () => {
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/password/forgot')
-			.send({
-				email: 'TEST@EXAMPLE.COM',
-			});
+		const response = await request(app).post('/api/auth/password/forgot').send({
+			email: 'TEST@EXAMPLE.COM',
+		});
 
 		expect(response.status).toBe(200);
 
-		expect(connection.execute.mock.calls[0][1]).toEqual([
-			'test@example.com',
-		]);
+		expect(connection.execute.mock.calls[0][1]).toEqual(['test@example.com']);
 
-		expect(connection.execute.mock.calls[1][1]).toEqual([
-			42,
-		]);
+		expect(connection.execute.mock.calls[1][1]).toEqual([42]);
 
-		expect(connection.execute.mock.calls[2][1]).toEqual([
-			42,
-			expect.any(Buffer),
-		]);
+		expect(connection.execute.mock.calls[2][1]).toEqual([42, expect.any(Buffer)]);
 
 		expect(connection.beginTransaction).toHaveBeenCalledOnce();
 		expect(connection.commit).toHaveBeenCalledOnce();
@@ -142,12 +124,10 @@ describe('POST /api/auth/password/reset', () => {
 		const { db } = createDatabaseMock();
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/password/reset')
-			.send({
-				token: 'invalid',
-				password: 'short',
-			});
+		const response = await request(app).post('/api/auth/password/reset').send({
+			token: 'invalid',
+			password: 'short',
+		});
 
 		expect(response.status).toBe(400);
 		expect(response.body.status).toBe(false);
@@ -155,8 +135,7 @@ describe('POST /api/auth/password/reset', () => {
 	});
 
 	it('rejects an unknown or expired token', async () => {
-		const { db, connection } =
-			createDatabaseMock();
+		const { db, connection } = createDatabaseMock();
 
 		connection.execute.mockResolvedValueOnce([[]]);
 
@@ -173,8 +152,7 @@ describe('POST /api/auth/password/reset', () => {
 
 		expect(response.body).toEqual({
 			status: false,
-			message:
-				'Invalid or expired password reset token',
+			message: 'Invalid or expired password reset token',
 		});
 
 		expect(connection.beginTransaction).toHaveBeenCalledOnce();
@@ -184,8 +162,7 @@ describe('POST /api/auth/password/reset', () => {
 	});
 
 	it('updates the password and consumes reset tokens', async () => {
-		const { db, connection } =
-			createDatabaseMock();
+		const { db, connection } = createDatabaseMock();
 
 		connection.execute
 			.mockResolvedValueOnce([
@@ -228,22 +205,13 @@ describe('POST /api/auth/password/reset', () => {
 			message: 'Password reset successfully',
 		});
 
-		expect(connection.execute.mock.calls[0][1]).toEqual([
-			expect.any(Buffer),
-		]);
+		expect(connection.execute.mock.calls[0][1]).toEqual([expect.any(Buffer)]);
 
-		expect(connection.execute.mock.calls[1][1]).toEqual([
-			expect.any(String),
-			42,
-		]);
+		expect(connection.execute.mock.calls[1][1]).toEqual([expect.any(String), 42]);
 
-		expect(connection.execute.mock.calls[2][1]).toEqual([
-			42,
-		]);
+		expect(connection.execute.mock.calls[2][1]).toEqual([42]);
 
-		expect(connection.execute.mock.calls[3][1]).toEqual([
-			42,
-		]);
+		expect(connection.execute.mock.calls[3][1]).toEqual([42]);
 
 		expect(connection.beginTransaction).toHaveBeenCalledOnce();
 		expect(connection.commit).toHaveBeenCalledOnce();

@@ -1,23 +1,13 @@
-import {
-	generateSecret,
-	generateURI,
-} from 'otplib';
+import { generateSecret, generateURI } from 'otplib';
 
 import QRCode from 'qrcode';
 
-import {
-	encryptTotpSecret,
-} from '#server/modules/auth/totp/shared/totpEncryption';
+import { encryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncryption';
 
 const issuer = 'O Melhor do Natal';
 
-export default function createSetupTotpService(
-	authRepository,
-) {
-	return async function setupTotp({
-		userId,
-		email,
-	}) {
+export default function createSetupTotpService(authRepository) {
+	return async function setupTotp({ userId, email }) {
 		const secret = generateSecret();
 
 		const uri = generateURI({
@@ -35,50 +25,37 @@ export default function createSetupTotpService(
 			width: 320,
 		});
 
-		const secretEncrypted = encryptTotpSecret(
-			secret,
-			userId,
-		);
+		const secretEncrypted = encryptTotpSecret(secret, userId);
 
-		return authRepository.withConnection(
-			async (connection) => {
-				try {
-					await connection.beginTransaction();
+		return authRepository.withConnection(async (connection) => {
+			try {
+				await connection.beginTransaction();
 
-					const existingTotp =
-						await authRepository.findTotpByUserIdForUpdate(
-							userId,
-							connection,
-						);
+				const existingTotp = await authRepository.findTotpByUserIdForUpdate(userId, connection);
 
-					if (existingTotp?.is_enabled) {
-						await connection.rollback();
-
-						return {
-							created: false,
-							code: 'TOTP_ALREADY_ENABLED',
-						};
-					}
-
-					await authRepository.savePendingTotp(
-						userId,
-						secretEncrypted,
-						connection,
-					);
-
-					await connection.commit();
-
-					return {
-						created: true,
-						secret,
-						qrCode,
-					};
-				} catch (error) {
+				if (existingTotp?.is_enabled) {
 					await connection.rollback();
 
-					throw error;
+					return {
+						created: false,
+						code: 'TOTP_ALREADY_ENABLED',
+					};
 				}
-			},
-		);
+
+				await authRepository.savePendingTotp(userId, secretEncrypted, connection);
+
+				await connection.commit();
+
+				return {
+					created: true,
+					secret,
+					qrCode,
+				};
+			} catch (error) {
+				await connection.rollback();
+
+				throw error;
+			}
+		});
 	};
 }

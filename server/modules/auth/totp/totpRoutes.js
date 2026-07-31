@@ -2,9 +2,7 @@ import express from 'express';
 
 import requireGuest from '#server/modules/auth/shared/middleware/requireGuest';
 
-import {
-	createTotpLoginRateLimiter,
-} from '#server/modules/auth/shared/middleware/authRateLimiters';
+import { createTotpLoginRateLimiter } from '#server/modules/auth/shared/middleware/authRateLimiters';
 
 export default function createTotpRoutes({
 	authenticated,
@@ -17,45 +15,19 @@ export default function createTotpRoutes({
 }) {
 	const router = express.Router();
 
-	const totpLoginRateLimiter =
-		createTotpLoginRateLimiter();
+	const totpLoginRateLimiter = createTotpLoginRateLimiter();
 
-	router.get(
-		'/totp/status',
-		authenticated,
-		getTotpStatusController,
-	);
+	router.get('/totp/status', authenticated, getTotpStatusController);
 
-	router.post(
-		'/totp/setup',
-		authenticated,
-		setupTotpController,
-	);
+	router.post('/totp/setup', authenticated, setupTotpController);
 
-	router.post(
-		'/totp/enable',
-		authenticated,
-		enableTotpController,
-	);
+	router.post('/totp/enable', authenticated, enableTotpController);
 
-	router.post(
-		'/totp/recovery-codes/regenerate',
-		authenticated,
-		regenerateRecoveryCodesController,
-	);
+	router.post('/totp/recovery-codes/regenerate', authenticated, regenerateRecoveryCodesController);
 
-	router.post(
-		'/totp/disable',
-		authenticated,
-		disableTotpController,
-	);
+	router.post('/totp/disable', authenticated, disableTotpController);
 
-	router.post(
-		'/totp/login/verify',
-		requireGuest,
-		totpLoginRateLimiter,
-		verifyTotpLoginController,
-	);
+	router.post('/totp/login/verify', requireGuest, totpLoginRateLimiter, verifyTotpLoginController);
 
 	return router;
 }

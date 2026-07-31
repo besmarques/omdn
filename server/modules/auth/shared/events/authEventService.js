@@ -1,6 +1,4 @@
-export default function createAuthEventService(
-	authEventRepository,
-) {
+export default function createAuthEventService(authEventRepository) {
 	async function record(event) {
 		try {
 			await authEventRepository.create(event);
@@ -9,14 +7,10 @@ export default function createAuthEventService(
 				recorded: true,
 			};
 		} catch (error) {
-			console.error(
-				'Unable to record authentication event',
-				{
-					eventType:
-						event?.eventType ?? null,
-					error: error.message,
-				},
-			);
+			console.error('Unable to record authentication event', {
+				eventType: event?.eventType ?? null,
+				error: error.message,
+			});
 
 			return {
 				recorded: false,

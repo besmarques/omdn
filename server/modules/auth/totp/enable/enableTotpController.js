@@ -1,14 +1,8 @@
-import {
-	totpCodeSchema,
-} from '#server/modules/auth/shared/authSchemas';
+import { totpCodeSchema } from '#server/modules/auth/shared/authSchemas';
 
-export default function createEnableTotpController(
-	enableTotpService,
-) {
+export default function createEnableTotpController(enableTotpService) {
 	return async function enableTotp(req, res, next) {
-		const validation = totpCodeSchema.safeParse(
-			req.body,
-		);
+		const validation = totpCodeSchema.safeParse(req.body);
 
 		if (!validation.success) {
 			return res.status(400).json({
@@ -26,18 +20,15 @@ export default function createEnableTotpController(
 			if (!result.enabled) {
 				return res.status(400).json({
 					status: false,
-					message:
-						'Invalid authentication code or TOTP setup',
+					message: 'Invalid authentication code or TOTP setup',
 				});
 			}
 
 			return res.json({
 				status: true,
-				message:
-					'Two-factor authentication enabled',
+				message: 'Two-factor authentication enabled',
 				data: {
-					recoveryCodes:
-						result.recoveryCodes,
+					recoveryCodes: result.recoveryCodes,
 				},
 			});
 		} catch (error) {

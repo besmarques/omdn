@@ -1,6 +1,4 @@
-export default function createSetupTotpController(
-	setupTotpService,
-) {
+export default function createSetupTotpController(setupTotpService) {
 	return async function setupTotp(req, res, next) {
 		try {
 			const result = await setupTotpService({
@@ -11,15 +9,13 @@ export default function createSetupTotpController(
 			if (!result.created) {
 				return res.status(409).json({
 					status: false,
-					message:
-						'Two-factor authentication is already enabled',
+					message: 'Two-factor authentication is already enabled',
 				});
 			}
 
 			return res.json({
 				status: true,
-				message:
-					'Scan the QR code and confirm with your authenticator code',
+				message: 'Scan the QR code and confirm with your authenticator code',
 				data: {
 					secret: result.secret,
 					qrCode: result.qrCode,

@@ -4,11 +4,9 @@ import createRegisterController from '#server/modules/auth/registration/register
 import createRegisterService from '#server/modules/auth/registration/register/registerService';
 
 export default function createRegistrationModule(authRepository) {
-	const registerService =
-		createRegisterService(authRepository);
+	const registerService = createRegisterService(authRepository);
 
-	const registerController =
-		createRegisterController(registerService);
+	const registerController = createRegisterController(registerService);
 
 	return createRegistrationRoutes({
 		registerController,

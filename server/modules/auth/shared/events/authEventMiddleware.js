@@ -9,31 +9,18 @@ function resolveValue(value, context) {
 }
 
 function getUserId(req) {
-	return (
-		req.auth?.user?.id ??
-		req.session?.userId ??
-		req.session?.pendingTwoFactorUserId ??
-		null
-	);
+	return req.auth?.user?.id ?? req.session?.userId ?? req.session?.pendingTwoFactorUserId ?? null;
 }
 
-export default function createAuthEventMiddleware(
-	authEventService,
-) {
+export default function createAuthEventMiddleware(authEventService) {
 	return function authEvent(configuration) {
-		return function authEventMiddleware(
-			req,
-			res,
-			next,
-		) {
-			const initialContext =
-				createAuthEventContext(req);
+		return function authEventMiddleware(req, res, next) {
+			const initialContext = createAuthEventContext(req);
 
 			const initialUserId = getUserId(req);
 
 			res.once('finish', () => {
-				const finalContext =
-					createAuthEventContext(req);
+				const finalContext = createAuthEventContext(req);
 
 				const finalUserId = getUserId(req);
 
@@ -45,67 +32,35 @@ export default function createAuthEventMiddleware(
 					finalUserId,
 				};
 
-				const eventType = resolveValue(
-					configuration.eventType,
-					resolutionContext,
-				);
+				const eventType = resolveValue(configuration.eventType, resolutionContext);
 
 				if (!eventType) {
 					return;
 				}
 
-				const hasCustomUserId =
-					Object.hasOwn(
-						configuration,
-						'userId',
-					);
+				const hasCustomUserId = Object.hasOwn(configuration, 'userId');
 
 				const userId = hasCustomUserId
-					? resolveValue(
-							configuration.userId,
-							resolutionContext,
-						)
-					: res.locals?.authEventUserId ??
-						finalUserId ??
-						initialUserId;
+					? resolveValue(configuration.userId, resolutionContext)
+					: (res.locals?.authEventUserId ?? finalUserId ?? initialUserId);
 
-				const hasCustomSuccess =
-					Object.hasOwn(
-						configuration,
-						'success',
-					);
+				const hasCustomSuccess = Object.hasOwn(configuration, 'success');
 
-				const success = hasCustomSuccess
-					? Boolean(
-							resolveValue(
-								configuration.success,
-								resolutionContext,
-							),
-						)
-					: res.statusCode < 400;
+				const success = hasCustomSuccess ? Boolean(resolveValue(configuration.success, resolutionContext)) : res.statusCode < 400;
 
-				const metadata = resolveValue(
-					configuration.metadata ?? null,
-					resolutionContext,
-				);
+				const metadata = resolveValue(configuration.metadata ?? null, resolutionContext);
 
 				void authEventService.record({
 					userId,
 
-					sessionId:
-						finalContext.sessionId ??
-						initialContext.sessionId,
+					sessionId: finalContext.sessionId ?? initialContext.sessionId,
 
 					eventType,
 					success,
 
-					ipAddress:
-						finalContext.ipAddress ??
-						initialContext.ipAddress,
+					ipAddress: finalContext.ipAddress ?? initialContext.ipAddress,
 
-					userAgent:
-						finalContext.userAgent ??
-						initialContext.userAgent,
+					userAgent: finalContext.userAgent ?? initialContext.userAgent,
 
 					metadata,
 				});

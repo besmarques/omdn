@@ -1,11 +1,7 @@
-export default function createGetTotpStatusController(
-	getTotpStatusService,
-) {
+export default function createGetTotpStatusController(getTotpStatusService) {
 	return async function getTotpStatus(req, res, next) {
 		try {
-			const result = await getTotpStatusService(
-				req.auth.user.id,
-			);
+			const result = await getTotpStatusService(req.auth.user.id);
 
 			return res.json({
 				status: true,

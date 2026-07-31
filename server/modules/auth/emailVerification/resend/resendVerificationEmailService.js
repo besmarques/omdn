@@ -1,17 +1,11 @@
 import { createHash, randomBytes } from 'node:crypto';
 import process from 'node:process';
 
-export default function createResendVerificationEmailService(
-	authRepository,
-) {
+export default function createResendVerificationEmailService(authRepository) {
 	return async function resendVerificationEmail(email) {
 		return authRepository.withConnection(async (connection) => {
 			try {
-				const user =
-					await authRepository.findPendingUnverifiedUserByEmail(
-						email,
-						connection,
-					);
+				const user = await authRepository.findPendingUnverifiedUserByEmail(email, connection);
 
 				if (!user) {
 					return {
@@ -19,32 +13,20 @@ export default function createResendVerificationEmailService(
 					};
 				}
 
-				const verificationToken =
-					randomBytes(32).toString('hex');
+				const verificationToken = randomBytes(32).toString('hex');
 
-				const verificationTokenHash = createHash('sha256')
-					.update(verificationToken)
-					.digest();
+				const verificationTokenHash = createHash('sha256').update(verificationToken).digest();
 
 				await connection.beginTransaction();
 
-				await authRepository.deleteUnusedEmailVerificationTokens(
-					user.id,
-					connection,
-				);
+				await authRepository.deleteUnusedEmailVerificationTokens(user.id, connection);
 
-				await authRepository.createEmailVerificationToken(
-					user.id,
-					verificationTokenHash,
-					connection,
-				);
+				await authRepository.createEmailVerificationToken(user.id, verificationTokenHash, connection);
 
 				await connection.commit();
 
 				if (process.env.APP_ENV === 'development') {
-					console.log(
-						`New verification token for ${email}: ${verificationToken}`,
-					);
+					console.log(`New verification token for ${email}: ${verificationToken}`);
 				}
 
 				return {
