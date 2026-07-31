@@ -62,7 +62,20 @@ describe('POST /api/auth/login', () => {
 			message: 'Invalid login data',
 		});
 
-		expect(db.execute).not.toHaveBeenCalled();
+		expect(db.execute).toHaveBeenCalledOnce();
+
+		expect(db.execute).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO auth_events'), [
+			null,
+			null,
+			'login_failed',
+			0,
+			'127.0.0.1',
+			null,
+			JSON.stringify({
+				statusCode: 400,
+				rateLimited: false,
+			}),
+		]);
 	});
 
 	it('returns a generic error when the user does not exist', async () => {
