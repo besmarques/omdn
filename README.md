@@ -1,95 +1,112 @@
 # O Melhor do Natal
 
-A full-stack version of **O Melhor do Natal**, built with React and Vite on the frontend and Express with MySQL on the backend.
+A full-stack application built with React and Vite on the frontend and Express with MySQL on the backend.
 
 ## Stack
 
-### Frontend
+### Runtime dependencies
 
-| Technology / package | Purpose |
+| Package | Purpose |
 |---|---|
-| React and React DOM | User interface and browser rendering |
-| Vite and `@vitejs/plugin-react` | Development server and production build |
-| React Router | Client-side routing |
-| Tailwind CSS and `@tailwindcss/vite` | Utility-first styling and Vite integration |
-| shadcn/ui and Base UI | Reusable, accessible UI components |
-| Lucide React | Icons |
-| Class Variance Authority, `clsx`, and `tailwind-merge` | Component variants and class composition |
-| `tw-animate-css` | Tailwind animation utilities |
+| `react`, `react-dom`, `react-router` | Browser UI, rendering, and client-side routing |
+| `tailwindcss`, `@tailwindcss/vite`, `tw-animate-css` | Styling, Vite integration, and animations |
+| `shadcn`, `@base-ui/react`, `lucide-react` | Accessible UI components and icons |
+| `class-variance-authority`, `clsx`, `tailwind-merge` | Component variants and class composition |
+| `express` | HTTP server, API routing, and production frontend delivery |
+| `mysql2` | Promise-based MySQL connection pool |
+| `express-session`, `express-mysql-session` | Server-side sessions stored in MySQL |
+| `argon2` | Password hashing and verification |
+| `otplib` | TOTP and one-time-password support |
+| `qrcode` | QR-code generation support for authenticator setup |
+| `zod` | Authentication request validation |
+| `dotenv` | Environment-variable loading support |
 
-### Backend
+### Development dependencies
 
-| Technology / package | Purpose |
+| Package | Purpose |
 |---|---|
-| Node.js and Express | HTTP server, API routes, and production frontend delivery |
-| MySQL2 | Promise-based MySQL connection pool |
-| Express Session | Server-side session middleware |
-| Express MySQL Session | MySQL-backed session storage |
-| Argon2 | Password hashing support |
-| Zod | Request and data validation support |
-| dotenv | Environment variable loading support |
+| `vite`, `@vitejs/plugin-react` | Development server and production build |
+| `vitest`, `supertest` | Unit and HTTP route testing |
+| `eslint`, `@eslint/js`, React ESLint plugins, `globals` | JavaScript and React linting |
+| `@types/react`, `@types/react-dom` | React editor/tooling types |
+| `dependency-cruiser` | Source dependency analysis and DOT generation |
 
-### Development tools
-
-| Technology / package | Purpose |
-|---|---|
-| ESLint | JavaScript and React linting |
-| Prettier configuration | Formatting rules used by compatible editors and tools |
-| Dependency Cruiser | Source dependency analysis and DOT graph generation |
-| Graphviz | Converts the generated DOT graph to SVG |
+The repository contains Prettier configuration, but Prettier is not currently declared in `package.json`. Graphviz is an external prerequisite for converting DOT files to SVG.
 
 ## Project structure
 
 ```text
 omdn/
 |-- docs/
+|   |-- logic/
+|   |   |-- account.mmd
+|   |   |-- admin.mmd
+|   |   |-- api.mmd
+|   |   |-- application.mmd
+|   |   |-- auth.mmd
+|   |   `-- routes.mmd
 |   |-- dependency-graph.dot
 |   `-- dependency-graph.svg
-|-- .dependency-cruiser.cjs
+|-- scripts/
+|   `-- dev/generate-logic-map.js
 |-- server/
 |   |-- database/
-|   |   |-- migrations/
-|   |   |   `-- 001_create_auth_tables.sql
-|   |   `-- seeds/
-|   |       `-- 001_seed_roles_permissions.sql
-|   |-- dbConnect/
-|   |   `-- createPool.js
-|   |-- middleware/
-|   |   `-- sessionMiddleware.js
+|   |   |-- migrations/001_create_auth_tables.sql
+|   |   `-- seeds/001_seed_roles_permissions.sql
+|   |-- dbConnect/createPool.js
+|   |-- middleware/sessionMiddleware.js
 |   |-- modules/
 |   |   |-- account/
 |   |   |   |-- __tests__/accountRoutes.test.js
 |   |   |   |-- controllers/getCurrentAccountController.js
 |   |   |   |-- services/getCurrentAccountService.js
+|   |   |   |-- accountModule.js
 |   |   |   `-- accountRoutes.js
 |   |   |-- admin/
 |   |   |   |-- __tests__/adminRoutes.test.js
 |   |   |   |-- controllers/testAdminAccessController.js
 |   |   |   |-- services/testAdminAccessService.js
+|   |   |   |-- adminModule.js
 |   |   |   `-- adminRoutes.js
 |   |   `-- auth/
 |   |       |-- __tests__/
-|   |       |-- controllers/
+|   |       |-- credentials/
+|   |       |   |-- controllers/
+|   |       |   |-- services/
+|   |       |   |-- credentialsModule.js
+|   |       |   `-- credentialsRoutes.js
+|   |       |-- emailVerification/
+|   |       |   |-- controllers/
+|   |       |   |-- services/
+|   |       |   |-- emailVerificationModule.js
+|   |       |   `-- emailVerificationRoutes.js
 |   |       |-- middleware/
-|   |       |-- services/
+|   |       |   |-- __tests__/
+|   |       |   |-- requireAuth.js
+|   |       |   |-- requireGuest.js
+|   |       |   `-- requirePermission.js
+|   |       |-- passwordRecovery/
+|   |       |   |-- controllers/
+|   |       |   |-- services/
+|   |       |   |-- passwordRecoveryModule.js
+|   |       |   `-- passwordRecoveryRoutes.js
+|   |       |-- registration/
+|   |       |   |-- controllers/
+|   |       |   |-- services/
+|   |       |   |-- registrationModule.js
+|   |       |   `-- registrationRoutes.js
+|   |       |-- authModule.js
 |   |       |-- authRepository.js
 |   |       |-- authRoutes.js
 |   |       `-- authSchemas.js
-|   |-- routes/
-|   |   `-- apiRoutes.js
-|   |-- tests/
-|   |   `-- middleware/auth/
+|   |-- routes/apiRoutes.js
 |   |-- expressApp.js
 |   `-- server.js
 |-- src/
-|   |-- components/
-|   |   `-- ui/
-|   |       `-- button.jsx
-|   |-- lib/
-|   |   `-- utils.js
+|   |-- components/ui/button.jsx
+|   |-- lib/utils.js
 |   |-- pages/
-|   |   |-- dev/
-|   |   |   `-- DesignSystemPage.jsx
+|   |   |-- dev/DesignSystemPage.jsx
 |   |   `-- HomePage.jsx
 |   |-- router/
 |   |   |-- AppRoutes.jsx
@@ -98,6 +115,7 @@ omdn/
 |   |-- App.jsx
 |   |-- index.css
 |   `-- main.jsx
+|-- .dependency-cruiser.cjs
 |-- .env.example
 |-- .gitignore
 |-- .prettierignore
@@ -112,167 +130,122 @@ omdn/
 `-- vite.config.js
 ```
 
-Generated directories such as `node_modules/` and `dist/`, along with local `.env.development` and `.env.production` files, are intentionally omitted from the source tree above.
+Generated `node_modules/`, `dist/`, and local environment files are omitted.
 
 ### Structure conventions
 
-- `src/` contains browser-side application code.
-- `src/pages/` contains route-level screens.
-- `src/components/ui/` contains reusable UI primitives.
-- `src/router/` contains frontend route definitions.
-- `server/modules/` contains feature-owned routes, controllers, services, middleware, repositories, schemas, and colocated tests.
-- `server/routes/` contains only shared or cross-feature routers such as the general API router.
-- `server/middleware/` contains shared middleware; feature-specific authentication and authorization middleware lives in `server/modules/auth/middleware/`.
-- `server/dbConnect/` contains database connection setup.
-- `server/database/migrations/` and `server/database/seeds/` contain ordered SQL files.
-- Frontend imports use the `@/*` alias for `src/*`.
-- Backend imports use the `#server/*` package import alias for `server/*.js`.
-- `.dependency-cruiser.cjs` defines dependency validation rules and graph styling; `docs/` contains its generated graph artifacts.
+- `src/` contains the browser application.
+- `server/modules/` contains feature-owned composition, routes, controllers, services, schemas, repositories, middleware, and colocated tests.
+- Each `*Module.js` file wires its feature dependencies and returns a router.
+- Auth is divided into credentials, registration, email-verification, and password-recovery submodules.
+- `server/routes/` contains shared/cross-feature routers; `server/middleware/` contains shared middleware.
+- `server/expressApp.js` composes the application; `server/server.js` starts the listener.
+- Frontend imports use `@/*`; backend imports use `#server/*`.
+- Development generators live under `scripts/dev/`; generated maps live under `docs/`.
 
-## Installation
+## Installation and development
 
 ```bash
 npm install
 ```
 
-Copy `.env.example` to `.env.development` and fill in the local values before starting the backend.
-
-## Development
-
-Start the Vite frontend:
+Copy `.env.example` to `.env.development`, provide local values, then run the frontend and backend in separate terminals:
 
 ```bash
 npm run dev
-```
-
-Start the Express backend in a second terminal:
-
-```bash
 npm run dev:server
 ```
-
-The backend command loads `.env.development` and restarts when server files change.
 
 ## Available scripts
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Starts the Vite development server |
+| `npm test` | Runs Vitest once |
+| `npm run test:watch` | Runs Vitest in watch mode |
+| `npm run dev` | Starts Vite |
 | `npm run dev:server` | Loads `.env.development` and starts Express in watch mode |
-| `npm run build` | Creates the production frontend in `dist/` |
-| `npm start` | Runs `prestart`, builds the frontend, and starts Express |
-| `npm run lint` | Runs ESLint across the project |
-| `npm run preview` | Previews the Vite production build |
-| `npm run diagram` | Analyzes `src/` and `server/`, then regenerates the DOT and SVG dependency graphs |
+| `npm run build` | Builds the frontend into `dist/` |
+| `npm start` | Builds the frontend through `prestart`, then starts Express |
+| `npm run lint` | Runs ESLint |
+| `npm run preview` | Previews the production frontend build |
+| `npm run diagram` | Generates the DOT dependency graph and SVG |
+| `npm run logic-map` | Regenerates Mermaid logic maps under `docs/logic/` |
+| `npm run maps` | Regenerates dependency and logic maps |
+| `npm run diagram:all` | Alias for regenerating both map sets |
 
-## Dependency graph
+## Architecture maps
 
-Run:
+`npm run diagram` analyzes imports under `src/` and `server/`, writes `docs/dependency-graph.dot`, and uses Graphviz `dot` to create the SVG.
 
-```bash
-npm run diagram
-```
-
-This uses Dependency Cruiser to analyze imports under `src/` and `server/`, writes `docs/dependency-graph.dot`, and invokes Graphviz `dot` to create `docs/dependency-graph.svg`. Graphviz must be installed and its `dot` executable must be available on `PATH`.
+`npm run logic-map` recreates `docs/logic/` with Mermaid diagrams for application, routing, API, auth, account, and admin flows.
 
 ## Environment variables
 
-| Variable | Purpose | Code default |
+| Variable | Purpose | Default |
 |---|---|---|
-| `PORT` | Express HTTP port | `3000` |
-| `APP_ENV` | Enables production proxy trust and SPA fallback when set to `production` | None |
-| `NODE_ENV` | Enables secure session cookies when set to `production` | None |
+| `PORT` | Express port | `3000` |
+| `APP_ENV` | Production proxy/SPA behavior and development token logging | None |
+| `NODE_ENV` | Secure session-cookie behavior | None |
 | `DB_HOST` | MySQL host | None |
 | `DB_PORT` | MySQL port | `3306` |
 | `DB_NAME` | MySQL database | None |
 | `DB_USER` | MySQL user | None |
 | `DB_PASSWORD` | MySQL password | None |
-| `DB_CONNECTION_LIMIT` | Maximum MySQL pool connections | `10` |
-| `DB_SSL` | Reserved database SSL setting; not currently consumed | None |
-| `DB_SSL_CA` | Reserved database CA setting; not currently consumed | None |
-| `SESSION_SECRET` | Required secret used to sign session cookies | None |
+| `DB_CONNECTION_LIMIT` | Maximum pool connections | `10` |
+| `DB_SSL`, `DB_SSL_CA` | Reserved SSL settings; not currently consumed | None |
+| `SESSION_SECRET` | Required session signing secret | None |
 
-Local environment files must not be committed. `.env.example` documents variable names without secret values. Variables prefixed with `VITE_` are exposed to the browser bundle and must not contain secrets.
+Never put secrets in `VITE_*` variables because Vite exposes them to the browser.
 
-> `server/server.js` checks `APP_ENV`, while `.env.example` currently lists `NODE_ENV`. Set both to `production` in production unless the runtime configuration is consolidated later.
+> The server consumes `APP_ENV`, but `.env.example` currently lists only `NODE_ENV`. Set both to `production` in production.
 
 ## Database
 
-Run the migration before the seed:
+Apply these SQL files in order:
 
 1. `server/database/migrations/001_create_auth_tables.sql`
 2. `server/database/seeds/001_seed_roles_permissions.sql`
 
-The migration creates users, external authentication identities, roles, permissions, role assignments, sessions, verification and reset tokens, TOTP settings, recovery codes, and authentication audit events.
+They create the authentication, authorization, session, token, TOTP, recovery-code, and audit schema, then seed the initial roles and permissions. There is no npm migration command.
 
-Registration validates names, normalized email addresses, and passwords of 15-128 characters. Passwords are hashed with Argon2id, verification tokens are stored as SHA-256 hashes for 24 hours, and development mode logs the raw token until email delivery is connected. Verification activates pending users and invalidates their unused verification tokens. Resending replaces any unused token with a new 24-hour token while returning a neutral response that does not reveal whether an account exists.
+## Authentication and routing
 
-The seed creates the built-in `administrator`, `editor`, `author`, `contributor`, and `subscriber` roles, then assigns their initial permissions. SQL execution remains explicit; the project does not currently provide an npm migration command.
-
-## Sessions and authorization
-
-Sessions are stored in MySQL for seven days using the `sessions` table. Cookies are HTTP-only, use `SameSite=Lax`, and become secure when `NODE_ENV=production`.
-
-The middleware is layered as follows:
-
-- `sessionMiddleware.js` configures the MySQL session store and cookie.
-- `requireGuest.js` rejects requests from authenticated users.
-- `requireAuth.js` loads the active user, roles, and permissions into `req.auth`.
-- `requirePermission.js` checks a required permission from `req.auth.permissions`.
-
-## Routing
+Sessions are stored in MySQL for seven days. Cookies are HTTP-only, use `SameSite=Lax`, and become secure in production.
 
 ### Frontend routes
 
 | Route | Availability | Purpose |
 |---|---|---|
 | `/` | All environments | Home page |
-| `/dev/design-system` | Vite development only | Design-system preview |
+| `/dev/design-system` | Development only | Design-system preview |
 | `*` | All environments | Frontend not-found response |
 
 ### Backend routes
 
 | Method and route | Access | Purpose |
 |---|---|---|
-| `POST /api/auth/register` | Guests only | Validates registration, creates a pending subscriber, and stores a verification token |
 | `GET /api` | Public | API health response |
 | `GET /api/test-items` | Public | Reads test items from MySQL |
-| `POST /api/auth/email/verify` | Public | Activates a pending account using a valid verification token |
-| `POST /api/auth/email/resend` | Guests only | Replaces the verification token for an eligible pending account |
-| `GET /api/auth/status` | Public | Reports whether the session is authenticated |
-| `GET /api/auth/guest-test` | Guests only | Tests guest-only middleware |
-| `GET /api/account/me` | Authenticated users | Returns the current user, roles, and permissions |
-| `GET /api/admin/test` | Authenticated users with `users.manage` | Tests permission-protected access |
+| `GET /api/auth/status` | Public | Reports session authentication status |
+| `GET /api/auth/guest-test` | Guests only | Exercises guest middleware |
+| `POST /api/auth/register` | Guests only | Registers a pending subscriber |
+| `POST /api/auth/login` | Guests only | Authenticates and creates a session |
+| `POST /api/auth/logout` | Session-aware | Destroys the session and clears its cookie |
+| `POST /api/auth/email/verify` | Public | Activates an account with a valid token |
+| `POST /api/auth/email/resend` | Guests only | Replaces an eligible verification token |
+| `POST /api/auth/password/forgot` | Guests only | Creates a reset token without exposing account existence |
+| `POST /api/auth/password/reset` | Guests only | Resets a password with a valid token |
+| `GET /api/account/me` | Authenticated | Returns the current user, roles, and permissions |
+| `GET /api/admin/test` | `users.manage` permission | Tests protected admin access |
 
-Unknown routes under the general `/api` router return a JSON 404. In production, Express serves `dist/` and returns `dist/index.html` for client-side routes when `APP_ENV=production`.
+The generic `/api` router and JSON 404 handler are mounted last. With `APP_ENV=production`, Express serves `dist/` and provides the SPA fallback.
 
 ## Design system
 
-The UI uses Tailwind CSS, shadcn/ui with Base UI primitives, Lucide icons, and shared variant/class utilities. The development-only design-system page previews component variations, sizes, states, and usage examples.
-
-### Color palette
-
-| Name | Hex | OKLCH |
-|---|---|---|
-| Intense Cherry | `#c43a47` | `oklch(0.5553 0.1739 19.78)` |
-| Wine Plum | `#843145` | `oklch(0.437 0.1151 8.38)` |
-| Dark Slate Grey | `#204e4a` | `oklch(0.3906 0.0508 187.67)` |
-| Pine Blue | `#3e6c67` | `oklch(0.4967 0.0514 186.79)` |
-| Ocean Blue | `#3a8bc1` | `oklch(0.6111 0.1133 241.37)` |
-| Baltic Blue | `#216182` | `oklch(0.4677 0.083 235.24)` |
-| Dark Goldenrod | `#a28100` | `oklch(0.617 0.1261 90.65)` |
-| Golden Bronze | `#cca300` | `oklch(0.732 0.1496 90.57)` |
-| Pearl Beige | `#e7d6ba` | `oklch(0.8827 0.0418 80.3)` |
-| Dust Grey | `#e2ddd5` | `oklch(0.8993 0.0121 79.78)` |
+The frontend uses Tailwind CSS, shadcn/ui with Base UI primitives, Lucide icons, and shared class/variant utilities. The development-only design-system page previews components, variations, sizes, and states.
 
 ## Deployment
 
-The intended production entry point is:
+The production entry point is `server/server.js`. `npm start` builds the frontend through `prestart` and then starts Express.
 
-```text
-server/server.js
-```
-
-`npm start` first runs `npm run build` through `prestart`, then starts Express. If the hosting platform invokes `server/server.js` directly, build the frontend separately first.
-
-Configure production environment variables in the hosting platform. Set `APP_ENV=production` for proxy trust and SPA routing, and `NODE_ENV=production` for secure session cookies.
+Configure `APP_ENV=production`, `NODE_ENV=production`, a strong `SESSION_SECRET`, and all MySQL connection values in the hosting platform.
