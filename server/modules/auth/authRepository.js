@@ -9,12 +9,34 @@ export default function createAuthRepository(db) {
 		}
 	}
 
-	async function findExistingUserByEmail(email, executor = db) {
+	async function findExistingUserByEmail(
+		email,
+		executor = db,
+	) {
 		const [users] = await executor.execute(
 			`
 				SELECT id
 				FROM users
 				WHERE email = ?
+				LIMIT 1
+			`,
+			[email],
+		);
+
+		return users[0] ?? null;
+	}
+
+	async function findPendingUnverifiedUserByEmail(
+		email,
+		executor = db,
+	) {
+		const [users] = await executor.execute(
+			`
+				SELECT id
+				FROM users
+				WHERE email = ?
+					AND status = 'pending'
+					AND email_verified_at IS NULL
 				LIMIT 1
 			`,
 			[email],
@@ -43,7 +65,10 @@ export default function createAuthRepository(db) {
 		return result.insertId;
 	}
 
-	async function assignSubscriberRole(userId, executor = db) {
+	async function assignSubscriberRole(
+		userId,
+		executor = db,
+	) {
 		const [result] = await executor.execute(
 			`
 				INSERT INTO user_roles (
@@ -85,6 +110,20 @@ export default function createAuthRepository(db) {
 		);
 	}
 
+	async function deleteUnusedEmailVerificationTokens(
+		userId,
+		executor = db,
+	) {
+		await executor.execute(
+			`
+				DELETE FROM email_verification_tokens
+				WHERE user_id = ?
+					AND used_at IS NULL
+			`,
+			[userId],
+		);
+	}
+
 	async function findValidEmailVerificationByTokenHash(
 		tokenHash,
 		executor = db,
@@ -112,7 +151,10 @@ export default function createAuthRepository(db) {
 		return tokens[0] ?? null;
 	}
 
-	async function activateVerifiedUser(userId, executor = db) {
+	async function activateVerifiedUser(
+		userId,
+		executor = db,
+	) {
 		await executor.execute(
 			`
 				UPDATE users
@@ -178,9 +220,11 @@ export default function createAuthRepository(db) {
 	return {
 		withConnection,
 		findExistingUserByEmail,
+		findPendingUnverifiedUserByEmail,
 		createPendingUser,
 		assignSubscriberRole,
 		createEmailVerificationToken,
+		deleteUnusedEmailVerificationTokens,
 		findValidEmailVerificationByTokenHash,
 		activateVerifiedUser,
 		markEmailVerificationTokensUsed,
