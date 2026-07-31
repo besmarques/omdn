@@ -500,34 +500,109 @@ export default function createAuthRepository(db) {
 		return result.affectedRows;
 	}
 
+	async function findActiveUserPasswordByIdForUpdate(userId, executor = db) {
+		const [users] = await executor.execute(
+			`
+			SELECT
+				id,
+				password_hash
+			FROM users
+			WHERE id = ?
+				AND status = 'active'
+				AND email_verified_at IS NOT NULL
+				AND deleted_at IS NULL
+			LIMIT 1
+			FOR UPDATE
+		`,
+			[userId],
+		);
+
+		return users[0] ?? null;
+	}
+
+	async function deleteRecoveryCodes(userId, executor = db) {
+		const [result] = await executor.execute(
+			`
+			DELETE FROM user_recovery_codes
+			WHERE user_id = ?
+		`,
+			[userId],
+		);
+
+		return result.affectedRows;
+	}
+
+	async function deleteTotp(userId, executor = db) {
+		const [result] = await executor.execute(
+			`
+			DELETE FROM user_totp
+			WHERE user_id = ?
+		`,
+			[userId],
+		);
+
+		return result.affectedRows;
+	}
+
+	async function deleteOtherUserSessions(userId, currentSessionId, executor = db) {
+		const [result] = await executor.execute(
+			`
+			DELETE FROM sessions
+			WHERE session_id <> ?
+				AND (
+					user_id = ?
+					OR (
+						JSON_VALID(data) = 1
+						AND CAST(
+							JSON_UNQUOTE(
+								JSON_EXTRACT(
+									data,
+									'$.userId'
+								)
+							)
+							AS UNSIGNED
+						) = ?
+					)
+				)
+		`,
+			[currentSessionId, userId, userId],
+		);
+
+		return result.affectedRows;
+	}
+
 	return {
-	withConnection,
-	findExistingUserByEmail,
-	findPendingUnverifiedUserByEmail,
-	createPendingUser,
-	assignSubscriberRole,
-	createEmailVerificationToken,
-	deleteUnusedEmailVerificationTokens,
-	findValidEmailVerificationByTokenHash,
-	activateVerifiedUser,
-	markEmailVerificationTokensUsed,
-	findUserByEmail,
-	updateLastLogin,
-	findPasswordResetUserByEmail,
-	deleteUnusedPasswordResetTokens,
-	createPasswordResetToken,
-	findValidPasswordResetByTokenHash,
-	updateUserPassword,
-	markPasswordResetTokensUsed,
-	deleteUserSessions,
-	findTotpByUserId,
-	findTotpByUserIdForUpdate,
-	savePendingTotp,
-	enableTotp,
-	replaceRecoveryCodes,
-	findActiveUserById,
-	updateTotpLastUsedStep,
-	findUnusedRecoveryCodeForUpdate,
-	markRecoveryCodeUsed,
-};
+		withConnection,
+		findExistingUserByEmail,
+		findPendingUnverifiedUserByEmail,
+		createPendingUser,
+		assignSubscriberRole,
+		createEmailVerificationToken,
+		deleteUnusedEmailVerificationTokens,
+		findValidEmailVerificationByTokenHash,
+		activateVerifiedUser,
+		markEmailVerificationTokensUsed,
+		findUserByEmail,
+		updateLastLogin,
+		findPasswordResetUserByEmail,
+		deleteUnusedPasswordResetTokens,
+		createPasswordResetToken,
+		findValidPasswordResetByTokenHash,
+		updateUserPassword,
+		markPasswordResetTokensUsed,
+		deleteUserSessions,
+		findTotpByUserId,
+		findTotpByUserIdForUpdate,
+		savePendingTotp,
+		enableTotp,
+		replaceRecoveryCodes,
+		findActiveUserById,
+		updateTotpLastUsedStep,
+		findUnusedRecoveryCodeForUpdate,
+		markRecoveryCodeUsed,
+		findActiveUserPasswordByIdForUpdate,
+		deleteRecoveryCodes,
+		deleteTotp,
+		deleteOtherUserSessions,
+	};
 }

@@ -4,10 +4,11 @@ import requireGuest from '#server/modules/auth/middleware/requireGuest';
 
 export default function createTotpRoutes({
 	authenticated,
-	setupTotpController,
+	disableTotpController,
 	enableTotpController,
 	getTotpStatusController,
 	regenerateRecoveryCodesController,
+	setupTotpController,
 	verifyTotpLoginController,
 }) {
 	const router = express.Router();
@@ -34,6 +35,12 @@ export default function createTotpRoutes({
 		'/totp/recovery-codes/regenerate',
 		authenticated,
 		regenerateRecoveryCodesController,
+	);
+
+	router.post(
+		'/totp/disable',
+		authenticated,
+		disableTotpController,
 	);
 
 	router.post(
