@@ -7,6 +7,7 @@ import createCredentialsModule from '#server/modules/auth/credentials/credential
 import createEmailVerificationModule from '#server/modules/auth/emailVerification/emailVerificationModule';
 import createPasswordRecoveryModule from '#server/modules/auth/passwordRecovery/passwordRecoveryModule';
 import createRegistrationModule from '#server/modules/auth/registration/registrationModule';
+import createTotpModule from '#server/modules/auth/totp/totpModule';
 
 export default function createAuthModule(db) {
 	const router = express.Router();
@@ -15,21 +16,15 @@ export default function createAuthModule(db) {
 
 	router.use(createAuthRoutes());
 
-	router.use(
-		createCredentialsModule(authRepository),
-	);
+	router.use(createCredentialsModule(authRepository));
 
-	router.use(
-		createRegistrationModule(authRepository),
-	);
+	router.use(createRegistrationModule(authRepository));
 
-	router.use(
-		createEmailVerificationModule(authRepository),
-	);
+	router.use(createEmailVerificationModule(authRepository));
 
-	router.use(
-		createPasswordRecoveryModule(authRepository),
-	);
+	router.use(createPasswordRecoveryModule(authRepository));
+
+	router.use(createTotpModule(authRepository, db));
 
 	return router;
 }

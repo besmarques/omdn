@@ -1,16 +1,8 @@
 import { z } from 'zod';
 
-const emailSchema = z
-	.string()
-	.trim()
-	.toLowerCase()
-	.email('Invalid email address')
-	.max(254, 'Email address is too long');
+const emailSchema = z.string().trim().toLowerCase().email('Invalid email address').max(254, 'Email address is too long');
 
-const passwordSchema = z
-	.string()
-	.min(15, 'Password must contain at least 15 characters')
-	.max(128, 'Password cannot exceed 128 characters');
+const passwordSchema = z.string().min(15, 'Password must contain at least 15 characters').max(128, 'Password cannot exceed 128 characters');
 
 const tokenSchema = z
 	.string()
@@ -47,4 +39,15 @@ export const resetPasswordSchema = z.object({
 	token: tokenSchema,
 
 	password: passwordSchema,
+});
+
+export const totpCodeSchema = z.object({
+	code: z
+		.string()
+		.trim()
+		.regex(/^\d{6}$/, 'Invalid authentication code'),
+});
+
+export const totpLoginSchema = z.object({
+	code: z.string().trim().min(1, 'Authentication code is required').max(32, 'Authentication code is too long'),
 });

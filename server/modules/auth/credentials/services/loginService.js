@@ -2,7 +2,8 @@ import argon2 from 'argon2';
 
 export default function createLoginService(authRepository) {
 	async function authenticateWithPassword(email, password) {
-		const user = await authRepository.findUserByEmail(email);
+		const user =
+			await authRepository.findUserByEmail(email);
 
 		if (!user || !user.password_hash) {
 			return {
@@ -40,9 +41,16 @@ export default function createLoginService(authRepository) {
 			};
 		}
 
+		const totp =
+			await authRepository.findTotpByUserId(
+				user.id,
+			);
+
 		return {
 			success: true,
 			user,
+			requiresTwoFactor:
+				Boolean(totp?.is_enabled),
 		};
 	}
 

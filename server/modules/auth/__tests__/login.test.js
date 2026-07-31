@@ -88,18 +88,26 @@ describe('POST /api/auth/login', () => {
 
 	it('returns the same generic error for an incorrect password', async () => {
 		const db = {
-			execute: vi.fn().mockResolvedValueOnce([
-				[
+			execute: vi
+				.fn()
+				.mockResolvedValueOnce([
+					[
+						{
+							id: 42,
+							email: 'test@example.com',
+							display_name: 'Test User',
+							password_hash: '$argon2id$stored-hash',
+							status: 'active',
+							email_verified_at: new Date(),
+						},
+					],
+				])
+				.mockResolvedValueOnce([[]])
+				.mockResolvedValueOnce([
 					{
-						id: 42,
-						email: 'test@example.com',
-						display_name: 'Test User',
-						password_hash: '$argon2id$stored-hash',
-						status: 'active',
-						email_verified_at: new Date(),
+						affectedRows: 1,
 					},
-				],
-			]),
+				]),
 		};
 
 		argon2.verify.mockResolvedValueOnce(false);
