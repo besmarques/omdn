@@ -4,6 +4,7 @@ import requireGuest from '#server/modules/auth/middleware/requireGuest';
 
 export default function createAuthRoutes({
 	loginController,
+	logoutController,
 	registerController,
 	resendVerificationEmailController,
 	verifyEmailController,
@@ -46,6 +47,8 @@ export default function createAuthRoutes({
 		requireGuest,
 		loginController,
 	);
+
+	router.post('/logout', logoutController);
 
 	return router;
 }

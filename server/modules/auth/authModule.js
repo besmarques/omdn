@@ -1,6 +1,7 @@
 import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 import createLoginController from '#server/modules/auth/controllers/loginController';
+import createLogoutController from '#server/modules/auth/controllers/logoutController';
 import createRegisterController from '#server/modules/auth/controllers/registerController';
 import createResendVerificationEmailController from '#server/modules/auth/controllers/resendVerificationEmailController';
 import createVerifyEmailController from '#server/modules/auth/controllers/verifyEmailController';
@@ -8,6 +9,7 @@ import createVerifyEmailController from '#server/modules/auth/controllers/verify
 import createAuthRepository from '#server/modules/auth/authRepository';
 
 import createLoginService from '#server/modules/auth/services/loginService';
+import createLogoutService from '#server/modules/auth/services/logoutService';
 import createRegisterService from '#server/modules/auth/services/registerService';
 import createResendVerificationEmailService from '#server/modules/auth/services/resendVerificationEmailService';
 import createVerifyEmailService from '#server/modules/auth/services/verifyEmailService';
@@ -16,6 +18,7 @@ export default function createAuthModule(db) {
 	const authRepository = createAuthRepository(db);
 
 	const loginService = createLoginService(authRepository);
+	const logoutService = createLogoutService();
 
 	const registerService =
 		createRegisterService(authRepository);
@@ -28,6 +31,9 @@ export default function createAuthModule(db) {
 
 	const loginController =
 		createLoginController(loginService);
+
+	const logoutController =
+		createLogoutController(logoutService);
 
 	const registerController =
 		createRegisterController(registerService);
@@ -42,6 +48,7 @@ export default function createAuthModule(db) {
 
 	return createAuthRoutes({
 		loginController,
+		logoutController,
 		registerController,
 		resendVerificationEmailController,
 		verifyEmailController,
