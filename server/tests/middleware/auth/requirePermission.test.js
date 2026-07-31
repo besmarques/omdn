@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import requirePermission from '#server/middleware/auth/requirePermission';
+import requirePermission from '#server/modules/auth/middleware/requirePermission';
 
 function createResponse() {
 	return {

@@ -3,7 +3,7 @@ import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 import { Buffer } from 'node:buffer';
 
-import createAuthRoutes from '#server/routes/authRoutes';
+import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 function createTestApp(db) {
 	const app = express();
@@ -44,11 +44,9 @@ describe('POST /api/auth/email/verify', () => {
 		const { db } = createDatabaseMock();
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/email/verify')
-			.send({
-				token: 'invalid-token',
-			});
+		const response = await request(app).post('/api/auth/email/verify').send({
+			token: 'invalid-token',
+		});
 
 		expect(response.status).toBe(400);
 		expect(response.body).toEqual({
@@ -122,9 +120,7 @@ describe('POST /api/auth/email/verify', () => {
 			message: 'Email verified successfully',
 		});
 
-		expect(connection.execute.mock.calls[0][1]).toEqual([
-			expect.any(Buffer),
-		]);
+		expect(connection.execute.mock.calls[0][1]).toEqual([expect.any(Buffer)]);
 
 		expect(connection.execute.mock.calls[1][1]).toEqual([42]);
 		expect(connection.execute.mock.calls[2][1]).toEqual([42]);

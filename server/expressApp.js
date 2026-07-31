@@ -4,13 +4,13 @@ import { fileURLToPath } from 'node:url';
 
 import express from 'express';
 
-import requireAuth from '#server/middleware/auth/requireAuth';
+import requireAuth from '#server/modules/auth/middleware/requireAuth';
 import createSessionMiddleware from '#server/middleware/sessionMiddleware';
 
 import createAccountRoutes from '#server/routes/accountRoutes';
 import createAdminRoutes from '#server/routes/adminRoutes';
 import createApiRoutes from '#server/routes/apiRoutes';
-import createAuthRoutes from '#server/routes/authRoutes';
+import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 export default function createApp(db) {
 	const app = express();

@@ -2,7 +2,7 @@ import express from 'express';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
-import createAuthRoutes from '#server/routes/authRoutes';
+import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 function createTestApp(session = {}) {
 	const app = express();

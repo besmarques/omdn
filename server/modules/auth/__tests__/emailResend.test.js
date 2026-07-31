@@ -4,7 +4,7 @@ import express from 'express';
 import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 
-import createAuthRoutes from '#server/routes/authRoutes';
+import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 function createTestApp(db) {
 	const app = express();
@@ -45,9 +45,7 @@ describe('POST /api/auth/email/resend', () => {
 		const { db } = createDatabaseMock();
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/email/resend')
-			.send({});
+		const response = await request(app).post('/api/auth/email/resend').send({});
 
 		expect(response.status).toBe(200);
 		expect(response.body.status).toBe(true);
@@ -61,11 +59,9 @@ describe('POST /api/auth/email/resend', () => {
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/email/resend')
-			.send({
-				email: 'unknown@example.com',
-			});
+		const response = await request(app).post('/api/auth/email/resend').send({
+			email: 'unknown@example.com',
+		});
 
 		expect(response.status).toBe(200);
 		expect(response.body.status).toBe(true);
@@ -98,11 +94,9 @@ describe('POST /api/auth/email/resend', () => {
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/email/resend')
-			.send({
-				email: 'TEST@EXAMPLE.COM',
-			});
+		const response = await request(app).post('/api/auth/email/resend').send({
+			email: 'TEST@EXAMPLE.COM',
+		});
 
 		expect(response.status).toBe(200);
 		expect(response.body.status).toBe(true);
@@ -112,15 +106,10 @@ describe('POST /api/auth/email/resend', () => {
 		expect(connection.rollback).not.toHaveBeenCalled();
 		expect(connection.release).toHaveBeenCalledOnce();
 
-		expect(connection.execute.mock.calls[0][1]).toEqual([
-			'test@example.com',
-		]);
+		expect(connection.execute.mock.calls[0][1]).toEqual(['test@example.com']);
 
 		expect(connection.execute.mock.calls[1][1]).toEqual([42]);
 
-		expect(connection.execute.mock.calls[2][1]).toEqual([
-			42,
-			expect.any(Buffer),
-		]);
+		expect(connection.execute.mock.calls[2][1]).toEqual([42, expect.any(Buffer)]);
 	});
 });

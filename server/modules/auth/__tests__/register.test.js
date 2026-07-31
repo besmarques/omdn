@@ -12,7 +12,7 @@ vi.mock('argon2', () => ({
 
 import argon2 from 'argon2';
 
-import createAuthRoutes from '#server/routes/authRoutes';
+import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 function createTestApp(db) {
 	const app = express();
@@ -57,13 +57,11 @@ describe('POST /api/auth/register', () => {
 		const { db } = createDatabaseMock();
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/register')
-			.send({
-				displayName: 'A',
-				email: 'invalid-email',
-				password: 'short',
-			});
+		const response = await request(app).post('/api/auth/register').send({
+			displayName: 'A',
+			email: 'invalid-email',
+			password: 'short',
+		});
 
 		expect(response.status).toBe(400);
 		expect(response.body.status).toBe(false);
@@ -84,19 +82,16 @@ describe('POST /api/auth/register', () => {
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/register')
-			.send({
-				displayName: 'Test User',
-				email: 'test@example.com',
-				password: 'this is a long test password',
-			});
+		const response = await request(app).post('/api/auth/register').send({
+			displayName: 'Test User',
+			email: 'test@example.com',
+			password: 'this is a long test password',
+		});
 
 		expect(response.status).toBe(202);
 		expect(response.body).toEqual({
 			status: true,
-			message:
-				'If the email address can be registered, a verification email will be sent.',
+			message: 'If the email address can be registered, a verification email will be sent.',
 		});
 
 		expect(argon2.hash).not.toHaveBeenCalled();
@@ -127,13 +122,11 @@ describe('POST /api/auth/register', () => {
 
 		const app = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/register')
-			.send({
-				displayName: 'Test User',
-				email: 'TEST@EXAMPLE.COM',
-				password: 'this is a long test password',
-			});
+		const response = await request(app).post('/api/auth/register').send({
+			displayName: 'Test User',
+			email: 'TEST@EXAMPLE.COM',
+			password: 'this is a long test password',
+		});
 
 		expect(response.status).toBe(201);
 		expect(response.body.status).toBe(true);
@@ -145,17 +138,10 @@ describe('POST /api/auth/register', () => {
 		expect(connection.rollback).not.toHaveBeenCalled();
 		expect(connection.release).toHaveBeenCalledOnce();
 
-		expect(connection.execute.mock.calls[1][1]).toEqual([
-			'test@example.com',
-			'Test User',
-			'$argon2id$test-hash',
-		]);
+		expect(connection.execute.mock.calls[1][1]).toEqual(['test@example.com', 'Test User', '$argon2id$test-hash']);
 
 		expect(connection.execute.mock.calls[2][1]).toEqual([42]);
 
-		expect(connection.execute.mock.calls[3][1]).toEqual([
-			42,
-			expect.any(Buffer),
-		]);
+		expect(connection.execute.mock.calls[3][1]).toEqual([42, expect.any(Buffer)]);
 	});
 });

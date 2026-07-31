@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import requireGuest from '#server/middleware/auth/requireGuest';
+import requireGuest from '#server/modules/auth/middleware/requireGuest';
 
 function createResponse() {
 	return {

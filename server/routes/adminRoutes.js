@@ -1,6 +1,6 @@
 import express from 'express';
 
-import requirePermission from '#server/middleware/auth/requirePermission';
+import requirePermission from '#server/modules/auth/middleware/requirePermission';
 
 export default function createAdminRoutes() {
 	const router = express.Router();

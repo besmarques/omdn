@@ -12,7 +12,7 @@ vi.mock('argon2', () => ({
 
 import argon2 from 'argon2';
 
-import createAuthRoutes from '#server/routes/authRoutes';
+import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 function createSession() {
 	return {
@@ -51,12 +51,10 @@ describe('POST /api/auth/login', () => {
 
 		const { app } = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/login')
-			.send({
-				email: 'invalid-email',
-				password: '',
-			});
+		const response = await request(app).post('/api/auth/login').send({
+			email: 'invalid-email',
+			password: '',
+		});
 
 		expect(response.status).toBe(400);
 		expect(response.body).toEqual({
@@ -74,12 +72,10 @@ describe('POST /api/auth/login', () => {
 
 		const { app } = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/login')
-			.send({
-				email: 'unknown@example.com',
-				password: 'this is a long test password',
-			});
+		const response = await request(app).post('/api/auth/login').send({
+			email: 'unknown@example.com',
+			password: 'this is a long test password',
+		});
 
 		expect(response.status).toBe(401);
 		expect(response.body).toEqual({
@@ -110,12 +106,10 @@ describe('POST /api/auth/login', () => {
 
 		const { app } = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/login')
-			.send({
-				email: 'test@example.com',
-				password: 'incorrect password value',
-			});
+		const response = await request(app).post('/api/auth/login').send({
+			email: 'test@example.com',
+			password: 'incorrect password value',
+		});
 
 		expect(response.status).toBe(401);
 		expect(response.body).toEqual({
@@ -123,10 +117,7 @@ describe('POST /api/auth/login', () => {
 			message: 'Invalid email or password',
 		});
 
-		expect(argon2.verify).toHaveBeenCalledWith(
-			'$argon2id$stored-hash',
-			'incorrect password value',
-		);
+		expect(argon2.verify).toHaveBeenCalledWith('$argon2id$stored-hash', 'incorrect password value');
 	});
 
 	it('rejects a pending user with a valid password', async () => {
@@ -149,12 +140,10 @@ describe('POST /api/auth/login', () => {
 
 		const { app, session } = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/login')
-			.send({
-				email: 'test@example.com',
-				password: 'this is a long test password',
-			});
+		const response = await request(app).post('/api/auth/login').send({
+			email: 'test@example.com',
+			password: 'this is a long test password',
+		});
 
 		expect(response.status).toBe(403);
 		expect(response.body).toEqual({
@@ -193,12 +182,10 @@ describe('POST /api/auth/login', () => {
 
 		const { app, session } = createTestApp(db);
 
-		const response = await request(app)
-			.post('/api/auth/login')
-			.send({
-				email: 'TEST@EXAMPLE.COM',
-				password: 'this is a long test password',
-			});
+		const response = await request(app).post('/api/auth/login').send({
+			email: 'TEST@EXAMPLE.COM',
+			password: 'this is a long test password',
+		});
 
 		expect(response.status).toBe(200);
 		expect(response.body).toMatchObject({
@@ -210,8 +197,6 @@ describe('POST /api/auth/login', () => {
 		expect(session.userId).toBe(42);
 		expect(session.save).toHaveBeenCalledOnce();
 
-		expect(db.execute.mock.calls[0][1]).toEqual([
-			'test@example.com',
-		]);
+		expect(db.execute.mock.calls[0][1]).toEqual(['test@example.com']);
 	});
 });
