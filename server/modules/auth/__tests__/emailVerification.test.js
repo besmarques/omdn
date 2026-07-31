@@ -3,7 +3,7 @@ import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 import { Buffer } from 'node:buffer';
 
-import createAuthRoutes from '#server/modules/auth/authRoutes';
+import createAuthModule from '#server/modules/auth/authModule';
 
 function createTestApp(db) {
 	const app = express();
@@ -15,7 +15,7 @@ function createTestApp(db) {
 		next();
 	});
 
-	app.use('/api/auth', createAuthRoutes(db));
+	app.use('/api/auth', createAuthModule(db));
 
 	return app;
 }

@@ -4,13 +4,14 @@ import { fileURLToPath } from 'node:url';
 
 import express from 'express';
 
-import requireAuth from '#server/modules/auth/middleware/requireAuth';
 import createSessionMiddleware from '#server/middleware/sessionMiddleware';
 
-import createAccountRoutes from '#server/routes/accountRoutes';
-import createAdminRoutes from '#server/routes/adminRoutes';
+import createAccountModule from '#server/modules/account/accountModule';
+import createAdminModule from '#server/modules/admin/adminModule';
+import createAuthModule from '#server/modules/auth/authModule';
+import requireAuth from '#server/modules/auth/middleware/requireAuth';
+
 import createApiRoutes from '#server/routes/apiRoutes';
-import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 export default function createApp(db) {
 	const app = express();
@@ -25,9 +26,11 @@ export default function createApp(db) {
 
 	const authenticated = requireAuth(db);
 
-	app.use('/api/auth', createAuthRoutes(db));
-	app.use('/api/account', authenticated, createAccountRoutes(db));
-	app.use('/api/admin', authenticated, createAdminRoutes(db));
+	app.use('/api/auth', createAuthModule(db));
+	app.use('/api/admin', authenticated, createAdminModule());
+	app.use('/api/account', authenticated, createAccountModule());
+
+	// Generic API routes and API 404 handling must stay last.
 	app.use('/api', createApiRoutes(db));
 
 	if (process.env.APP_ENV === 'production') {

@@ -12,7 +12,7 @@ vi.mock('argon2', () => ({
 
 import argon2 from 'argon2';
 
-import createAuthRoutes from '#server/modules/auth/authRoutes';
+import createAuthModule from '#server/modules/auth/authModule';
 
 function createTestApp(db) {
 	const app = express();
@@ -24,7 +24,7 @@ function createTestApp(db) {
 		next();
 	});
 
-	app.use('/api/auth', createAuthRoutes(db));
+	app.use('/api/auth', createAuthModule(db));
 
 	return app;
 }

@@ -55,16 +55,31 @@ omdn/
 |   |-- dbConnect/
 |   |   `-- createPool.js
 |   |-- middleware/
-|   |   |-- auth/
-|   |   |   |-- requireAuth.js
-|   |   |   |-- requireGuest.js
-|   |   |   `-- requirePermission.js
 |   |   `-- sessionMiddleware.js
+|   |-- modules/
+|   |   |-- account/
+|   |   |   |-- __tests__/accountRoutes.test.js
+|   |   |   |-- controllers/getCurrentAccountController.js
+|   |   |   |-- services/getCurrentAccountService.js
+|   |   |   `-- accountRoutes.js
+|   |   |-- admin/
+|   |   |   |-- __tests__/adminRoutes.test.js
+|   |   |   |-- controllers/testAdminAccessController.js
+|   |   |   |-- services/testAdminAccessService.js
+|   |   |   `-- adminRoutes.js
+|   |   `-- auth/
+|   |       |-- __tests__/
+|   |       |-- controllers/
+|   |       |-- middleware/
+|   |       |-- services/
+|   |       |-- authRepository.js
+|   |       |-- authRoutes.js
+|   |       `-- authSchemas.js
 |   |-- routes/
-|   |   |-- accountRoutes.js
-|   |   |-- adminRoutes.js
-|   |   |-- apiRoutes.js
-|   |   `-- authRoutes.js
+|   |   `-- apiRoutes.js
+|   |-- tests/
+|   |   `-- middleware/auth/
+|   |-- expressApp.js
 |   `-- server.js
 |-- src/
 |   |-- components/
@@ -105,8 +120,9 @@ Generated directories such as `node_modules/` and `dist/`, along with local `.en
 - `src/pages/` contains route-level screens.
 - `src/components/ui/` contains reusable UI primitives.
 - `src/router/` contains frontend route definitions.
-- `server/routes/` contains Express routers grouped by API area.
-- `server/middleware/` contains session, authentication, and authorization middleware.
+- `server/modules/` contains feature-owned routes, controllers, services, middleware, repositories, schemas, and colocated tests.
+- `server/routes/` contains only shared or cross-feature routers such as the general API router.
+- `server/middleware/` contains shared middleware; feature-specific authentication and authorization middleware lives in `server/modules/auth/middleware/`.
 - `server/dbConnect/` contains database connection setup.
 - `server/database/migrations/` and `server/database/seeds/` contain ordered SQL files.
 - Frontend imports use the `@/*` alias for `src/*`.

@@ -2,8 +2,7 @@ import { registerSchema } from '#server/modules/auth/authSchemas';
 
 const registrationResponse = {
 	status: true,
-	message:
-		'If the email address can be registered, a verification email will be sent.',
+	message: 'If the email address can be registered, a verification email will be sent.',
 };
 
 export default function createRegisterController(registerService) {
@@ -22,9 +21,7 @@ export default function createRegisterController(registerService) {
 			const result = await registerService(validation.data);
 
 			if (!result.created) {
-				return res
-					.status(202)
-					.json(registrationResponse);
+				return res.status(202).json(registrationResponse);
 			}
 
 			return res.status(201).json(registrationResponse);

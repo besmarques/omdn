@@ -5,47 +5,23 @@ import express from 'express';
 
 import requireGuest from '#server/modules/auth/middleware/requireGuest';
 
-import createLoginController from '#server/modules/auth/controllers/loginController';
-import createRegisterController from '#server/modules/auth/controllers/registerController';
-import createVerifyEmailController from '#server/modules/auth/controllers/verifyEmailController';
-
-import createAuthRepository from '#server/modules/auth/authRepository';
-
-import createLoginService from '#server/modules/auth/services/loginService';
-import createRegisterService from '#server/modules/auth/services/registerService';
-import createVerifyEmailService from '#server/modules/auth/services/verifyEmailService';
-
-export default function createAuthRoutes(db) {
+export default function createAuthRoutes({
+	db,
+	loginController,
+	registerController,
+	verifyEmailController,
+}) {
 	const router = express.Router();
-	const authRepository = createAuthRepository(db);
-
-	const registerService =
-		createRegisterService(authRepository);
-
-	const verifyEmailService =
-		createVerifyEmailService(authRepository);
-
-	const loginService =
-		createLoginService(authRepository);
-
-	const registerController =
-		createRegisterController(registerService);
-
-	const verifyEmailController =
-		createVerifyEmailController(verifyEmailService);
-
-	const loginController =
-		createLoginController(loginService);
 
 	router.get('/status', (req, res) => {
-		res.json({
+		return res.json({
 			status: true,
 			authenticated: Boolean(req.session?.userId),
 		});
 	});
 
 	router.get('/guest-test', requireGuest, (req, res) => {
-		res.json({
+		return res.json({
 			status: true,
 			message: 'This route is available only to guests',
 		});
@@ -57,7 +33,10 @@ export default function createAuthRoutes(db) {
 		registerController,
 	);
 
-	router.post('/email/verify', verifyEmailController);
+	router.post(
+		'/email/verify',
+		verifyEmailController,
+	);
 
 	router.post(
 		'/email/resend',
