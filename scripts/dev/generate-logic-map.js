@@ -3,17 +3,31 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-if (process.env.APP_ENV === 'production' || process.env.NODE_ENV === 'production') {
+if (
+	process.env.APP_ENV === 'production' ||
+	process.env.NODE_ENV === 'production'
+) {
 	throw new Error('Logic maps are disabled in production.');
 }
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const rootDirectory = path.resolve(
+	path.dirname(fileURLToPath(import.meta.url)),
+	'../..',
+);
 
-const server = path.join(root, 'server');
-const modulesDirectory = path.join(server, 'modules');
-const output = path.join(root, 'docs', 'logic');
+const serverDirectory = path.join(rootDirectory, 'server');
+const modulesDirectory = path.join(serverDirectory, 'modules');
+const outputDirectory = path.join(rootDirectory, 'docs', 'logic');
 
-const header = ['%% AUTO-GENERATED — DO NOT EDIT', '%% Run: npm run logic-map', ''].join('\n');
+const generatedHeader = [
+	'%% AUTO-GENERATED — DO NOT EDIT',
+	'%% Run: npm run logic-map',
+	'%% Add a new *Routes.js and *Module.js folder under server/modules and rerun.',
+	'',
+].join('\n');
+
+const mermaidInit =
+	'%%{init: {"flowchart": {"curve": "linear", "nodeSpacing": 35, "rankSpacing": 55}}}%%';
 
 const styles = `
 	classDef route fill:#3A8BC1,stroke:#216182,color:#fff;
@@ -30,7 +44,11 @@ function findClosingParenthesis(source, openingIndex) {
 	let quote = null;
 	let escaped = false;
 
-	for (let index = openingIndex; index < source.length; index += 1) {
+	for (
+		let index = openingIndex;
+		index < source.length;
+		index += 1
+	) {
 		const character = source[index];
 
 		if (quote) {
@@ -45,7 +63,11 @@ function findClosingParenthesis(source, openingIndex) {
 			continue;
 		}
 
-		if (character === "'" || character === '"' || character === '`') {
+		if (
+			character === "'" ||
+			character === '"' ||
+			character === '`'
+		) {
 			quote = character;
 			continue;
 		}
@@ -68,6 +90,7 @@ function findClosingParenthesis(source, openingIndex) {
 
 function splitArguments(value) {
 	const result = [];
+
 	let current = '';
 	let roundDepth = 0;
 	let squareDepth = 0;
@@ -90,8 +113,15 @@ function splitArguments(value) {
 			continue;
 		}
 
-		if (character === "'" || character === '"' || character === '`') {
+		if (
+			character === "'" ||
+			character === '"' ||
+			character === '`'
+		) {
 			quote = character;
+			current += character;
+
+			continue;
 		}
 
 		if (character === '(') {
@@ -118,12 +148,19 @@ function splitArguments(value) {
 			curlyDepth -= 1;
 		}
 
-		if (character === ',' && roundDepth === 0 && squareDepth === 0 && curlyDepth === 0) {
+		if (
+			character === ',' &&
+			roundDepth === 0 &&
+			squareDepth === 0 &&
+			curlyDepth === 0
+		) {
 			result.push(current.trim());
 			current = '';
-		} else {
-			current += character;
+
+			continue;
 		}
+
+		current += character;
 	}
 
 	if (current.trim()) {
@@ -134,7 +171,7 @@ function splitArguments(value) {
 }
 
 function findCalls(source, regularExpression) {
-	const result = [];
+	const calls = [];
 	let match;
 
 	regularExpression.lastIndex = 0;
@@ -142,71 +179,124 @@ function findCalls(source, regularExpression) {
 	while ((match = regularExpression.exec(source))) {
 		const openingIndex = regularExpression.lastIndex - 1;
 
-		const closingIndex = findClosingParenthesis(source, openingIndex);
+		const closingIndex = findClosingParenthesis(
+			source,
+			openingIndex,
+		);
 
 		if (closingIndex < 0) {
 			continue;
 		}
 
-		result.push({
+		calls.push({
 			match,
-			arguments: splitArguments(source.slice(openingIndex + 1, closingIndex)),
+			arguments: splitArguments(
+				source.slice(openingIndex + 1, closingIndex),
+			),
 		});
 
 		regularExpression.lastIndex = closingIndex + 1;
 	}
 
-	return result;
+	return calls;
 }
 
 function removeQuotes(value) {
 	const text = value.trim();
 
-	return /^(['"`]).*\1$/s.test(text) ? text.slice(1, -1) : text;
+	return /^(['"`]).*\1$/s.test(text)
+		? text.slice(1, -1)
+		: text;
 }
 
 function normalizeFactoryName(name) {
 	const value = name.replace(/^create/, '');
 
-	return value ? value[0].toLowerCase() + value.slice(1) : name;
+	return value
+		? value[0].toLowerCase() + value.slice(1)
+		: name;
 }
 
-function describeArgument(argument) {
-	const text = argument.trim();
+function humanize(value) {
+	return value
+		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+		.replaceAll(/[-_]+/g, ' ')
+		.replace(/^./, (character) =>
+			character.toUpperCase(),
+		);
+}
+
+function escapeLabel(value) {
+	return value.replaceAll('"', '&quot;');
+}
+
+function safeId(value) {
+	const normalized = value
+		.replaceAll(/[^A-Za-z0-9_]/g, '_')
+		.replaceAll(/_+/g, '_')
+		.replace(/^_+|_+$/g, '');
+
+	return normalized || 'node';
+}
+
+function joinUrl(prefix, routePath) {
+	const left = prefix.endsWith('/')
+		? prefix.slice(0, -1)
+		: prefix;
+
+	const right = routePath.startsWith('/')
+		? routePath
+		: `/${routePath}`;
+
+	return `${left}${right}`;
+}
+
+function describeExpression(expression) {
+	const text = expression.trim();
 
 	if (/^[A-Za-z_$][\w$]*$/.test(text)) {
 		return text;
 	}
 
-	if (text.includes('=>') || text.startsWith('function') || text.startsWith('async ')) {
+	if (
+		text.includes('=>') ||
+		text.startsWith('function') ||
+		text.startsWith('async ')
+	) {
 		return 'inlineHandler';
 	}
 
-	const call = text.match(/^([A-Za-z_$][\w$.]*)\s*\((.*)\)$/s);
+	const call = text.match(
+		/^([A-Za-z_$][\w$.]*)\s*\(/,
+	);
 
-	if (!call) {
-		return text.replaceAll(/\s+/g, ' ').slice(0, 60);
+	if (call) {
+		return normalizeFactoryName(call[1]);
 	}
 
-	const name = normalizeFactoryName(call[1]);
-
-	const argumentsText = splitArguments(call[2]).map(removeQuotes).join(', ');
-
-	return argumentsText ? `${name}(${argumentsText})` : name;
+	return text
+		.replaceAll(/\s+/g, ' ')
+		.slice(0, 60);
 }
 
-function getNodeType(label) {
+function detectNodeType(label) {
 	const value = label.toLowerCase();
 
-	if (/^[A-Z]+ \//.test(label) || value.includes('routes')) {
+	if (/^[A-Z]+ \/\S*/.test(label)) {
 		return 'route';
 	}
 
-	if (value.startsWith('require') || value === 'authenticated') {
+	if (
+		value.startsWith('require') ||
+		value === 'authenticated'
+	) {
 		return 'middleware';
 	}
 
-	if (value.includes('controller') || value === 'inlinehandler') {
+	if (
+		value.includes('controller') ||
+		value === 'inlinehandler'
+	) {
 		return 'controller';
 	}
 
@@ -218,7 +308,10 @@ function getNodeType(label) {
 		return 'repository';
 	}
 
-	if (value.includes('module') || label === 'Express app') {
+	if (
+		value.includes('module') ||
+		label === 'Express app'
+	) {
 		return 'module';
 	}
 
@@ -229,202 +322,675 @@ function getNodeType(label) {
 	return 'route';
 }
 
-class MermaidGraph {
-	constructor(direction = 'LR') {
-		this.direction = direction;
-		this.ids = new Map();
-		this.nodes = [];
-		this.edges = [];
-	}
-
-	addNode(label, type = getNodeType(label)) {
-		const key = `${type}:${label}`;
-
-		if (!this.ids.has(key)) {
-			const id = `n${this.ids.size + 1}`;
-
-			this.ids.set(key, id);
-
-			this.nodes.push(`\t${id}["${label.replaceAll('"', '&quot;')}"]:::${type}`);
-		}
-
-		return this.ids.get(key);
-	}
-
-	addEdge(from, to, fromType, toType) {
-		this.edges.push(`\t${this.addNode(from, fromType)} --> ${this.addNode(to, toType)}`);
-	}
-
-	toString() {
-		return [header, `flowchart ${this.direction}`, ...this.nodes, ...this.edges, styles].join('\n');
-	}
+function isArchitectureDependency(name) {
+	return /(Controller|Service|Repository)$/i.test(name);
 }
 
-function readRoutes(source, prefix) {
-	return findCalls(source, /\brouter\.(get|post|put|patch|delete|options|head)\s*\(/g).map(({ match, arguments: argumentsList }) => ({
+function readRoutes(source, prefix, groupName) {
+	return findCalls(
+		source,
+		/\brouter\.(get|post|put|patch|delete|options|head)\s*\(/g,
+	).map(({ match, arguments: argumentsList }) => ({
 		method: match[1].toUpperCase(),
-		path: `${prefix}${removeQuotes(argumentsList[0])}`,
-		handlers: argumentsList.slice(1).map(describeArgument),
+
+		path: joinUrl(
+			prefix,
+			removeQuotes(argumentsList[0]),
+		),
+
+		handlers: argumentsList
+			.slice(1)
+			.map(describeExpression),
+
+		groupName,
 	}));
 }
 
-function readComposition(source) {
-	const assignments = findCalls(source, /\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*(create[A-Z][\w$]*)\s*\(/g).map(
-		({ match, arguments: argumentsList }) => ({
-			variable: match[1],
-			arguments: argumentsList,
-		}),
+function readFactoryDependencies(source) {
+	const dependencies = new Map();
+
+	const assignments = findCalls(
+		source,
+		/\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*(create[A-Z][\w$]*)\s*\(/g,
 	);
 
-	const knownVariables = new Set(assignments.map(({ variable }) => variable));
-
-	const edges = [];
-
 	for (const assignment of assignments) {
-		const identifiers = assignment.arguments.join(' ').match(/\b[A-Za-z_$][\w$]*\b/g) ?? [];
+		const variableName = assignment.match[1];
 
-		for (const dependency of identifiers) {
-			if (knownVariables.has(dependency)) {
-				edges.push([assignment.variable, dependency]);
-			}
+		const identifiers =
+			assignment.arguments
+				.join(' ')
+				.match(/\b[A-Za-z_$][\w$]*\b/g) ?? [];
+
+		dependencies.set(
+			variableName,
+			[
+				...new Set(
+					identifiers.filter(
+						isArchitectureDependency,
+					),
+				),
+			],
+		);
+	}
+
+	return dependencies;
+}
+
+function mergeDependencyMaps(target, source) {
+	for (const [name, dependencies] of source) {
+		target.set(name, dependencies);
+	}
+}
+
+function resolveRouteFlow(
+	finalHandler,
+	dependencyMap,
+) {
+	const components = [];
+	const visited = new Set([finalHandler]);
+
+	let current = finalHandler;
+	let repository = null;
+
+	while (true) {
+		const next = (
+			dependencyMap.get(current) ?? []
+		).find(
+			(candidate) => !visited.has(candidate),
+		);
+
+		if (!next) {
+			break;
 		}
+
+		visited.add(next);
+
+		if (
+			next
+				.toLowerCase()
+				.includes('repository')
+		) {
+			repository = next;
+			break;
+		}
+
+		components.push(next);
+		current = next;
 	}
 
 	return {
-		assignments,
-		edges,
+		components,
+		repository,
 	};
 }
 
-async function exists(target) {
-	try {
-		await fs.access(target);
-		return true;
-	} catch {
-		return false;
-	}
-}
+async function findFilesRecursively(
+	directory,
+	predicate,
+) {
+	const entries = await fs.readdir(directory, {
+		withFileTypes: true,
+	});
 
-async function saveDiagram(name, graph) {
-	await fs.writeFile(path.join(output, name), graph.toString(), 'utf8');
-}
+	const files = [];
 
-function addRoutesToGraph(graph, routes) {
-	for (const route of routes) {
-		let previous = `${route.method} ${route.path}`;
+	for (const entry of entries) {
+		const target = path.join(
+			directory,
+			entry.name,
+		);
 
-		graph.addNode(previous, 'route');
+		if (entry.isDirectory()) {
+			files.push(
+				...(await findFilesRecursively(
+					target,
+					predicate,
+				)),
+			);
 
-		for (const handler of route.handlers) {
-			graph.addEdge(previous, handler);
-			previous = handler;
+			continue;
+		}
+
+		if (
+			entry.isFile() &&
+			predicate(entry.name)
+		) {
+			files.push(target);
 		}
 	}
+
+	return files;
+}
+
+function getRouteGroup(
+	moduleDirectory,
+	routeFile,
+) {
+	const relativeDirectory = path.relative(
+		moduleDirectory,
+		path.dirname(routeFile),
+	);
+
+	if (!relativeDirectory) {
+		return 'Core';
+	}
+
+	return relativeDirectory.split(path.sep)[0];
+}
+
+function readExpressMounts(source) {
+	return findCalls(
+		source,
+		/\bapp\.use\s*\(/g,
+	)
+		.filter(({ arguments: argumentsList }) =>
+			/^["'`]/.test(
+				argumentsList[0] ?? '',
+			),
+		)
+		.map(({ arguments: argumentsList }) => ({
+			prefix: removeQuotes(
+				argumentsList[0],
+			),
+
+			chain: argumentsList
+				.slice(1)
+				.map(describeExpression),
+		}));
+}
+
+function findFeaturePrefix(
+	mounts,
+	moduleName,
+) {
+	const mount = mounts.find(({ chain }) =>
+		chain.includes(`${moduleName}Module`),
+	);
+
+	return mount?.prefix ?? `/api/${moduleName}`;
+}
+
+function createFeatureDiagram(feature) {
+	const lines = [
+		generatedHeader,
+		mermaidInit,
+		'flowchart LR',
+	];
+
+	const routesByGroup = new Map();
+
+	for (const route of feature.routes) {
+		if (!routesByGroup.has(route.groupName)) {
+			routesByGroup.set(
+				route.groupName,
+				[],
+			);
+		}
+
+		routesByGroup
+			.get(route.groupName)
+			.push(route);
+	}
+
+	const repositoryIds = new Map();
+	const repositoryEdges = [];
+
+	let groupIndex = 0;
+	let routeIndex = 0;
+
+	for (
+		const [groupName, routes]
+		of routesByGroup
+	) {
+		groupIndex += 1;
+
+		const groupId =
+			`group_${groupIndex}_${safeId(groupName)}`;
+
+		lines.push(
+			`\tsubgraph ${groupId}["${escapeLabel(
+				humanize(groupName),
+			)}"]`,
+			'\t\tdirection LR',
+		);
+
+		for (const route of routes) {
+			routeIndex += 1;
+
+			const prefix = `r${routeIndex}`;
+			const chain = [];
+
+			const routeNodeId =
+				`${prefix}_route`;
+
+			lines.push(
+				`\t\t${routeNodeId}["${escapeLabel(
+					`${route.method} ${route.path}`,
+				)}"]:::route`,
+			);
+
+			chain.push(routeNodeId);
+
+			for (
+				let index = 0;
+				index < route.handlers.length;
+				index += 1
+			) {
+				const handler =
+					route.handlers[index];
+
+				const handlerId =
+					`${prefix}_handler_${index + 1}`;
+
+				lines.push(
+					`\t\t${handlerId}["${escapeLabel(
+						handler,
+					)}"]:::${detectNodeType(handler)}`,
+				);
+
+				chain.push(handlerId);
+			}
+
+			const finalHandler =
+				route.handlers.at(-1);
+
+			if (finalHandler) {
+				const flow = resolveRouteFlow(
+					finalHandler,
+					feature.dependencies,
+				);
+
+				for (
+					let index = 0;
+					index < flow.components.length;
+					index += 1
+				) {
+					const component =
+						flow.components[index];
+
+					const componentId =
+						`${prefix}_dependency_${index + 1}`;
+
+					lines.push(
+						`\t\t${componentId}["${escapeLabel(
+							component,
+						)}"]:::${detectNodeType(component)}`,
+					);
+
+					chain.push(componentId);
+				}
+
+				if (flow.repository) {
+					if (
+						!repositoryIds.has(
+							flow.repository,
+						)
+					) {
+						repositoryIds.set(
+							flow.repository,
+
+							`repository_${safeId(
+								flow.repository,
+							)}`,
+						);
+					}
+
+					repositoryEdges.push({
+						from: chain.at(-1),
+
+						to: repositoryIds.get(
+							flow.repository,
+						),
+					});
+				}
+			}
+
+			if (chain.length > 1) {
+				lines.push(
+					`\t\t${chain.join(' --> ')}`,
+				);
+			}
+		}
+
+		lines.push('\tend');
+	}
+
+	if (repositoryIds.size > 0) {
+		lines.push(
+			'\tsubgraph data_access["Data access"]',
+			'\t\tdirection LR',
+		);
+
+		for (
+			const [repositoryName, repositoryId]
+			of repositoryIds
+		) {
+			lines.push(
+				`\t\t${repositoryId}["${escapeLabel(
+					repositoryName,
+				)}"]:::repository`,
+			);
+		}
+
+		lines.push(
+			'\t\tdatabase[("MariaDB")]:::database',
+		);
+
+		for (
+			const repositoryId
+			of repositoryIds.values()
+		) {
+			lines.push(
+				`\t\t${repositoryId} --> database`,
+			);
+		}
+
+		lines.push('\tend');
+
+		for (const edge of repositoryEdges) {
+			lines.push(
+				`\t${edge.from} --> ${edge.to}`,
+			);
+		}
+	}
+
+	lines.push(styles);
+
+	return lines.join('\n');
+}
+
+function createApplicationDiagram(mounts) {
+	const lines = [
+		generatedHeader,
+		mermaidInit,
+		'flowchart LR',
+		'\tapp["Express app"]:::module',
+	];
+
+	let mountIndex = 0;
+
+	for (const mount of mounts) {
+		mountIndex += 1;
+
+		const chain = ['app'];
+
+		const pathNodeId =
+			`mount_${mountIndex}_path`;
+
+		lines.push(
+			`\t${pathNodeId}["${escapeLabel(
+				mount.prefix,
+			)}"]:::route`,
+		);
+
+		chain.push(pathNodeId);
+
+		for (
+			let index = 0;
+			index < mount.chain.length;
+			index += 1
+		) {
+			const item = mount.chain[index];
+
+			const itemId =
+				`mount_${mountIndex}_item_${index + 1}`;
+
+			lines.push(
+				`\t${itemId}["${escapeLabel(
+					item,
+				)}"]:::${detectNodeType(item)}`,
+			);
+
+			chain.push(itemId);
+		}
+
+		lines.push(
+			`\t${chain.join(' --> ')}`,
+		);
+	}
+
+	lines.push(styles);
+
+	return lines.join('\n');
+}
+
+function createRoutesIndex(features) {
+	const lines = [
+		generatedHeader,
+		mermaidInit,
+		'flowchart LR',
+	];
+
+	let featureIndex = 0;
+	let routeIndex = 0;
+
+	for (const feature of features) {
+		featureIndex += 1;
+
+		const featureId =
+			`feature_${featureIndex}_${safeId(
+				feature.name,
+			)}`;
+
+		lines.push(
+			`\tsubgraph ${featureId}["${escapeLabel(
+				humanize(feature.name),
+			)}"]`,
+			'\t\tdirection TB',
+		);
+
+		for (const route of feature.routes) {
+			routeIndex += 1;
+
+			lines.push(
+				`\t\tindex_route_${routeIndex}["${escapeLabel(
+					`${route.method} ${route.path}`,
+				)}"]:::route`,
+			);
+		}
+
+		lines.push('\tend');
+	}
+
+	lines.push(styles);
+
+	return lines.join('\n');
+}
+
+async function collectFeature(
+	moduleEntry,
+	mounts,
+) {
+	const name = moduleEntry.name;
+
+	const directory = path.join(
+		modulesDirectory,
+		name,
+	);
+
+	const prefix = findFeaturePrefix(
+		mounts,
+		name,
+	);
+
+	const routeFiles = (
+		await findFilesRecursively(
+			directory,
+			(fileName) =>
+				fileName.endsWith('Routes.js'),
+		)
+	).sort();
+
+	const moduleFiles = (
+		await findFilesRecursively(
+			directory,
+			(fileName) =>
+				fileName.endsWith('Module.js'),
+		)
+	).sort();
+
+	const dependencies = new Map();
+	const routes = [];
+
+	for (const moduleFile of moduleFiles) {
+		const source = await fs.readFile(
+			moduleFile,
+			'utf8',
+		);
+
+		mergeDependencyMaps(
+			dependencies,
+			readFactoryDependencies(source),
+		);
+	}
+
+	for (const routeFile of routeFiles) {
+		const source = await fs.readFile(
+			routeFile,
+			'utf8',
+		);
+
+		const groupName = getRouteGroup(
+			directory,
+			routeFile,
+		);
+
+		routes.push(
+			...readRoutes(
+				source,
+				prefix,
+				groupName,
+			),
+		);
+	}
+
+	return {
+		name,
+		routes,
+		dependencies,
+	};
+}
+
+async function collectSharedApiFeature() {
+	const routeFile = path.join(
+		serverDirectory,
+		'routes',
+		'apiRoutes.js',
+	);
+
+	try {
+		const source = await fs.readFile(
+			routeFile,
+			'utf8',
+		);
+
+		return {
+			name: 'api',
+
+			routes: readRoutes(
+				source,
+				'/api',
+				'API',
+			),
+
+			dependencies: new Map(),
+		};
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			return null;
+		}
+
+		throw error;
+	}
+}
+
+async function saveDiagram(
+	fileName,
+	content,
+) {
+	await fs.writeFile(
+		path.join(outputDirectory, fileName),
+		content,
+		'utf8',
+	);
 }
 
 async function main() {
-	await fs.rm(output, {
+	await fs.rm(outputDirectory, {
 		recursive: true,
 		force: true,
 	});
 
-	await fs.mkdir(output, {
+	await fs.mkdir(outputDirectory, {
 		recursive: true,
 	});
 
-	const expressAppSource = await fs.readFile(path.join(server, 'expressApp.js'), 'utf8');
+	const expressAppSource = await fs.readFile(
+		path.join(
+			serverDirectory,
+			'expressApp.js',
+		),
+		'utf8',
+	);
 
-	const mounts = findCalls(expressAppSource, /\bapp\.use\s*\(/g)
-		.filter(({ arguments: argumentsList }) => /^['"`]/.test(argumentsList[0] ?? ''))
-		.map(({ arguments: argumentsList }) => ({
-			prefix: removeQuotes(argumentsList[0]),
-			chain: argumentsList.slice(1).map(describeArgument),
-		}));
+	const mounts =
+		readExpressMounts(expressAppSource);
 
-	const applicationGraph = new MermaidGraph('LR');
+	await saveDiagram(
+		'application.mmd',
+		createApplicationDiagram(mounts),
+	);
 
-	for (const mount of mounts) {
-		applicationGraph.addEdge('Express app', mount.prefix, 'module', 'route');
+	const moduleEntries = (
+		await fs.readdir(modulesDirectory, {
+			withFileTypes: true,
+		})
+	)
+		.filter((entry) => entry.isDirectory())
+		.sort((left, right) =>
+			left.name.localeCompare(right.name),
+		);
 
-		let previous = mount.prefix;
+	const features = [];
 
-		for (const item of mount.chain) {
-			applicationGraph.addEdge(previous, item);
-			previous = item;
-		}
+	for (const moduleEntry of moduleEntries) {
+		features.push(
+			await collectFeature(
+				moduleEntry,
+				mounts,
+			),
+		);
 	}
 
-	await saveDiagram('application.mmd', applicationGraph);
+	const apiFeature =
+		await collectSharedApiFeature();
 
-	const moduleEntries = await fs.readdir(modulesDirectory, {
-		withFileTypes: true,
-	});
-
-	const allRoutes = [];
-
-	for (const entry of moduleEntries.filter((item) => item.isDirectory())) {
-		const name = entry.name;
-
-		const moduleDirectory = path.join(modulesDirectory, name);
-
-		const routesFile = path.join(moduleDirectory, `${name}Routes.js`);
-
-		const moduleFile = path.join(moduleDirectory, `${name}Module.js`);
-
-		if (!(await exists(routesFile))) {
-			continue;
-		}
-
-		const mount = mounts.find(({ chain }) => chain.some((item) => item.startsWith(`${name}Module`)));
-
-		const prefix = mount?.prefix ?? `/api/${name}`;
-
-		const routes = readRoutes(await fs.readFile(routesFile, 'utf8'), prefix);
-
-		allRoutes.push(...routes);
-
-		const moduleGraph = new MermaidGraph('LR');
-
-		addRoutesToGraph(moduleGraph, routes);
-
-		if (await exists(moduleFile)) {
-			const composition = readComposition(await fs.readFile(moduleFile, 'utf8'));
-
-			for (const [from, to] of composition.edges) {
-				moduleGraph.addEdge(from, to);
-			}
-
-			const repository = composition.assignments.find(({ variable }) => variable.toLowerCase().includes('repository'))?.variable;
-
-			if (repository) {
-				moduleGraph.addEdge(repository, 'MariaDB', 'repository', 'database');
-			}
-		}
-
-		await saveDiagram(`${name}.mmd`, moduleGraph);
+	if (apiFeature) {
+		features.push(apiFeature);
 	}
 
-	const sharedApiRoutesFile = path.join(server, 'routes', 'apiRoutes.js');
-
-	if (await exists(sharedApiRoutesFile)) {
-		const sharedRoutes = readRoutes(await fs.readFile(sharedApiRoutesFile, 'utf8'), '/api');
-
-		allRoutes.push(...sharedRoutes);
-
-		const apiGraph = new MermaidGraph('LR');
-
-		addRoutesToGraph(apiGraph, sharedRoutes);
-
-		await saveDiagram('api.mmd', apiGraph);
+	for (const feature of features) {
+		await saveDiagram(
+			`${feature.name}.mmd`,
+			createFeatureDiagram(feature),
+		);
 	}
 
-	const routesGraph = new MermaidGraph('TD');
+	await saveDiagram(
+		'routes.mmd',
+		createRoutesIndex(features),
+	);
 
-	addRoutesToGraph(routesGraph, allRoutes);
+	const routeCount = features.reduce(
+		(total, feature) =>
+			total + feature.routes.length,
+		0,
+	);
 
-	await saveDiagram('routes.mmd', routesGraph);
-
-	console.log(`Generated ${allRoutes.length} routes in ${output}`);
+	console.log(
+		`Generated ${routeCount} routes across ${features.length} diagrams in ${outputDirectory}`,
+	);
 }
 
 main().catch((error) => {
