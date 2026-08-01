@@ -211,6 +211,9 @@ describe('POST /api/auth/password/reset', () => {
 
 		expect(connection.execute.mock.calls[2][1]).toEqual([42]);
 
+		expect(String(connection.execute.mock.calls[3][0])).toContain('JSON_EXTRACT');
+		expect(String(connection.execute.mock.calls[3][0])).not.toContain('user_id');
+
 		expect(connection.execute.mock.calls[3][1]).toEqual([42]);
 
 		expect(connection.beginTransaction).toHaveBeenCalledOnce();

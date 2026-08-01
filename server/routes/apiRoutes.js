@@ -10,7 +10,7 @@ export default function createApiRoutes(db) {
 		});
 	});
 
-	router.get('/test-items', async (req, res) => {
+	router.get('/test-items', async (req, res, next) => {
 		try {
 			const [items] = await db.execute(`
 				SELECT id, name, description, created_at
@@ -23,12 +23,7 @@ export default function createApiRoutes(db) {
 				data: items,
 			});
 		} catch (error) {
-			console.error('Failed to load test items:', error);
-
-			res.status(500).json({
-				status: false,
-				message: 'Failed to load test items',
-			});
+			return next(error);
 		}
 	});
 

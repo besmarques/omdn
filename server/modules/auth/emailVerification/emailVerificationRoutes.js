@@ -4,10 +4,10 @@ import requireGuest from '#server/modules/auth/shared/middleware/requireGuest';
 
 import { createEmailResendRateLimiter } from '#server/modules/auth/shared/middleware/authRateLimiters';
 
-export default function createEmailVerificationRoutes({ resendVerificationEmailController, verifyEmailController }) {
+export default function createEmailVerificationRoutes({ createRateLimitStore, resendVerificationEmailController, verifyEmailController }) {
 	const router = express.Router();
 
-	const emailResendRateLimiter = createEmailResendRateLimiter();
+	const emailResendRateLimiter = createEmailResendRateLimiter(createRateLimitStore);
 
 	router.post('/email/verify', verifyEmailController);
 

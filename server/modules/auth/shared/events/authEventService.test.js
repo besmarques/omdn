@@ -85,6 +85,62 @@ describe('authentication event logging', () => {
 		});
 	});
 
+	it('drains pending event writes during shutdown', async () => {
+		let finishWrite;
+
+		const repository = {
+			create: vi.fn(
+				() =>
+					new Promise((resolve) => {
+						finishWrite = resolve;
+					}),
+			),
+		};
+		const service = createAuthEventService(repository);
+
+		const recordPromise = service.record({ eventType: 'logout_succeeded' });
+		const drainPromise = service.drain();
+
+		finishWrite();
+
+		await expect(recordPromise).resolves.toEqual({ recorded: true });
+		await expect(drainPromise).resolves.toBeUndefined();
+	});
+	it('does not finalize the response before the outbox write completes', async () => {
+		let finishWrite;
+		const authEventService = {
+			record: vi.fn(
+				() =>
+					new Promise((resolve) => {
+						finishWrite = resolve;
+					}),
+			),
+		};
+		const authEvent = createAuthEventMiddleware(authEventService);
+		const app = express();
+
+		app.get('/login', authEvent({ eventType: 'login_succeeded' }), (req, res) => {
+			return res.json({ status: true });
+		});
+
+		let responseFinished = false;
+		const responsePromise = request(app)
+			.get('/login')
+			.then((response) => {
+				responseFinished = true;
+				return response;
+			});
+
+		await vi.waitFor(() => {
+			expect(authEventService.record).toHaveBeenCalledOnce();
+		});
+		expect(responseFinished).toBe(false);
+
+		finishWrite();
+
+		const response = await responsePromise;
+		expect(response.status).toBe(200);
+	});
 	it('records request information after the response finishes', async () => {
 		const authEventService = {
 			record: vi.fn().mockResolvedValue({

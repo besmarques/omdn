@@ -6,8 +6,8 @@ import createVerifyEmailController from '#server/modules/auth/emailVerification/
 import createResendVerificationEmailService from '#server/modules/auth/emailVerification/resend/resendVerificationEmailService';
 import createVerifyEmailService from '#server/modules/auth/emailVerification/verify/verifyEmailService';
 
-export default function createEmailVerificationModule(authRepository) {
-	const resendVerificationEmailService = createResendVerificationEmailService(authRepository);
+export default function createEmailVerificationModule(authRepository, createRateLimitStore, appEnvironment = 'test') {
+	const resendVerificationEmailService = createResendVerificationEmailService(authRepository, appEnvironment);
 
 	const verifyEmailService = createVerifyEmailService(authRepository);
 
@@ -16,6 +16,7 @@ export default function createEmailVerificationModule(authRepository) {
 	const verifyEmailController = createVerifyEmailController(verifyEmailService);
 
 	return createEmailVerificationRoutes({
+		createRateLimitStore,
 		resendVerificationEmailController,
 		verifyEmailController,
 	});

@@ -6,6 +6,7 @@ import { createTotpLoginRateLimiter } from '#server/modules/auth/shared/middlewa
 
 export default function createTotpRoutes({
 	authenticated,
+	createRateLimitStore,
 	disableTotpController,
 	enableTotpController,
 	getTotpStatusController,
@@ -15,7 +16,7 @@ export default function createTotpRoutes({
 }) {
 	const router = express.Router();
 
-	const totpLoginRateLimiter = createTotpLoginRateLimiter();
+	const totpLoginRateLimiter = createTotpLoginRateLimiter(createRateLimitStore);
 
 	router.get('/totp/status', authenticated, getTotpStatusController);
 

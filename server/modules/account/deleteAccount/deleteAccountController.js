@@ -1,5 +1,3 @@
-import process from 'node:process';
-
 import { deleteAccountSchema } from '#server/modules/account/deleteAccount/deleteAccountSchema';
 
 const sessionCookieName = 'omdn_session';
@@ -21,7 +19,7 @@ function destroySession(session) {
 	});
 }
 
-export default function createDeleteAccountController(deleteAccountService) {
+export default function createDeleteAccountController(deleteAccountService, appEnvironment = 'test') {
 	return async function deleteAccount(req, res, next) {
 		const validation = deleteAccountSchema.safeParse(req.body);
 
@@ -61,7 +59,7 @@ export default function createDeleteAccountController(deleteAccountService) {
 
 			res.clearCookie(sessionCookieName, {
 				httpOnly: true,
-				secure: process.env.APP_ENV === 'production',
+				secure: appEnvironment === 'production',
 				sameSite: 'lax',
 				path: '/',
 			});

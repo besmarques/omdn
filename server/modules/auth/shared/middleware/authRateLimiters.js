@@ -19,12 +19,23 @@ function getNormalizedEmail(req) {
 
 	return email.trim().toLowerCase() || 'missing-email';
 }
+function getAuthenticatedUserId(req) {
+	const userId = Number(req.auth?.user?.id);
 
-function createLimiter({ identifier, windowMs, limit, message, keyGenerator, skipSuccessfulRequests = false }) {
+	if (!Number.isSafeInteger(userId) || userId <= 0) {
+		return 'missing-user';
+	}
+
+	return String(userId);
+}
+
+function createLimiter({ createRateLimitStore, identifier, windowMs, limit, message, keyGenerator, skipSuccessfulRequests = false }) {
 	return rateLimit({
 		identifier,
 		windowMs,
 		limit,
+		store: createRateLimitStore?.(identifier),
+		passOnStoreError: false,
 
 		standardHeaders: 'draft-8',
 		legacyHeaders: false,
@@ -43,8 +54,39 @@ function createLimiter({ identifier, windowMs, limit, message, keyGenerator, ski
 	});
 }
 
-export function createLoginRateLimiter() {
+export function createRegistrationRateLimiter(createRateLimitStore) {
 	return createLimiter({
+		createRateLimitStore,
+		identifier: 'auth-registration',
+		windowMs: 60 * 60 * 1000,
+		limit: 3,
+
+		message: 'Too many registration attempts. Please try again later.',
+
+		keyGenerator(req) {
+			return [getClientIp(req), getNormalizedEmail(req)].join(':');
+		},
+	});
+}
+
+export function createPasswordChangeRateLimiter(createRateLimitStore) {
+	return createLimiter({
+		createRateLimitStore,
+		identifier: 'account-password-change',
+		windowMs: 15 * 60 * 1000,
+		limit: 5,
+		skipSuccessfulRequests: true,
+
+		message: 'Too many password change attempts. Please try again later.',
+
+		keyGenerator(req) {
+			return [getClientIp(req), getAuthenticatedUserId(req)].join(':');
+		},
+	});
+}
+export function createLoginRateLimiter(createRateLimitStore) {
+	return createLimiter({
+		createRateLimitStore,
 		identifier: 'auth-login',
 		windowMs: 15 * 60 * 1000,
 		limit: 5,
@@ -58,8 +100,9 @@ export function createLoginRateLimiter() {
 	});
 }
 
-export function createForgotPasswordRateLimiter() {
+export function createForgotPasswordRateLimiter(createRateLimitStore) {
 	return createLimiter({
+		createRateLimitStore,
 		identifier: 'auth-password-forgot',
 		windowMs: 60 * 60 * 1000,
 		limit: 3,
@@ -72,8 +115,9 @@ export function createForgotPasswordRateLimiter() {
 	});
 }
 
-export function createEmailResendRateLimiter() {
+export function createEmailResendRateLimiter(createRateLimitStore) {
 	return createLimiter({
+		createRateLimitStore,
 		identifier: 'auth-email-resend',
 		windowMs: 60 * 60 * 1000,
 		limit: 3,
@@ -86,8 +130,9 @@ export function createEmailResendRateLimiter() {
 	});
 }
 
-export function createTotpLoginRateLimiter() {
+export function createTotpLoginRateLimiter(createRateLimitStore) {
 	return createLimiter({
+		createRateLimitStore,
 		identifier: 'auth-totp-login',
 		windowMs: 5 * 60 * 1000,
 		limit: 5,

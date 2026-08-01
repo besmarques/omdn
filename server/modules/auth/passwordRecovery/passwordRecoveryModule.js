@@ -6,8 +6,8 @@ import createResetPasswordController from '#server/modules/auth/passwordRecovery
 import createForgotPasswordService from '#server/modules/auth/passwordRecovery/forgot/forgotPasswordService';
 import createResetPasswordService from '#server/modules/auth/passwordRecovery/reset/resetPasswordService';
 
-export default function createPasswordRecoveryModule(authRepository) {
-	const forgotPasswordService = createForgotPasswordService(authRepository);
+export default function createPasswordRecoveryModule(authRepository, createRateLimitStore, appEnvironment = 'test') {
+	const forgotPasswordService = createForgotPasswordService(authRepository, appEnvironment);
 
 	const resetPasswordService = createResetPasswordService(authRepository);
 
@@ -16,6 +16,7 @@ export default function createPasswordRecoveryModule(authRepository) {
 	const resetPasswordController = createResetPasswordController(resetPasswordService);
 
 	return createPasswordRecoveryRoutes({
+		createRateLimitStore,
 		forgotPasswordController,
 		resetPasswordController,
 	});

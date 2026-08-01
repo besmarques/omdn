@@ -231,9 +231,10 @@ describe('POST /api/auth/login', () => {
 
 		expect(db.execute.mock.calls[0][1]).toEqual(['test@example.com']);
 
-		expect(db.execute.mock.calls[2][1]).toEqual(['new-session-id', 42, 42]);
+		expect(db.execute.mock.calls[2][1]).toEqual(['new-session-id', 42]);
 
 		expect(String(db.execute.mock.calls[2][0])).toContain('DELETE FROM sessions');
+		expect(String(db.execute.mock.calls[2][0])).not.toContain('user_id');
 
 		expect(db.execute.mock.calls[3][1]).toEqual([42]);
 	});

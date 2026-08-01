@@ -16,14 +16,19 @@ export default function createAuthEventMiddleware(authEventService) {
 	return function authEvent(configuration) {
 		return function authEventMiddleware(req, res, next) {
 			const initialContext = createAuthEventContext(req);
-
 			const initialUserId = getUserId(req);
+			const originalEnd = res.end;
+			let ending = false;
 
-			res.once('finish', () => {
+			res.end = function authEventEnd(...args) {
+				if (ending) {
+					return res;
+				}
+
+				ending = true;
+
 				const finalContext = createAuthEventContext(req);
-
 				const finalUserId = getUserId(req);
-
 				const resolutionContext = {
 					req,
 					res,
@@ -31,40 +36,35 @@ export default function createAuthEventMiddleware(authEventService) {
 					initialUserId,
 					finalUserId,
 				};
-
 				const eventType = resolveValue(configuration.eventType, resolutionContext);
 
 				if (!eventType) {
-					return;
+					return originalEnd.apply(res, args);
 				}
 
 				const hasCustomUserId = Object.hasOwn(configuration, 'userId');
-
 				const userId = hasCustomUserId
 					? resolveValue(configuration.userId, resolutionContext)
 					: (res.locals?.authEventUserId ?? finalUserId ?? initialUserId);
-
 				const hasCustomSuccess = Object.hasOwn(configuration, 'success');
-
 				const success = hasCustomSuccess ? Boolean(resolveValue(configuration.success, resolutionContext)) : res.statusCode < 400;
-
 				const metadata = resolveValue(configuration.metadata ?? null, resolutionContext);
-
-				void authEventService.record({
+				const event = {
 					userId,
-
 					sessionId: finalContext.sessionId ?? initialContext.sessionId,
-
 					eventType,
 					success,
-
 					ipAddress: finalContext.ipAddress ?? initialContext.ipAddress,
-
 					userAgent: finalContext.userAgent ?? initialContext.userAgent,
-
 					metadata,
+				};
+
+				void Promise.resolve(authEventService.record(event)).finally(() => {
+					originalEnd.apply(res, args);
 				});
-			});
+
+				return res;
+			};
 
 			return next();
 		};

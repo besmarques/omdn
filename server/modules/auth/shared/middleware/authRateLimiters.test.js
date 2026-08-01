@@ -7,15 +7,29 @@ import {
 	createEmailResendRateLimiter,
 	createForgotPasswordRateLimiter,
 	createLoginRateLimiter,
+	createPasswordChangeRateLimiter,
+	createRegistrationRateLimiter,
 	createTotpLoginRateLimiter,
 } from '#server/modules/auth/shared/middleware/authRateLimiters';
 
-function createTestApp(limiter, { responseStatus = 401, sessionId = 'test-session' } = {}) {
+function createTestApp(
+	limiter,
+	{
+		auth = {
+			user: {
+				id: 42,
+			},
+		},
+		responseStatus = 401,
+		sessionId = 'test-session',
+	} = {},
+) {
 	const app = express();
 
 	app.use(express.json());
 
 	app.use((req, res, next) => {
+		req.auth = auth;
 		req.sessionID = sessionId;
 
 		next();
@@ -47,6 +61,52 @@ async function sendRequests(
 }
 
 describe('auth rate limiters', () => {
+	it('blocks the fourth registration attempt', async () => {
+		const app = createTestApp(createRegistrationRateLimiter(), {
+			responseStatus: 201,
+		});
+
+		await sendRequests(app, 3);
+
+		const response = await request(app).post('/test').send({
+			email: 'test@example.com',
+		});
+
+		expect(response.status).toBe(429);
+
+		expect(response.body).toEqual({
+			status: false,
+			message: 'Too many registration attempts. Please try again later.',
+		});
+	});
+
+	it('blocks the sixth failed password change attempt', async () => {
+		const app = createTestApp(createPasswordChangeRateLimiter(), {
+			responseStatus: 400,
+		});
+
+		await sendRequests(app, 5, {});
+
+		const response = await request(app).post('/test').send({});
+
+		expect(response.status).toBe(429);
+
+		expect(response.body).toEqual({
+			status: false,
+			message: 'Too many password change attempts. Please try again later.',
+		});
+	});
+
+	it('does not count successful password changes', async () => {
+		const app = createTestApp(createPasswordChangeRateLimiter(), {
+			responseStatus: 200,
+		});
+
+		const response = await sendRequests(app, 10, {});
+
+		expect(response.status).toBe(200);
+	});
+
 	it('blocks the sixth failed login attempt', async () => {
 		const app = createTestApp(createLoginRateLimiter());
 

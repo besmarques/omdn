@@ -237,7 +237,7 @@ describe('POST /api/account/password/change', () => {
 
 		expect(String(connection.execute.mock.calls[2][0])).toContain('DELETE FROM sessions');
 
-		expect(connection.execute.mock.calls[2][1]).toEqual(['current-session', 42, 42]);
+		expect(connection.execute.mock.calls[2][1]).toEqual(['current-session', 42]);
 
 		expect(connection.commit).toHaveBeenCalledOnce();
 

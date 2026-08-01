@@ -1,7 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import process from 'node:process';
-
-export default function createResendVerificationEmailService(authRepository) {
+export default function createResendVerificationEmailService(authRepository, appEnvironment = 'test') {
 	return async function resendVerificationEmail(email) {
 		return authRepository.withConnection(async (connection) => {
 			try {
@@ -25,7 +23,7 @@ export default function createResendVerificationEmailService(authRepository) {
 
 				await connection.commit();
 
-				if (process.env.APP_ENV === 'development') {
+				if (appEnvironment === 'development') {
 					console.log(`New verification token for ${email}: ${verificationToken}`);
 				}
 

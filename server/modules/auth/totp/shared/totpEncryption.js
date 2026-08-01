@@ -1,21 +1,12 @@
 import { Buffer } from 'node:buffer';
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
-import process from 'node:process';
 
 const algorithm = 'aes-256-gcm';
 const version = 'v1';
 
-function getEncryptionKey() {
-	const encodedKey = process.env.TOTP_ENCRYPTION_KEY;
-
-	if (!encodedKey) {
-		throw new Error('TOTP_ENCRYPTION_KEY is not configured');
-	}
-
-	const key = Buffer.from(encodedKey, 'base64');
-
-	if (key.length !== 32) {
-		throw new Error('TOTP_ENCRYPTION_KEY must be a Base64-encoded 32-byte key');
+function validateEncryptionKey(key) {
+	if (!Buffer.isBuffer(key) || key.length !== 32) {
+		throw new Error('TOTP encryption key must contain exactly 32 bytes');
 	}
 
 	return key;
@@ -25,15 +16,14 @@ function createAdditionalData(userId) {
 	return Buffer.from(`omdn:user-totp:${userId}`, 'utf8');
 }
 
-export function encryptTotpSecret(secret, userId) {
+export function encryptTotpSecret(secret, userId, encryptionKey) {
+	const key = validateEncryptionKey(encryptionKey);
 	const initializationVector = randomBytes(12);
-
-	const cipher = createCipheriv(algorithm, getEncryptionKey(), initializationVector);
+	const cipher = createCipheriv(algorithm, key, initializationVector);
 
 	cipher.setAAD(createAdditionalData(userId));
 
 	const encrypted = Buffer.concat([cipher.update(secret, 'utf8'), cipher.final()]);
-
 	const authenticationTag = cipher.getAuthTag();
 
 	return [
@@ -44,7 +34,8 @@ export function encryptTotpSecret(secret, userId) {
 	].join('.');
 }
 
-export function decryptTotpSecret(encryptedSecret, userId) {
+export function decryptTotpSecret(encryptedSecret, userId, encryptionKey) {
+	const key = validateEncryptionKey(encryptionKey);
 	const [storedVersion, initializationVectorValue, authenticationTagValue, encryptedValue] = String(encryptedSecret).split('.');
 
 	if (storedVersion !== version || !initializationVectorValue || !authenticationTagValue || !encryptedValue) {
@@ -52,12 +43,9 @@ export function decryptTotpSecret(encryptedSecret, userId) {
 	}
 
 	const initializationVector = Buffer.from(initializationVectorValue, 'base64url');
-
 	const authenticationTag = Buffer.from(authenticationTagValue, 'base64url');
-
 	const encrypted = Buffer.from(encryptedValue, 'base64url');
-
-	const decipher = createDecipheriv(algorithm, getEncryptionKey(), initializationVector);
+	const decipher = createDecipheriv(algorithm, key, initializationVector);
 
 	decipher.setAAD(createAdditionalData(userId));
 	decipher.setAuthTag(authenticationTag);

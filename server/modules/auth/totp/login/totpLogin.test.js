@@ -196,7 +196,7 @@ describe('POST /api/auth/totp/login/verify', () => {
 
 		expect(deleteSessionCall).toBeDefined();
 
-		expect(deleteSessionCall[1]).toEqual(['new-totp-session', 42, 42]);
+		expect(deleteSessionCall[1]).toEqual(['new-totp-session', 42]);
 
 		const updateLastLoginCall = findDatabaseCall(db, 'last_login_at');
 

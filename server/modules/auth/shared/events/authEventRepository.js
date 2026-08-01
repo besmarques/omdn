@@ -24,19 +24,50 @@ function serializeMetadata(metadata) {
 	return JSON.stringify(metadata);
 }
 
+export function normalizeAuthEvent({
+	userId = null,
+	sessionId = null,
+	eventType,
+	success = true,
+	ipAddress = null,
+	userAgent = null,
+	metadata = null,
+}) {
+	return {
+		userId: normalizeUserId(userId),
+		sessionId,
+		eventType: normalizeEventType(eventType),
+		success: Boolean(success),
+		ipAddress,
+		userAgent,
+		metadata,
+	};
+}
+
 export default function createAuthEventRepository(db) {
-	async function create({
-		userId = null,
-		sessionId = null,
-		eventType,
-		success = true,
-		ipAddress = null,
-		userAgent = null,
-		metadata = null,
-	}) {
-		await db.execute(
+	async function create(event, { executor = db, outboxId = null } = {}) {
+		const normalizedEvent = normalizeAuthEvent(event);
+
+		const outboxColumn = outboxId === null ? '' : 'outbox_id,';
+		const outboxValue = outboxId === null ? '' : '?,';
+		const parameters = [
+			normalizedEvent.userId,
+			normalizedEvent.sessionId,
+			normalizedEvent.eventType,
+			normalizedEvent.success ? 1 : 0,
+			normalizedEvent.ipAddress,
+			normalizedEvent.userAgent,
+			serializeMetadata(normalizedEvent.metadata),
+		];
+
+		if (outboxId !== null) {
+			parameters.unshift(outboxId);
+		}
+
+		await executor.execute(
 			`
 				INSERT INTO auth_events (
+					${outboxColumn}
 					user_id,
 					session_id,
 					event_type,
@@ -46,6 +77,7 @@ export default function createAuthEventRepository(db) {
 					metadata
 				)
 				VALUES (
+					${outboxValue}
 					?,
 					?,
 					?,
@@ -55,15 +87,7 @@ export default function createAuthEventRepository(db) {
 					?
 				)
 			`,
-			[
-				normalizeUserId(userId),
-				sessionId,
-				normalizeEventType(eventType),
-				success ? 1 : 0,
-				ipAddress,
-				userAgent,
-				serializeMetadata(metadata),
-			],
+			parameters,
 		);
 	}
 

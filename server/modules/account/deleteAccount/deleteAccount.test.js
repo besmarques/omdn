@@ -206,7 +206,7 @@ describe('DELETE /api/account', () => {
 
 		expect(deleteSessionsCall).toBeDefined();
 
-		expect(deleteSessionsCall[1]).toEqual([42, 42]);
+		expect(deleteSessionsCall[1]).toEqual([42]);
 
 		expect(response.headers['set-cookie'][0]).toContain('omdn_session=;');
 	});

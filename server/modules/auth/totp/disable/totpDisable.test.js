@@ -207,7 +207,7 @@ describe('POST /api/auth/totp/disable', () => {
 
 		expect(connection.execute.mock.calls[3][1]).toEqual([42]);
 
-		expect(connection.execute.mock.calls[4][1]).toEqual(['current-session', 42, 42]);
+		expect(connection.execute.mock.calls[4][1]).toEqual(['current-session', 42]);
 
 		expect(connection.commit).toHaveBeenCalledOnce();
 

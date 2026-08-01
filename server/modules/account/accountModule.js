@@ -11,6 +11,8 @@ import createGetCurrentAccountController from '#server/modules/account/getCurren
 import createGetCurrentAccountService from '#server/modules/account/getCurrent/getCurrentAccountService';
 
 import createAuthRepository from '#server/modules/auth/shared/authRepository';
+import createTotpEncryption from '#server/modules/auth/totp/shared/createTotpEncryption';
+import { decryptTotpSecret as defaultDecryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncryption';
 
 import createAuthEventMiddleware from '#server/modules/auth/shared/events/authEventMiddleware';
 import createAuthEventRepository from '#server/modules/auth/shared/events/authEventRepository';
@@ -28,14 +30,17 @@ function createOutcomeAudit({ authEvent, successEvent, failureEvent }) {
 	});
 }
 
-export default function createAccountModule(db) {
+export default function createAccountModule(db, createRateLimitStore, providedAuthEventService, config) {
 	const authRepository = createAuthRepository(db);
+	const { decryptTotpSecret } = config?.totpEncryptionKey
+		? createTotpEncryption(config.totpEncryptionKey)
+		: { decryptTotpSecret: defaultDecryptTotpSecret };
 
 	const deleteAccountRepository = createDeleteAccountRepository(db);
 
 	const authEventRepository = createAuthEventRepository(db);
 
-	const authEventService = createAuthEventService(authEventRepository);
+	const authEventService = providedAuthEventService ?? createAuthEventService(authEventRepository);
 
 	const authEvent = createAuthEventMiddleware(authEventService);
 
@@ -43,9 +48,9 @@ export default function createAccountModule(db) {
 
 	const changePasswordController = createChangePasswordController(changePasswordService);
 
-	const deleteAccountService = createDeleteAccountService(deleteAccountRepository);
+	const deleteAccountService = createDeleteAccountService(deleteAccountRepository, decryptTotpSecret);
 
-	const deleteAccountController = createDeleteAccountController(deleteAccountService);
+	const deleteAccountController = createDeleteAccountController(deleteAccountService, config?.appEnvironment ?? 'test');
 
 	const getCurrentAccountService = createGetCurrentAccountService();
 
@@ -66,6 +71,7 @@ export default function createAccountModule(db) {
 	return createAccountRoutes({
 		changePasswordAudit,
 		changePasswordController,
+		createRateLimitStore,
 		deleteAccountAudit,
 		deleteAccountController,
 		getCurrentAccountController,

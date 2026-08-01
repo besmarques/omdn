@@ -8,9 +8,9 @@ function isTotpCode(code) {
 	return /^\d{6}$/.test(code);
 }
 
-export default function createVerifyTotpLoginService(authRepository) {
+export default function createVerifyTotpLoginService(authRepository, decryptSecret = decryptTotpSecret) {
 	async function verifyTotpCode({ userId, code, totp, connection }) {
-		const secret = decryptTotpSecret(totp.secret_encrypted, userId);
+		const secret = decryptSecret(totp.secret_encrypted, userId);
 
 		const options = {
 			secret,

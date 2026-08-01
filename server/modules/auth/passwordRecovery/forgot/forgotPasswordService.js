@@ -1,7 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import process from 'node:process';
-
-export default function createForgotPasswordService(authRepository) {
+export default function createForgotPasswordService(authRepository, appEnvironment = 'test') {
 	return async function forgotPassword(email) {
 		return authRepository.withConnection(async (connection) => {
 			try {
@@ -25,7 +23,7 @@ export default function createForgotPasswordService(authRepository) {
 
 				await connection.commit();
 
-				if (process.env.APP_ENV === 'development') {
+				if (appEnvironment === 'development') {
 					console.log(`Password reset token for ${email}: ${resetToken}`);
 				}
 

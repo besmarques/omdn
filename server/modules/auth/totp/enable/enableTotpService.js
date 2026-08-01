@@ -4,7 +4,7 @@ import { decryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncrypti
 
 import { generateRecoveryCodes, hashRecoveryCode } from '#server/modules/auth/totp/shared/recoveryCodes';
 
-export default function createEnableTotpService(authRepository) {
+export default function createEnableTotpService(authRepository, decryptSecret = decryptTotpSecret) {
 	return async function enableTotp({ userId, code }) {
 		return authRepository.withConnection(async (connection) => {
 			try {
@@ -20,7 +20,7 @@ export default function createEnableTotpService(authRepository) {
 					};
 				}
 
-				const secret = decryptTotpSecret(totp.secret_encrypted, userId);
+				const secret = decryptSecret(totp.secret_encrypted, userId);
 
 				const period = Number(totp.period);
 

@@ -9,8 +9,8 @@ function isTotpCode(code) {
 	return /^\d{6}$/.test(code);
 }
 
-async function verifyTotpCode({ userId, code, totp }) {
-	const secret = decryptTotpSecret(totp.secret_encrypted, userId);
+async function verifyTotpCode({ userId, code, totp, decryptSecret }) {
+	const secret = decryptSecret(totp.secret_encrypted, userId);
 
 	const options = {
 		secret,
@@ -40,7 +40,7 @@ async function verifyRecoveryCode({ userId, code, connection, deleteAccountRepos
 	return Boolean(recoveryCode);
 }
 
-export default function createDeleteAccountService(deleteAccountRepository) {
+export default function createDeleteAccountService(deleteAccountRepository, decryptSecret = decryptTotpSecret) {
 	return async function deleteAccount({ userId, password, code }) {
 		return deleteAccountRepository.withConnection(async (connection) => {
 			try {
@@ -87,6 +87,7 @@ export default function createDeleteAccountService(deleteAccountRepository) {
 									userId,
 									code,
 									totp,
+									decryptSecret,
 								})
 							: await verifyRecoveryCode({
 									userId,

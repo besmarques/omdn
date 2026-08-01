@@ -15,21 +15,32 @@ import createSetupTotpService from '#server/modules/auth/totp/setup/setupTotpSer
 import createVerifyTotpLoginService from '#server/modules/auth/totp/login/verifyTotpLoginService';
 
 import requireAuth from '#server/modules/auth/shared/middleware/requireAuth';
+import createTotpEncryption from '#server/modules/auth/totp/shared/createTotpEncryption';
+import {
+	decryptTotpSecret as defaultDecryptTotpSecret,
+	encryptTotpSecret as defaultEncryptTotpSecret,
+} from '#server/modules/auth/totp/shared/totpEncryption';
 
-export default function createTotpModule(authRepository, db) {
+export default function createTotpModule(authRepository, db, createRateLimitStore, totpEncryptionKey) {
 	const authenticated = requireAuth(db);
+	const { decryptTotpSecret, encryptTotpSecret } = totpEncryptionKey
+		? createTotpEncryption(totpEncryptionKey)
+		: {
+				decryptTotpSecret: defaultDecryptTotpSecret,
+				encryptTotpSecret: defaultEncryptTotpSecret,
+			};
 
-	const disableTotpService = createDisableTotpService(authRepository);
+	const disableTotpService = createDisableTotpService(authRepository, decryptTotpSecret);
 
-	const enableTotpService = createEnableTotpService(authRepository);
+	const enableTotpService = createEnableTotpService(authRepository, decryptTotpSecret);
 
 	const getTotpStatusService = createGetTotpStatusService(authRepository);
 
-	const regenerateRecoveryCodesService = createRegenerateRecoveryCodesService(authRepository);
+	const regenerateRecoveryCodesService = createRegenerateRecoveryCodesService(authRepository, decryptTotpSecret);
 
-	const setupTotpService = createSetupTotpService(authRepository);
+	const setupTotpService = createSetupTotpService(authRepository, encryptTotpSecret);
 
-	const verifyTotpLoginService = createVerifyTotpLoginService(authRepository);
+	const verifyTotpLoginService = createVerifyTotpLoginService(authRepository, decryptTotpSecret);
 
 	const disableTotpController = createDisableTotpController(disableTotpService);
 
@@ -45,6 +56,7 @@ export default function createTotpModule(authRepository, db) {
 
 	return createTotpRoutes({
 		authenticated,
+		createRateLimitStore,
 		disableTotpController,
 		enableTotpController,
 		getTotpStatusController,

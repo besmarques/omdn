@@ -53,10 +53,16 @@ omdn/
 |   `-- dev/generate-logic-map.js
 |-- server/
 |   |-- database/
-|   |   |-- migrations/001_create_auth_tables.sql
+|   |   |-- migrations/
+|   |   |   |-- 001_create_auth_tables.sql
+|   |   |   |-- 002_create_rate_limit_counters.sql
+|   |   |   |-- 003_create_auth_event_outbox.sql
+|   |   |   `-- 004_simplify_sessions.sql
 |   |   `-- seeds/001_seed_roles_permissions.sql
 |   |-- dbConnect/createPool.js
-|   |-- middleware/sessionMiddleware.js
+|   |-- middleware/
+|   |   |-- apiErrorMiddleware.js
+|   |   `-- sessionMiddleware.js
 |   |-- modules/
 |   |   |-- account/
 |   |   |   |-- getCurrent/
@@ -200,41 +206,46 @@ npm run dev:server
 
 ## Environment variables
 
-| Variable              | Purpose                                                     | Default |
-| --------------------- | ----------------------------------------------------------- | ------- |
-| `PORT`                | Express port                                                | `3000`  |
-| `APP_ENV`             | Production proxy/SPA behavior and development token logging | None    |
-| `NODE_ENV`            | Secure session-cookie behavior                              | None    |
-| `DB_HOST`             | MySQL host                                                  | None    |
-| `DB_PORT`             | MySQL port                                                  | `3306`  |
-| `DB_NAME`             | MySQL database                                              | None    |
-| `DB_USER`             | MySQL user                                                  | None    |
-| `DB_PASSWORD`         | MySQL password                                              | None    |
-| `DB_CONNECTION_LIMIT` | Maximum pool connections                                    | `10`    |
-| `DB_SSL`, `DB_SSL_CA` | Reserved SSL settings; not currently consumed               | None    |
-| `SESSION_SECRET`      | Required session signing secret                             | None    |
-| `TOTP_ENCRYPTION_KEY` | Base64-encoded 32-byte key used to encrypt TOTP secrets     | None    |
+| Variable              | Purpose                                                  | Default |
+| --------------------- | -------------------------------------------------------- | ------- |
+| `PORT`                | Express port                                             | `3000`  |
+| `APP_ENV`             | Runtime mode: `development`, `test`, or `production`     | None    |
+| `DB_HOST`             | MySQL host                                               | None    |
+| `DB_PORT`             | MySQL port                                               | `3306`  |
+| `DB_NAME`             | MySQL database                                           | None    |
+| `DB_USER`             | MySQL user                                               | None    |
+| `DB_PASSWORD`         | MySQL password                                           | None    |
+| `DB_CONNECTION_LIMIT` | Maximum pool connections                                 | `10`    |
+| `SESSION_SECRET`      | Session signing secret containing at least 32 characters | None    |
+| `TOTP_ENCRYPTION_KEY` | Canonical Base64 encoding of exactly 32 bytes            | None    |
 
 Never put secrets in `VITE_*` variables because Vite exposes them to the browser.
 
-> Set both `APP_ENV=production` and `NODE_ENV=production` in production. `TOTP_ENCRYPTION_KEY` must be the Base64 representation of 32 random bytes.
+The server validates and normalizes all variables once before creating the database pool or HTTP application. Invalid configuration stops startup with field-specific errors that do not include secret values. Set `APP_ENV=production` in production; no separate Node runtime-mode variable is used by the server.
 
 ## Database
 
 Apply these SQL files in order:
 
 1. `server/database/migrations/001_create_auth_tables.sql`
-2. `server/database/seeds/001_seed_roles_permissions.sql`
+2. `server/database/migrations/002_create_rate_limit_counters.sql`
+3. `server/database/migrations/003_create_auth_event_outbox.sql`
+4. `server/database/migrations/004_simplify_sessions.sql`
+5. `server/database/seeds/001_seed_roles_permissions.sql`
 
-They create the authentication, authorization, session, token, TOTP, recovery-code, and audit schema, then seed the initial roles and permissions. There is no npm migration command.
+They create and evolve the authentication, authorization, session, token, TOTP, recovery-code, audit, shared rate-limit, and authentication-event outbox schema, then seed the initial roles and permissions. There is no npm migration command.
+
+For Hostinger Cloud Startup, run the Node.js application and MySQL database in the same hosting environment with `DB_HOST=localhost`. The website's Hostinger SSL certificate protects public HTTPS traffic; it is separate from MySQL transport configuration. This project does not expose unused MySQL TLS variables. If the database later moves to another server, add provider-supported MySQL TLS configuration as a separate, tested change.
 
 ## Authentication and routing
 
-Sessions are stored in MySQL for seven days. Cookies are HTTP-only, use `SameSite=Lax`, and become secure in production.
+Sessions are stored in MySQL for seven days. The `sessions` table uses the three columns maintained by `express-mysql-session`: `session_id`, `expires`, and serialized `data`. Authenticated identity is canonical in valid serialized `data.userId`; session revocation queries do not depend on duplicate metadata columns. Cookies are HTTP-only, use `SameSite=Lax`, and become secure in production.
 
 TOTP setup uses `otplib` and `qrcode`. Secrets are encrypted with AES-256-GCM and user-bound additional authenticated data; recovery codes are supported for second-factor login.
 
-Sensitive authentication routes use account/IP-aware rate limits. Authentication outcomes are recorded asynchronously in `auth_events` with normalized session, IP, user-agent, status, and rate-limit metadata.
+Sensitive authentication routes use account/IP-aware rate limits backed by MySQL so counters survive restarts and are shared across server instances. Counter keys are SHA-256 hashed before storage, expired rows are cleaned incrementally, and requests fail closed if the store is unavailable. Registration counts all attempts; password-change limits count failures and exclude successful changes. Authentication outcomes are written to a MySQL outbox before the response is finalized, then delivered to `auth_events` by a shared background worker. Delivery uses transactional row claims, a unique outbox ID for duplicate prevention, stale-claim recovery after five minutes, and exponential retry capped at five minutes. Processed outbox payloads are cleared to avoid retaining duplicate session, IP, user-agent, and metadata values.
+
+Unexpected API failures return a stable JSON response with an `x-correlation-id` response header and matching `correlationId` body field. Valid caller-supplied correlation IDs are preserved; unsafe values are replaced. Internal error details are logged server-side and are not exposed to clients.
 
 Authenticated users can change their password through the account module. The flow verifies the current password, updates it transactionally, revokes other sessions, regenerates the current session, and records the outcome in the authentication audit log.
 
@@ -281,4 +292,4 @@ The frontend uses Tailwind CSS, shadcn/ui with Base UI primitives, Lucide icons,
 
 The production entry point is `server/server.js`. `npm start` builds the frontend through `prestart` and then starts Express.
 
-Configure `APP_ENV=production`, `NODE_ENV=production`, a strong `SESSION_SECRET`, and all MySQL connection values in the hosting platform.
+Configure `APP_ENV=production`, a session secret of at least 32 characters, a canonical Base64 32-byte TOTP encryption key, and all MySQL connection values in the hosting platform.

@@ -150,26 +150,17 @@ export default function createDeleteAccountRepository(db) {
 		const [result] = await executor.execute(
 			`
 				DELETE FROM sessions
-				WHERE user_id = ?
-					OR (
-						JSON_VALID(data) = 1
-						AND CAST(
-							JSON_UNQUOTE(
-								JSON_EXTRACT(
-									data,
-									'$.userId'
-								)
-							)
-							AS UNSIGNED
-						) = ?
-					)
+				WHERE JSON_VALID(data) = 1
+					AND CAST(
+						JSON_UNQUOTE(JSON_EXTRACT(data, '$.userId'))
+						AS UNSIGNED
+					) = ?
 			`,
-			[userId, userId],
+			[userId],
 		);
 
 		return result.affectedRows;
 	}
-
 	return {
 		withConnection,
 		findActiveUserForUpdate,

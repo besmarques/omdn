@@ -1,9 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
-import process from 'node:process';
-
 import argon2 from 'argon2';
 
-export default function createRegisterService(authRepository) {
+export default function createRegisterService(authRepository, appEnvironment = 'test') {
 	return async function register({ displayName, email, password }) {
 		return authRepository.withConnection(async (connection) => {
 			try {
@@ -47,7 +45,7 @@ export default function createRegisterService(authRepository) {
 
 				await connection.commit();
 
-				if (process.env.APP_ENV === 'development') {
+				if (appEnvironment === 'development') {
 					console.log(`Verification token for ${email}: ${verificationToken}`);
 				}
 

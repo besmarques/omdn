@@ -4,10 +4,10 @@ import requireGuest from '#server/modules/auth/shared/middleware/requireGuest';
 
 import { createLoginRateLimiter } from '#server/modules/auth/shared/middleware/authRateLimiters';
 
-export default function createCredentialsRoutes({ loginController, logoutController }) {
+export default function createCredentialsRoutes({ createRateLimitStore, loginController, logoutController }) {
 	const router = express.Router();
 
-	const loginRateLimiter = createLoginRateLimiter();
+	const loginRateLimiter = createLoginRateLimiter(createRateLimitStore);
 
 	router.post('/login', requireGuest, loginRateLimiter, loginController);
 

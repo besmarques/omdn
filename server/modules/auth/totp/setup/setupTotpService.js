@@ -6,7 +6,7 @@ import { encryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncrypti
 
 const issuer = 'O Melhor do Natal';
 
-export default function createSetupTotpService(authRepository) {
+export default function createSetupTotpService(authRepository, encryptSecret = encryptTotpSecret) {
 	return async function setupTotp({ userId, email }) {
 		const secret = generateSecret();
 
@@ -25,7 +25,7 @@ export default function createSetupTotpService(authRepository) {
 			width: 320,
 		});
 
-		const secretEncrypted = encryptTotpSecret(secret, userId);
+		const secretEncrypted = encryptSecret(secret, userId);
 
 		return authRepository.withConnection(async (connection) => {
 			try {

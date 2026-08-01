@@ -296,12 +296,15 @@ export default function createAuthRepository(db) {
 		await executor.execute(
 			`
 			DELETE FROM sessions
-			WHERE user_id = ?
+			WHERE JSON_VALID(data) = 1
+				AND CAST(
+					JSON_UNQUOTE(JSON_EXTRACT(data, '$.userId'))
+					AS UNSIGNED
+				) = ?
 		`,
 			[userId],
 		);
 	}
-
 	async function findTotpByUserId(userId, executor = db) {
 		const [records] = await executor.execute(
 			`
@@ -549,28 +552,17 @@ export default function createAuthRepository(db) {
 			`
 			DELETE FROM sessions
 			WHERE session_id <> ?
-				AND (
-					user_id = ?
-					OR (
-						JSON_VALID(data) = 1
-						AND CAST(
-							JSON_UNQUOTE(
-								JSON_EXTRACT(
-									data,
-									'$.userId'
-								)
-							)
-							AS UNSIGNED
-						) = ?
-					)
-				)
+				AND JSON_VALID(data) = 1
+				AND CAST(
+					JSON_UNQUOTE(JSON_EXTRACT(data, '$.userId'))
+					AS UNSIGNED
+				) = ?
 		`,
-			[currentSessionId, userId, userId],
+			[currentSessionId, userId],
 		);
 
 		return result.affectedRows;
 	}
-
 	return {
 		withConnection,
 		findExistingUserByEmail,

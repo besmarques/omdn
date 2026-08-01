@@ -1,24 +1,37 @@
 export default function createAuthEventService(authEventRepository) {
-	async function record(event) {
-		try {
-			await authEventRepository.create(event);
+	const pendingRecords = new Set();
 
-			return {
+	function record(event) {
+		const operation = authEventRepository
+			.create(event)
+			.then(() => ({
 				recorded: true,
-			};
-		} catch (error) {
-			console.error('Unable to record authentication event', {
-				eventType: event?.eventType ?? null,
-				error: error.message,
+			}))
+			.catch((error) => {
+				console.error('Unable to record authentication event', {
+					eventType: event?.eventType ?? null,
+					error: error.message,
+				});
+
+				return {
+					recorded: false,
+				};
+			})
+			.finally(() => {
+				pendingRecords.delete(operation);
 			});
 
-			return {
-				recorded: false,
-			};
-		}
+		pendingRecords.add(operation);
+
+		return operation;
+	}
+
+	async function drain() {
+		await Promise.allSettled([...pendingRecords]);
 	}
 
 	return {
+		drain,
 		record,
 	};
 }
