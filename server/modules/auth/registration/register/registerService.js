@@ -1,7 +1,11 @@
 import { createHash, randomBytes } from 'node:crypto';
 import argon2 from 'argon2';
 
-export default function createRegisterService(authRepository, appEnvironment = 'test') {
+export default function createRegisterService(
+	{ emailVerificationRepository, registrationRepository, withConnection },
+	appEnvironment = 'test',
+) {
+	const authRepository = { ...emailVerificationRepository, ...registrationRepository, withConnection };
 	return async function register({ displayName, email, password }) {
 		return authRepository.withConnection(async (connection) => {
 			try {

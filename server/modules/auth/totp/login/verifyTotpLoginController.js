@@ -88,14 +88,14 @@ export default function createVerifyTotpLoginController(verifyTotpLoginService) 
 
 			await regenerateSession(req);
 
-			req.session.userId = result.user.id;
-
-			await saveSession(req);
-
 			await verifyTotpLoginService.recordSuccessfulLogin({
 				userId: result.user.id,
 				currentSessionId: req.sessionID,
 			});
+
+			req.session.userId = result.user.id;
+
+			await saveSession(req);
 
 			return res.json({
 				status: true,

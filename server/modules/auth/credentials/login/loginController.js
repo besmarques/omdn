@@ -87,14 +87,14 @@ export default function createLoginController(loginService) {
 				});
 			}
 
-			req.session.userId = user.id;
-
-			await saveSession(req);
-
 			await loginService.recordSuccessfulLogin({
 				userId: user.id,
 				currentSessionId: req.sessionID,
 			});
+
+			req.session.userId = user.id;
+
+			await saveSession(req);
 
 			return res.json({
 				status: true,

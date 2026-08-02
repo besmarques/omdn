@@ -9,9 +9,12 @@ export default defineConfig([
 
 	{
 		files: ['**/*.{js,jsx}'],
+		extends: [js.configs.recommended],
+	},
 
-		extends: [js.configs.recommended, reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
-
+	{
+		files: ['src/**/*.{js,jsx}'],
+		extends: [reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
 		languageOptions: {
 			globals: globals.browser,
 			parserOptions: {
@@ -20,7 +23,6 @@ export default defineConfig([
 				},
 			},
 		},
-
 		rules: {
 			'react-refresh/only-export-components': [
 				'error',
@@ -29,6 +31,20 @@ export default defineConfig([
 					allowExportNames: ['buttonVariants'],
 				},
 			],
+		},
+	},
+
+	{
+		files: ['server/**/*.js', 'scripts/**/*.js', '*.config.js'],
+		languageOptions: {
+			globals: globals.node,
+		},
+	},
+
+	{
+		files: ['**/*.test.{js,jsx}'],
+		languageOptions: {
+			globals: globals.vitest,
 		},
 	},
 ]);

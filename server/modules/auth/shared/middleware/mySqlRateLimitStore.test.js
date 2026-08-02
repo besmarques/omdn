@@ -25,12 +25,13 @@ function createDatabase() {
 describe('MySQL rate-limit store', () => {
 	it('increments a namespaced, hashed counter in a transaction', async () => {
 		const { connection, db } = createDatabase();
-		const resetAt = new Date('2026-08-01T12:15:00.000Z');
+		const now = new Date('2026-08-01T12:00:00.000Z').getTime();
+		vi.spyOn(Date, 'now').mockReturnValue(now);
 
 		connection.execute
 			.mockResolvedValueOnce([{ affectedRows: 0 }])
 			.mockResolvedValueOnce([{ affectedRows: 1 }])
-			.mockResolvedValueOnce([[{ hits: 2, reset_at: resetAt }]]);
+			.mockResolvedValueOnce([[{ hits: 2, reset_after_microseconds: 900_000_000 }]]);
 
 		const store = createMySqlRateLimitStore(db, 'auth-login');
 		store.init({ windowMs: 15 * 60 * 1000 });
@@ -40,8 +41,9 @@ describe('MySQL rate-limit store', () => {
 
 		expect(result).toEqual({
 			totalHits: 2,
-			resetTime: resetAt,
+			resetTime: new Date('2026-08-01T12:15:00.000Z'),
 		});
+		expect(connection.execute).toHaveBeenNthCalledWith(3, expect.stringContaining('TIMESTAMPDIFF'), ['auth-login', expectedHash]);
 		expect(connection.beginTransaction).toHaveBeenCalledOnce();
 		expect(connection.execute).toHaveBeenNthCalledWith(2, expect.stringContaining('INSERT INTO rate_limit_counters'), [
 			'auth-login',

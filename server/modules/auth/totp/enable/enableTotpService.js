@@ -4,7 +4,8 @@ import { decryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncrypti
 
 import { generateRecoveryCodes, hashRecoveryCode } from '#server/modules/auth/totp/shared/recoveryCodes';
 
-export default function createEnableTotpService(authRepository, decryptSecret = decryptTotpSecret) {
+export default function createEnableTotpService(dependencies, decryptSecret = decryptTotpSecret) {
+	const authRepository = { ...dependencies.totpRepository, withConnection: dependencies.withConnection };
 	return async function enableTotp({ userId, code }) {
 		return authRepository.withConnection(async (connection) => {
 			try {

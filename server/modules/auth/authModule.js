@@ -1,6 +1,5 @@
 import express from 'express';
 
-import createAuthRepository from '#server/modules/auth/shared/authRepository';
 import createAuthRoutes from '#server/modules/auth/authRoutes';
 
 import createAuthEventPolicy from '#server/modules/auth/shared/events/authEventPolicy';
@@ -16,8 +15,6 @@ import createTotpModule from '#server/modules/auth/totp/totpModule';
 export default function createAuthModule(db, createRateLimitStore, providedAuthEventService, config) {
 	const router = express.Router();
 
-	const authRepository = createAuthRepository(db);
-
 	const authEventRepository = createAuthEventRepository(db);
 
 	const authEventService = providedAuthEventService ?? createAuthEventService(authEventRepository);
@@ -28,15 +25,15 @@ export default function createAuthModule(db, createRateLimitStore, providedAuthE
 
 	router.use(createAuthRoutes());
 
-	router.use(createCredentialsModule(authRepository, createRateLimitStore, config?.appEnvironment ?? 'test'));
+	router.use(createCredentialsModule(db, createRateLimitStore, config?.appEnvironment ?? 'test'));
 
-	router.use(createRegistrationModule(authRepository, createRateLimitStore, config?.appEnvironment ?? 'test'));
+	router.use(createRegistrationModule(db, createRateLimitStore, config?.appEnvironment ?? 'test'));
 
-	router.use(createEmailVerificationModule(authRepository, createRateLimitStore, config?.appEnvironment ?? 'test'));
+	router.use(createEmailVerificationModule(db, createRateLimitStore, config?.appEnvironment ?? 'test'));
 
-	router.use(createPasswordRecoveryModule(authRepository, createRateLimitStore, config?.appEnvironment ?? 'test'));
+	router.use(createPasswordRecoveryModule(db, createRateLimitStore, config?.appEnvironment ?? 'test'));
 
-	router.use(createTotpModule(authRepository, db, createRateLimitStore, config?.totpEncryptionKey));
+	router.use(createTotpModule(db, createRateLimitStore, config?.totpEncryptionKey));
 
 	return router;
 }

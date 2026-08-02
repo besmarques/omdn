@@ -73,8 +73,8 @@ function createTestApp(db, session, sessionId = 'current-session') {
 	return app;
 }
 
-function findDatabaseCall(db, text) {
-	return db.execute.mock.calls.find(([sql]) => String(sql).includes(text));
+function findDatabaseCall(executor, text) {
+	return executor.execute.mock.calls.find(([sql]) => String(sql).includes(text));
 }
 
 describe('POST /api/auth/totp/login/verify', () => {
@@ -150,7 +150,9 @@ describe('POST /api/auth/totp/login/verify', () => {
 						email_verified_at: new Date(),
 					},
 				],
-			]);
+			])
+			.mockResolvedValueOnce([{ affectedRows: 2 }])
+			.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
 		verify.mockResolvedValueOnce({
 			valid: true,
@@ -184,7 +186,7 @@ describe('POST /api/auth/totp/login/verify', () => {
 
 		expect(connection.execute.mock.calls[1][1]).toEqual([101, 42, 101]);
 
-		expect(connection.commit).toHaveBeenCalledOnce();
+		expect(connection.commit).toHaveBeenCalledTimes(2);
 
 		expect(session.regenerate).toHaveBeenCalledOnce();
 
@@ -192,19 +194,71 @@ describe('POST /api/auth/totp/login/verify', () => {
 
 		expect(session.save).toHaveBeenCalledOnce();
 
-		const deleteSessionCall = findDatabaseCall(db, 'DELETE FROM sessions');
+		const deleteSessionCall = findDatabaseCall(connection, 'DELETE FROM sessions');
 
 		expect(deleteSessionCall).toBeDefined();
 
 		expect(deleteSessionCall[1]).toEqual(['new-totp-session', 42]);
 
-		const updateLastLoginCall = findDatabaseCall(db, 'last_login_at');
+		const updateLastLoginCall = findDatabaseCall(connection, 'last_login_at');
 
 		expect(updateLastLoginCall).toBeDefined();
 
 		expect(updateLastLoginCall[1]).toEqual([42]);
 	});
 
+	it('does not persist authentication when TOTP login finalization fails', async () => {
+		const { db, connection } = createDatabaseMock();
+		const session = createSession({
+			pendingTwoFactorUserId: 42,
+			pendingTwoFactorExpiresAt: Date.now() + 300000,
+			pendingTwoFactorAttempts: 0,
+		});
+		connection.execute
+			.mockResolvedValueOnce([
+				[
+					{
+						user_id: 42,
+						secret_encrypted: 'encrypted',
+						algorithm: 'SHA1',
+						digits: 6,
+						period: 30,
+						is_enabled: 1,
+						last_used_step: 100,
+					},
+				],
+			])
+			.mockResolvedValueOnce([{ affectedRows: 1 }])
+			.mockResolvedValueOnce([
+				[
+					{
+						id: 42,
+						email: 'test@example.com',
+						display_name: 'Test User',
+						status: 'active',
+						email_verified_at: new Date(),
+					},
+				],
+			])
+			.mockRejectedValueOnce(new Error('Unable to revoke previous sessions'));
+		verify.mockResolvedValueOnce({
+			valid: true,
+			timeStep: 101,
+			epoch: 3030,
+			delta: 0,
+		});
+		const app = createTestApp(db, session, 'failed-totp-session');
+
+		const response = await request(app).post('/api/auth/totp/login/verify').send({ code: '123456' });
+
+		expect(response.status).toBe(500);
+		expect(session.regenerate).toHaveBeenCalledOnce();
+		expect(session.userId).toBeUndefined();
+		expect(session.save).not.toHaveBeenCalled();
+		expect(connection.commit).toHaveBeenCalledOnce();
+		expect(connection.rollback).toHaveBeenCalledOnce();
+		expect(connection.release).toHaveBeenCalledTimes(2);
+	});
 	it('rejects a reused or invalid TOTP code without removing sessions', async () => {
 		const { db, connection } = createDatabaseMock();
 
@@ -253,11 +307,11 @@ describe('POST /api/auth/totp/login/verify', () => {
 
 		expect(connection.commit).not.toHaveBeenCalled();
 
-		const deleteSessionCall = findDatabaseCall(db, 'DELETE FROM sessions');
+		const deleteSessionCall = findDatabaseCall(connection, 'DELETE FROM sessions');
 
 		expect(deleteSessionCall).toBeUndefined();
 
-		const updateLastLoginCall = findDatabaseCall(db, 'last_login_at');
+		const updateLastLoginCall = findDatabaseCall(connection, 'last_login_at');
 
 		expect(updateLastLoginCall).toBeUndefined();
 	});

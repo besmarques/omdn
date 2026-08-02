@@ -73,7 +73,10 @@ describe('setup TOTP', () => {
 	it('creates a pending TOTP configuration', async () => {
 		const { authRepository, connection } = createRepositoryMock();
 
-		const setupTotpService = createSetupTotpService(authRepository);
+		const setupTotpService = createSetupTotpService({
+			totpRepository: authRepository,
+			withConnection: authRepository.withConnection,
+		});
 
 		const result = await setupTotpService({
 			userId: 42,
@@ -122,7 +125,10 @@ describe('setup TOTP', () => {
 			},
 		});
 
-		const setupTotpService = createSetupTotpService(authRepository);
+		const setupTotpService = createSetupTotpService({
+			totpRepository: authRepository,
+			withConnection: authRepository.withConnection,
+		});
 
 		const result = await setupTotpService({
 			userId: 42,

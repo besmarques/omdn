@@ -179,6 +179,24 @@ describe('POST /api/auth/login', () => {
 	});
 
 	it('creates one session and removes older sessions', async () => {
+		const connection = {
+			execute: vi
+				.fn()
+				.mockResolvedValueOnce([
+					{
+						affectedRows: 2,
+					},
+				])
+				.mockResolvedValueOnce([
+					{
+						affectedRows: 1,
+					},
+				]),
+			beginTransaction: vi.fn().mockResolvedValue(),
+			commit: vi.fn().mockResolvedValue(),
+			rollback: vi.fn().mockResolvedValue(),
+			release: vi.fn(),
+		};
 		const db = {
 			execute: vi
 				.fn()
@@ -199,12 +217,8 @@ describe('POST /api/auth/login', () => {
 						},
 					],
 				])
-				.mockResolvedValueOnce([[]])
-				.mockResolvedValueOnce([
-					{
-						affectedRows: 2,
-					},
-				]),
+				.mockResolvedValueOnce([[]]),
+			getConnection: vi.fn().mockResolvedValue(connection),
 		};
 
 		argon2.verify.mockResolvedValueOnce(true);
@@ -217,28 +231,68 @@ describe('POST /api/auth/login', () => {
 		});
 
 		expect(response.status).toBe(200);
-
 		expect(response.body).toMatchObject({
 			status: true,
 			message: 'Login successful',
 		});
-
 		expect(session.regenerate).toHaveBeenCalledOnce();
-
 		expect(session.userId).toBe(42);
-
 		expect(session.save).toHaveBeenCalledOnce();
-
 		expect(db.execute.mock.calls[0][1]).toEqual(['test@example.com']);
-
-		expect(db.execute.mock.calls[2][1]).toEqual(['new-session-id', 42]);
-
-		expect(String(db.execute.mock.calls[2][0])).toContain('DELETE FROM sessions');
-		expect(String(db.execute.mock.calls[2][0])).not.toContain('user_id');
-
-		expect(db.execute.mock.calls[3][1]).toEqual([42]);
+		expect(connection.execute.mock.calls[0][1]).toEqual(['new-session-id', 42]);
+		expect(String(connection.execute.mock.calls[0][0])).toContain('DELETE FROM sessions');
+		expect(String(connection.execute.mock.calls[0][0])).not.toContain('user_id');
+		expect(connection.execute.mock.calls[1][1]).toEqual([42]);
+		expect(connection.beginTransaction).toHaveBeenCalledOnce();
+		expect(connection.commit).toHaveBeenCalledOnce();
+		expect(connection.rollback).not.toHaveBeenCalled();
+		expect(connection.release).toHaveBeenCalledOnce();
 	});
 
+	it('does not persist authentication when login finalization fails', async () => {
+		const finalizationError = new Error('Unable to revoke previous sessions');
+		const connection = {
+			execute: vi.fn().mockRejectedValueOnce(finalizationError),
+			beginTransaction: vi.fn().mockResolvedValue(),
+			commit: vi.fn().mockResolvedValue(),
+			rollback: vi.fn().mockResolvedValue(),
+			release: vi.fn(),
+		};
+		const db = {
+			execute: vi
+				.fn()
+				.mockResolvedValue([{ affectedRows: 1 }])
+				.mockResolvedValueOnce([
+					[
+						{
+							id: 42,
+							email: 'test@example.com',
+							display_name: 'Test User',
+							password_hash: '$argon2id$stored-hash',
+							status: 'active',
+							email_verified_at: new Date(),
+						},
+					],
+				])
+				.mockResolvedValueOnce([[]]),
+			getConnection: vi.fn().mockResolvedValue(connection),
+		};
+		argon2.verify.mockResolvedValueOnce(true);
+		const { app, session } = createTestApp(db, createSession(), 'failed-session-id');
+
+		const response = await request(app).post('/api/auth/login').send({
+			email: 'test@example.com',
+			password: 'this is a long test password',
+		});
+
+		expect(response.status).toBe(500);
+		expect(session.regenerate).toHaveBeenCalledOnce();
+		expect(session.userId).toBeUndefined();
+		expect(session.save).not.toHaveBeenCalled();
+		expect(connection.commit).not.toHaveBeenCalled();
+		expect(connection.rollback).toHaveBeenCalledOnce();
+		expect(connection.release).toHaveBeenCalledOnce();
+	});
 	it('does not remove old sessions before TOTP succeeds', async () => {
 		const db = {
 			execute: vi

@@ -22,7 +22,8 @@
 		"diagram:all": "npm run diagram && npm run logic-map",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"check:all": "node scripts/dev/run-all.js"
+		"check:all": "node scripts/dev/run-all.js",
+		"smoke:auth": "node --env-file=.env.development scripts/dev/auth-smoke-test.js"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",
@@ -65,5 +66,9 @@
 	},
 	"allowScripts": {
 		"argon2@0.45.1": true
+	},
+	"engines": {
+		"node": ">=22.22.0",
+		"npm": ">=10"
 	}
 }

@@ -90,7 +90,10 @@ describe('enable TOTP', () => {
 			timeStep: 101,
 		});
 
-		const enableTotpService = createEnableTotpService(authRepository);
+		const enableTotpService = createEnableTotpService({
+			totpRepository: authRepository,
+			withConnection: authRepository.withConnection,
+		});
 
 		const result = await enableTotpService({
 			userId: 42,
@@ -138,7 +141,10 @@ describe('enable TOTP', () => {
 			},
 		});
 
-		const enableTotpService = createEnableTotpService(authRepository);
+		const enableTotpService = createEnableTotpService({
+			totpRepository: authRepository,
+			withConnection: authRepository.withConnection,
+		});
 
 		const result = await enableTotpService({
 			userId: 42,
@@ -165,7 +171,10 @@ describe('enable TOTP', () => {
 			valid: false,
 		});
 
-		const enableTotpService = createEnableTotpService(authRepository);
+		const enableTotpService = createEnableTotpService({
+			totpRepository: authRepository,
+			withConnection: authRepository.withConnection,
+		});
 
 		const result = await enableTotpService({
 			userId: 42,
@@ -196,7 +205,10 @@ describe('enable TOTP', () => {
 			timeStep: 101,
 		});
 
-		const enableTotpService = createEnableTotpService(authRepository);
+		const enableTotpService = createEnableTotpService({
+			totpRepository: authRepository,
+			withConnection: authRepository.withConnection,
+		});
 
 		await expect(
 			enableTotpService({

@@ -1,4 +1,5 @@
-export default function createGetTotpStatusService(authRepository) {
+export default function createGetTotpStatusService(dependencies) {
+	const authRepository = dependencies.totpRepository;
 	return async function getTotpStatus(userId) {
 		const totp = await authRepository.findTotpByUserId(userId);
 

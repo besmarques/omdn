@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-export default function createForgotPasswordService(authRepository, appEnvironment = 'test') {
+export default function createForgotPasswordService({ passwordRecoveryRepository, withConnection }, appEnvironment = 'test') {
+	const authRepository = { ...passwordRecoveryRepository, withConnection };
 	return async function forgotPassword(email) {
 		return authRepository.withConnection(async (connection) => {
 			try {

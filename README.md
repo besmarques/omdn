@@ -2,38 +2,69 @@
 
 A full-stack application built with React and Vite on the frontend and Express with MySQL on the backend.
 
+## System requirements
+
+| Dependency     | Required version                 | Why                                                                                                        |
+| -------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Node.js        | `>=22.22.0`                      | Required by the current `react-router` dependency; also supports the server's `--env-file` and watch flags |
+| npm            | Version bundled with Node 22.22+ | This repository uses npm and the committed lockfile; do not use pnpm                                       |
+| MariaDB        | `>=10.6`                         | InnoDB database option; 10.6 introduced the `SKIP LOCKED` syntax used by the authentication outbox worker  |
+| MySQL          | `>=8.0`                          | Supported InnoDB alternative with the JSON and locking features used by the application                    |
+| Graphviz       | Maintained version with `dot`    | Optional; required only by `npm run diagram` and `npm run maps`                                            |
+| Modern browser | Current evergreen release        | Required for the React/Vite frontend                                                                       |
+
+Use InnoDB with `utf8mb4`. MariaDB versions older than 10.6 and MySQL versions older than 8.0 are not supported by the current schema and queries. See the official [MariaDB 10.6 feature notes](https://mariadb.com/docs/release-notes/community-server/mariadb-10-6-series/what-is-mariadb-106) and [MySQL locking-read documentation](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
+
+On platforms where `argon2` has no compatible prebuilt binary, npm may also require the platform's native C/C++ build toolchain and Python to compile it.
+
 ## Stack
 
 ### Runtime dependencies
 
-| Package                                              | Purpose                                                       |
-| ---------------------------------------------------- | ------------------------------------------------------------- |
-| `react`, `react-dom`, `react-router`                 | Browser UI, rendering, and client-side routing                |
-| `tailwindcss`, `@tailwindcss/vite`, `tw-animate-css` | Styling, Vite integration, and animations                     |
-| `shadcn`, `@base-ui/react`, `lucide-react`           | Accessible UI components and icons                            |
-| `class-variance-authority`, `clsx`, `tailwind-merge` | Component variants and class composition                      |
-| `express`                                            | HTTP server, API routing, and production frontend delivery    |
-| `express-rate-limit`                                 | Per-IP/account throttling for sensitive authentication routes |
-| `mysql2`                                             | Promise-based MySQL connection pool                           |
-| `express-session`, `express-mysql-session`           | Server-side sessions stored in MySQL                          |
-| `argon2`                                             | Password hashing and verification                             |
-| `otplib`                                             | TOTP and one-time-password support                            |
-| `qrcode`                                             | QR-code generation support for authenticator setup            |
-| `zod`                                                | Authentication request validation                             |
-| `dotenv`                                             | Environment-variable loading support                          |
+| Package                    | Version range | Purpose                                                    |
+| -------------------------- | ------------- | ---------------------------------------------------------- |
+| `@base-ui/react`           | `^1.6.0`      | Accessible React UI primitives                             |
+| `@tailwindcss/vite`        | `^4.3.3`      | Tailwind integration for Vite                              |
+| `argon2`                   | `^0.45.1`     | Password hashing and verification                          |
+| `class-variance-authority` | `^0.7.1`      | Component variant definitions                              |
+| `clsx`                     | `^2.1.1`      | Conditional class-name composition                         |
+| `dotenv`                   | `^17.4.2`     | Environment-variable loading support                       |
+| `express`                  | `^5.2.1`      | HTTP server, API routing, and production frontend delivery |
+| `express-mysql-session`    | `^3.0.3`      | MySQL/MariaDB-backed Express session store                 |
+| `express-rate-limit`       | `^8.6.1`      | Throttling for sensitive authentication routes             |
+| `express-session`          | `^1.19.0`     | Server-side session management                             |
+| `lucide-react`             | `^1.27.0`     | React icon components                                      |
+| `mysql2`                   | `^3.23.2`     | Promise-based MySQL/MariaDB connection pool and driver     |
+| `otplib`                   | `^13.4.1`     | TOTP and one-time-password support                         |
+| `qrcode`                   | `^1.5.4`      | Authenticator QR-code generation                           |
+| `react`                    | `^19.2.7`     | Browser UI library                                         |
+| `react-dom`                | `^19.2.7`     | React DOM renderer                                         |
+| `react-router`             | `^8.3.0`      | Client-side routing                                        |
+| `shadcn`                   | `^4.16.0`     | UI component tooling                                       |
+| `tailwind-merge`           | `^3.6.0`      | Tailwind class conflict resolution                         |
+| `tailwindcss`              | `^4.3.3`      | Utility-first CSS framework                                |
+| `tw-animate-css`           | `^1.4.0`      | Tailwind animation utilities                               |
+| `zod`                      | `^4.4.3`      | Configuration and request validation                       |
 
 ### Development dependencies
 
-| Package                                                 | Purpose                                       |
-| ------------------------------------------------------- | --------------------------------------------- |
-| `vite`, `@vitejs/plugin-react`                          | Development server and production build       |
-| `vitest`, `supertest`                                   | Unit and HTTP route testing                   |
-| `eslint`, `@eslint/js`, React ESLint plugins, `globals` | JavaScript and React linting                  |
-| `@types/react`, `@types/react-dom`                      | React editor/tooling types                    |
-| `dependency-cruiser`                                    | Source dependency analysis and DOT generation |
-| `prettier`                                              | Repository formatting and formatting checks   |
+| Package                       | Version range | Purpose                                                    |
+| ----------------------------- | ------------- | ---------------------------------------------------------- |
+| `@eslint/js`                  | `^10.0.1`     | ESLint's recommended JavaScript rules                      |
+| `@types/react`                | `^19.2.17`    | React editor/tooling types                                 |
+| `@types/react-dom`            | `^19.2.3`     | React DOM editor/tooling types                             |
+| `@vitejs/plugin-react`        | `^6.0.3`      | React support for Vite                                     |
+| `dependency-cruiser`          | `^18.1.0`     | Source dependency analysis and DOT generation              |
+| `eslint`                      | `^10.6.0`     | JavaScript and JSX linting                                 |
+| `eslint-plugin-react-hooks`   | `^7.1.1`      | React Hooks lint rules                                     |
+| `eslint-plugin-react-refresh` | `^0.5.3`      | React Fast Refresh lint rules                              |
+| `globals`                     | `^17.7.0`     | Browser, Node.js, and Vitest global definitions for ESLint |
+| `prettier`                    | `^3.9.6`      | Repository formatting and formatting checks                |
+| `supertest`                   | `^7.2.2`      | HTTP route testing                                         |
+| `vite`                        | `^8.1.1`      | Development server and production build                    |
+| `vitest`                      | `^4.1.10`     | Unit and integration test runner                           |
 
-Prettier is configured for repository formatting. Graphviz remains an external prerequisite for converting DOT files to SVG.
+The ranges above mirror `package.json`. `package-lock.json` is the authoritative record of the exact resolved dependency tree; use `npm ci` for reproducible installs and commit lockfile changes with dependency updates.
 
 ## Project structure
 
@@ -59,7 +90,9 @@ omdn/
 |   |   |   |-- 003_create_auth_event_outbox.sql
 |   |   |   `-- 004_simplify_sessions.sql
 |   |   `-- seeds/001_seed_roles_permissions.sql
-|   |-- dbConnect/createPool.js
+|   |-- dbConnect/
+|   |   |-- createPool.js
+|   |   `-- withConnection.js
 |   |-- middleware/
 |   |   |-- apiErrorMiddleware.js
 |   |   `-- sessionMiddleware.js
@@ -87,28 +120,32 @@ omdn/
 |   |       |   |-- login/
 |   |       |   |-- logout/
 |   |       |   |-- credentialsModule.js
+|   |       |   |-- credentialsRepository.js
 |   |       |   `-- credentialsRoutes.js
 |   |       |-- emailVerification/
 |   |       |   |-- resend/
 |   |       |   |-- verify/
 |   |       |   |-- emailVerificationModule.js
+|   |       |   |-- emailVerificationRepository.js
 |   |       |   `-- emailVerificationRoutes.js
 |   |       |-- passwordRecovery/
 |   |       |   |-- forgot/
 |   |       |   |-- reset/
 |   |       |   |-- passwordRecoveryModule.js
+|   |       |   |-- passwordRecoveryRepository.js
 |   |       |   |-- passwordRecoveryRoutes.js
 |   |       |   `-- passwordRecovery.test.js
 |   |       |-- registration/
 |   |       |   |-- register/
 |   |       |   |-- registrationModule.js
+|   |       |   |-- registrationRepository.js
 |   |       |   `-- registrationRoutes.js
 |   |       |-- shared/
 |   |       |   |-- events/
 |   |       |   |-- middleware/
 |   |       |   |   `-- authRateLimiters.js and middleware tests
-|   |       |   |-- authRepository.js
-|   |       |   `-- authSchemas.js
+|   |       |   |-- authSchemas.js
+|   |       |   `-- sessionRepository.js
 |   |       |-- totp/
 |   |       |   |-- disable/
 |   |       |   |-- enable/
@@ -118,6 +155,7 @@ omdn/
 |   |       |   |-- shared/
 |   |       |   |-- status/
 |   |       |   |-- totpModule.js
+|   |       |   |-- totpRepository.js
 |   |       |   `-- totpRoutes.js
 |   |       |-- authModule.js
 |   |       |-- authRoutes.js
@@ -160,7 +198,8 @@ Generated `node_modules/`, `dist/`, and local environment files are omitted.
 - `src/` contains the browser application.
 - `server/modules/` contains feature-owned composition, routes, controllers, services, schemas, repositories, middleware, and colocated tests.
 - Each `*Module.js` file wires its feature dependencies and returns a router.
-- Auth is divided into credentials, registration, email-verification, password-recovery, and TOTP submodules; shared schemas, persistence, and middleware live under `auth/shared/`.
+- Auth is divided into credentials, registration, email-verification, password-recovery, and TOTP submodules. Each capability owns its persistence repository; only cross-capability session persistence, schemas, events, and middleware live under `auth/shared/`.
+- Auth services receive explicit dependency objects. Transactional services obtain one executor through `dbConnect/withConnection.js` and pass it to capability repositories so related queries remain on the same connection.
 - `server/routes/` contains shared/cross-feature routers; `server/middleware/` contains shared middleware.
 - `server/expressApp.js` composes the application; `server/server.js` starts the listener.
 - Frontend imports use `@/*`; backend imports use `#server/*`.

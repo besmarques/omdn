@@ -1,3 +1,8 @@
+import createWithConnection from '#server/dbConnect/withConnection';
+
+import createCredentialsRepository from '#server/modules/auth/credentials/credentialsRepository';
+import createSessionRepository from '#server/modules/auth/shared/sessionRepository';
+import createTotpRepository from '#server/modules/auth/totp/totpRepository';
 import createTotpRoutes from '#server/modules/auth/totp/totpRoutes';
 
 import createDisableTotpController from '#server/modules/auth/totp/disable/disableTotpController';
@@ -21,7 +26,17 @@ import {
 	encryptTotpSecret as defaultEncryptTotpSecret,
 } from '#server/modules/auth/totp/shared/totpEncryption';
 
-export default function createTotpModule(authRepository, db, createRateLimitStore, totpEncryptionKey) {
+export default function createTotpModule(db, createRateLimitStore, totpEncryptionKey) {
+	const credentialsRepository = createCredentialsRepository(db);
+	const sessionRepository = createSessionRepository(db);
+	const totpRepository = createTotpRepository(db);
+	const withConnection = createWithConnection(db);
+	const totpDependencies = {
+		credentialsRepository,
+		sessionRepository,
+		totpRepository,
+		withConnection,
+	};
 	const authenticated = requireAuth(db);
 	const { decryptTotpSecret, encryptTotpSecret } = totpEncryptionKey
 		? createTotpEncryption(totpEncryptionKey)
@@ -30,17 +45,17 @@ export default function createTotpModule(authRepository, db, createRateLimitStor
 				encryptTotpSecret: defaultEncryptTotpSecret,
 			};
 
-	const disableTotpService = createDisableTotpService(authRepository, decryptTotpSecret);
+	const disableTotpService = createDisableTotpService(totpDependencies, decryptTotpSecret);
 
-	const enableTotpService = createEnableTotpService(authRepository, decryptTotpSecret);
+	const enableTotpService = createEnableTotpService(totpDependencies, decryptTotpSecret);
 
-	const getTotpStatusService = createGetTotpStatusService(authRepository);
+	const getTotpStatusService = createGetTotpStatusService(totpDependencies);
 
-	const regenerateRecoveryCodesService = createRegenerateRecoveryCodesService(authRepository, decryptTotpSecret);
+	const regenerateRecoveryCodesService = createRegenerateRecoveryCodesService(totpDependencies, decryptTotpSecret);
 
-	const setupTotpService = createSetupTotpService(authRepository, encryptTotpSecret);
+	const setupTotpService = createSetupTotpService(totpDependencies, encryptTotpSecret);
 
-	const verifyTotpLoginService = createVerifyTotpLoginService(authRepository, decryptTotpSecret);
+	const verifyTotpLoginService = createVerifyTotpLoginService(totpDependencies, decryptTotpSecret);
 
 	const disableTotpController = createDisableTotpController(disableTotpService);
 

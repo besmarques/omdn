@@ -7,7 +7,8 @@ const argonOptions = {
 	parallelism: 1,
 };
 
-export default function createChangePasswordService(authRepository) {
+export default function createChangePasswordService({ credentialsRepository, sessionRepository, withConnection }) {
+	const authRepository = { ...credentialsRepository, ...sessionRepository, withConnection };
 	return async function changePassword({ userId, currentPassword, newPassword, currentSessionId }) {
 		if (!currentSessionId) {
 			throw new Error('Current session identifier is unavailable');

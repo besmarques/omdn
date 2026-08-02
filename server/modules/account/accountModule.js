@@ -1,3 +1,5 @@
+import createWithConnection from '#server/dbConnect/withConnection';
+
 import createAccountRoutes from '#server/modules/account/accountRoutes';
 
 import createChangePasswordController from '#server/modules/account/changePassword/changePasswordController';
@@ -10,7 +12,8 @@ import createDeleteAccountService from '#server/modules/account/deleteAccount/de
 import createGetCurrentAccountController from '#server/modules/account/getCurrent/getCurrentAccountController';
 import createGetCurrentAccountService from '#server/modules/account/getCurrent/getCurrentAccountService';
 
-import createAuthRepository from '#server/modules/auth/shared/authRepository';
+import createCredentialsRepository from '#server/modules/auth/credentials/credentialsRepository';
+import createSessionRepository from '#server/modules/auth/shared/sessionRepository';
 import createTotpEncryption from '#server/modules/auth/totp/shared/createTotpEncryption';
 import { decryptTotpSecret as defaultDecryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncryption';
 
@@ -31,7 +34,9 @@ function createOutcomeAudit({ authEvent, successEvent, failureEvent }) {
 }
 
 export default function createAccountModule(db, createRateLimitStore, providedAuthEventService, config) {
-	const authRepository = createAuthRepository(db);
+	const credentialsRepository = createCredentialsRepository(db);
+	const sessionRepository = createSessionRepository(db);
+	const withConnection = createWithConnection(db);
 	const { decryptTotpSecret } = config?.totpEncryptionKey
 		? createTotpEncryption(config.totpEncryptionKey)
 		: { decryptTotpSecret: defaultDecryptTotpSecret };
@@ -44,7 +49,7 @@ export default function createAccountModule(db, createRateLimitStore, providedAu
 
 	const authEvent = createAuthEventMiddleware(authEventService);
 
-	const changePasswordService = createChangePasswordService(authRepository);
+	const changePasswordService = createChangePasswordService({ credentialsRepository, sessionRepository, withConnection });
 
 	const changePasswordController = createChangePasswordController(changePasswordService);
 

@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-export default function createResendVerificationEmailService(authRepository, appEnvironment = 'test') {
+export default function createResendVerificationEmailService({ emailVerificationRepository, withConnection }, appEnvironment = 'test') {
+	const authRepository = { ...emailVerificationRepository, withConnection };
 	return async function resendVerificationEmail(email) {
 		return authRepository.withConnection(async (connection) => {
 			try {

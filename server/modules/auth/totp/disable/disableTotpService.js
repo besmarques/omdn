@@ -9,7 +9,13 @@ function isTotpCode(code) {
 	return /^\d{6}$/.test(code);
 }
 
-export default function createDisableTotpService(authRepository, decryptSecret = decryptTotpSecret) {
+export default function createDisableTotpService(dependencies, decryptSecret = decryptTotpSecret) {
+	const authRepository = {
+		...dependencies.credentialsRepository,
+		...dependencies.sessionRepository,
+		...dependencies.totpRepository,
+		withConnection: dependencies.withConnection,
+	};
 	async function verifyTotpCode({ userId, code, totp }) {
 		const secret = decryptSecret(totp.secret_encrypted, userId);
 

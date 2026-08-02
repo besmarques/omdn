@@ -1,303 +1,286 @@
 # Codex changes
 
-Completed work is recorded here after its corresponding item is removed from `toPatch.md`.
+This file records the current repair sequence. Previous entries were cleared at the user's request on 2026-08-02.
 
-## 2026-08-01 — Fix password-reset session revocation
+## 2026-08-02 — Codebase review baseline
 
-### Problem
+### Task
 
-Password reset attempted to revoke sessions only through `sessions.user_id`. The configured MySQL session store keeps the authenticated user ID in serialized `data.userId` and does not populate that custom column, so valid sessions could survive a password reset.
+Review the full codebase, identify issues, and solve them one at a time using npm only.
 
-### Changes
+### Issues to resolve
 
-- Updated `server/modules/auth/shared/authRepository.js`:
-  - `deleteUserSessions()` now deletes sessions matching either `sessions.user_id` or a valid serialized `$.userId`.
-  - The JSON fallback uses `JSON_VALID`, `JSON_EXTRACT`, `JSON_UNQUOTE`, and an unsigned cast, matching the established session lookup strategy used by `deleteOtherUserSessions()`.
-- Updated `server/modules/auth/passwordRecovery/passwordRecovery.test.js`:
-  - Added a regression assertion that the session-deletion query includes `JSON_EXTRACT`.
-  - Updated the expected parameters to `[userId, userId]`, covering the column and serialized-data paths.
-- Removed the completed P0 item from `toPatch.md`.
+1. **Resolved:** login finalization is transactional and authenticated sessions are persisted only after it commits.
+2. **Resolved:** dependency-cruiser loads `jsconfig.json` and resolves the frontend `@/*` alias.
+3. **Resolved:** `package.json` and `package-lock.json` enforce Node.js `>=22.22.0` and npm `>=10`.
+4. **Dismissed by design:** `npm run check:all` intentionally formats, validates, and regenerates diagrams in one workflow.
 
-### Validation
+### Validation baseline
 
-- `npm test -- server/modules/auth/passwordRecovery/passwordRecovery.test.js`: passed — 1 file, 6 tests.
-- `npm test`: passed — 23 files, 85 tests.
+- `npm test`: passed — 30 test files, 116 tests.
 - `npm run lint`: passed.
 - `npm run format:check`: passed.
+- `npm run build`: passed after rerunning outside the restricted sandbox so Vite's native bindings could execute.
+- `npm audit`: passed with zero known vulnerabilities, including development dependencies.
+- `git diff --check`: passed.
+- Dependency-cruiser validation: failed with seven unresolved frontend `@/*` imports.
 
-### Notes
+### Changes in this step
 
-- npm was used exclusively; pnpm was not used.
-- The standard patch helper failed before filesystem access because of the managed Windows sandbox, so guarded exact replacements were used instead.
+- Cleared the previous contents of `codexChanges.md` as requested.
+- Created this fresh review baseline and issue list.
+- No application, configuration, package, test, or other documentation files were changed in this step.
 
-## 2026-08-01 — Rate-limit registration and password change
+### Failed attempts and assumptions
+
+- The standard patch helper failed before filesystem access because the managed Windows sandbox could not enforce its writable roots. This file was replaced directly as a scoped fallback.
+- The first sandboxed production build and test attempts could not execute Vite's native Windows bindings and reported `spawn EPERM`. Both checks passed when rerun with the required execution permission.
+- No live MariaDB or MySQL integration test was run.
+- npm is the required package manager; pnpm was not used.
+
+### Recommended next step
+
+Fix issue 1 by making successful login finalization failure-safe for both password-only and TOTP login flows.
+
+## 2026-08-02 — Make login finalization failure-safe
 
 ### Problem
 
-Registration and authenticated password changes perform expensive Argon2 and database work but did not have dedicated attempt limits.
+Password-only and TOTP login persisted `session.userId` before revoking older sessions and updating `users.last_login_at`. If either database operation failed, the response became HTTP 500 while the new session remained authenticated.
 
 ### Changes
 
-- Added a registration limiter in `server/modules/auth/shared/middleware/authRateLimiters.js`:
-  - Allows 3 requests per hour per IP address and normalized email address.
-  - Counts successful and failed requests.
-- Added a password-change limiter in the same middleware module:
-  - Allows 5 failed attempts per 15 minutes per authenticated user and IP address.
-  - Excludes successful password changes from the count.
-- Wired the registration limiter into `server/modules/auth/registration/registrationRoutes.js`.
-- Wired the password-change limiter into `server/modules/account/accountRoutes.js`, after audit middleware so rate-limit outcomes are recorded.
-- Added threshold and successful-request behavior tests in `server/modules/auth/shared/middleware/authRateLimiters.test.js`.
-- Removed the completed item from `toPatch.md` and documented MySQL as the intended future shared store; Redis is intentionally excluded.
-- Updated `README.md` with the route-specific rate-limit behavior.
+- Updated password-only and TOTP login controllers to finalize database work before assigning and saving `session.userId`.
+- Updated both login services so older-session revocation and `last_login_at` updates run in one transaction on one acquired connection.
+- Updated `credentialsRepository.updateLastLogin()` to accept an injected transaction executor.
+- Added password-only and TOTP regression tests proving finalization failures return HTTP 500 without saving an authenticated session.
+- Updated successful-login tests to assert transaction commit, rollback, connection release, and executor usage.
+- Marked issue 1 resolved in the review baseline.
+
+### Files modified
+
+- `server/modules/auth/credentials/credentialsRepository.js`
+- `server/modules/auth/credentials/login/loginController.js`
+- `server/modules/auth/credentials/login/loginService.js`
+- `server/modules/auth/credentials/login/login.test.js`
+- `server/modules/auth/totp/login/verifyTotpLoginController.js`
+- `server/modules/auth/totp/login/verifyTotpLoginService.js`
+- `server/modules/auth/totp/login/totpLogin.test.js`
+- `codexChanges.md`
+
+No files were created, moved, or deleted.
+
+### Architectural decisions
+
+- Session regeneration still occurs before finalization so the new session ID can be excluded from session revocation.
+- The regenerated session is not marked authenticated or explicitly saved until revocation and last-login recording commit.
+- Revocation and last-login recording are atomic; a failure rolls both operations back.
+- TOTP/recovery-code consumption remains committed by second-factor verification before login finalization. A finalization failure may require another login attempt, but it cannot leave an authenticated session behind.
 
 ### Validation
 
-- Focused tests: passed — 3 files, 15 tests.
-- `npm test`: passed — 23 files, 88 tests.
+- Focused login tests: passed — 2 files, 11 tests.
+- `npm test`: passed — 30 files, 118 tests.
 - `npm run lint`: passed.
 - `npm run format:check`: passed.
-
-### Notes
-
+- `npm run build`: passed.
 - npm was used exclusively; pnpm was not used.
-- No dependency or shared rate-limit store was added. The current implementation continues to use the existing in-memory store until the separate MySQL-backed store issue is addressed.
 
-## 2026-08-01 — Add a shared MySQL rate-limit store
+### Failed attempts, assumptions, and unfinished work
+
+- The standard patch helper failed before filesystem access because the managed Windows sandbox could not enforce its writable roots. Guarded replacements were used for the scoped files.
+- The first focused run after implementation failed two existing success tests because their mocks still expected non-transactional `db.execute()` calls. The mocks were updated for acquired connections and transaction lifecycle assertions.
+- The next focused run had one test-only `ReferenceError` because a broad assertion replacement changed a no-challenge check from `db` to an out-of-scope `connection`. That assertion was corrected; the following focused and full runs passed.
+- If authenticated-session persistence itself fails after finalization commits, older sessions remain revoked and `last_login_at` remains updated, but no new authenticated session is persisted. This is the safer failure direction.
+
+### Recommended next step
+
+Fix dependency-cruiser resolution for the frontend `@/*` alias and verify the dependency graph command succeeds.
+
+## 2026-08-02 — Resolve frontend aliases in dependency-cruiser
 
 ### Problem
 
-The default in-memory rate-limit counters reset on every server restart and were isolated between server instances.
+Dependency-cruiser did not load the project's `jsconfig.json`, so all seven frontend imports using `@/*` were reported as unresolvable even though Vite resolved them correctly.
 
 ### Changes
 
-- Added `server/database/migrations/002_create_rate_limit_counters.sql` with namespaced, hashed counters and an expiration index.
-- Added `server/modules/auth/shared/middleware/mySqlRateLimitStore.js` implementing the `express-rate-limit` store contract:
-  - Counter increments and window resets are atomic within a MySQL transaction.
-  - Raw IP, email, account, and session-based keys are SHA-256 hashed before persistence.
-  - Expired counters are removed incrementally during increments.
-  - Successful requests can decrement counters for limiters configured with `skipSuccessfulRequests`.
-  - Store failures propagate, making rate-limited endpoints fail closed.
-- Wired a store factory at `server/expressApp.js` and injected independent namespaced stores through the auth and account module composition.
-- Kept direct module and limiter construction compatible with the in-memory default for isolated unit tests; the application composition root always supplies MySQL stores.
-- Added `server/modules/auth/shared/middleware/mySqlRateLimitStore.test.js` covering increments, hashing, transaction cleanup, error rollback, decrementing, and key reset.
-- Updated `README.md` with the new migration and production behavior.
-- Removed the completed shared-store item from `toPatch.md`.
+- Updated `.dependency-cruiser.cjs` to load `jsconfig.json` through dependency-cruiser's supported `options.tsConfig.fileName` setting.
+- Verified that imports such as `@/pages/HomePage`, `@/router/DevRoutes`, and `@/components/ui/button` resolve to their `src/` files.
+- Regenerated the dependency DOT and SVG through `npm run diagram`; their contents were unchanged because the existing generated graph already represented the intended edges.
+- Marked issue 2 resolved in the review baseline.
+
+### Files modified
+
+- `.dependency-cruiser.cjs`
+- `codexChanges.md`
+
+No files were created, moved, or deleted. `docs/dependency-graph.dot` and `docs/dependency-graph.svg` were regenerated but produced no Git changes.
 
 ### Validation
 
-- Focused tests: passed — 2 files, 11 tests.
-- `npm test`: passed — 24 files, 91 tests.
+- Dependency-cruiser validation: passed — 145 modules and 328 dependencies, with zero violations.
+- `npm run diagram`: passed.
+- `npm test`: passed — 30 files, 118 tests.
 - `npm run lint`: passed.
-
-### Failed attempts and assumptions
-
-- The standard patch helper failed for part of the edit because the managed Windows sandbox could not enforce its writable roots. Guarded exact replacements were used for those files.
-- The first focused npm test attempt failed before Vitest started because the sandbox could not load Tailwind's native Windows binary (`spawn EPERM` and an invalid native module stream). The same npm test command passed outside that restricted sandbox.
-- Prettier reported that it has no parser for the SQL migration. The migration was formatted manually; this did not modify or invalidate the SQL.
-- The project has no migration runner, so migration `002` must be applied manually after migration `001` and before the seed, as documented in `README.md`.
-- Redis was not used or added. MySQL is the only shared-store dependency.
+- `npm run format:check`: passed.
+- `npm run build`: passed.
 - npm was used exclusively; pnpm was not used.
 
-## 2026-08-01 — Add centralized JSON API error handling
+### Failed attempts, assumptions, and unfinished work
+
+- The standard patch helper failed before filesystem access because the managed Windows sandbox could not enforce its writable roots. A guarded configuration replacement was used.
+- The first attempted fix added an absolute alias to `enhancedResolveOptions`. Dependency-cruiser's configuration schema rejected `alias` as an additional property, so that unsupported configuration was removed.
+- The supported `jsconfig.json` configuration resolves every current JavaScript/JSX dependency. Dependency-cruiser emits an informational missing-TypeScript warning during text validation because it treats JS and TS config files through the same option. The repository contains no TypeScript source, so no TypeScript dependency was added solely to silence that warning.
+
+### Recommended next step
+
+Add the documented Node.js and npm runtime requirements to `package.json` engines.
+
+## 2026-08-02 — Enforce Node.js and npm runtime versions
 
 ### Problem
 
-Controllers forwarded unexpected errors with `next(error)`, but the application had no final API error middleware. Responses could therefore vary by environment, return HTML, or expose implementation details.
+The README documented Node.js `>=22.22.0`, but `package.json` did not expose an engine requirement. npm and deployment platforms could therefore select an incompatible runtime.
 
 ### Changes
 
-- Added `server/middleware/apiErrorMiddleware.js`:
-  - `apiRequestContext` generates a UUID correlation ID or preserves a caller-supplied ID matching a restricted 128-character pattern.
-  - Every API response receives an `x-correlation-id` header.
-  - `apiErrorHandler` logs the internal error with correlation ID, HTTP method, and request path.
-  - Unexpected errors return HTTP 500 with a stable `{ status, message, correlationId }` JSON contract.
-  - Errors received after headers have been sent are delegated to Express instead of attempting a second response.
-- Updated `server/expressApp.js`:
-  - Request context runs before JSON parsing so parser errors receive correlation IDs.
-  - The centralized error handler runs after all API modules and the generic API router, but before the production static-site fallback.
-- Updated `server/routes/apiRoutes.js` so `/api/test-items` forwards database failures to the centralized handler instead of maintaining a separate error response and logger.
-- Added `server/middleware/apiErrorMiddleware.test.js` covering detail hiding, logging context, valid supplied IDs, and unsafe supplied IDs.
-- Added `server/routes/apiRoutes.test.js` covering repository failures, unchanged JSON 404 behavior, and malformed JSON raised before route handlers.
-- Updated `README.md` with the middleware structure and public error contract.
-- Removed the completed item from `toPatch.md`.
+- Added `engines.node` with `>=22.22.0` to `package.json`.
+- Added `engines.npm` with `>=10` to `package.json`.
+- Refreshed `package-lock.json` using npm so its root package metadata contains the same engine requirements.
+- Verified the package manifest, lockfile, and README declare consistent runtime requirements.
+- Marked issue 3 resolved in the review baseline.
 
-### Validation
+### Files modified
 
-- Focused tests: passed — 2 files, 6 tests.
-- `npm test`: passed — 26 files, 97 tests.
+- `package.json`
+- `package-lock.json`
+- `codexChanges.md`
+
+No files were created, moved, or deleted.
+
+### Commands and validation
+
+- `node --version`: `v24.18.1`, satisfying the declared Node.js range.
+- `npm --version`: `11.16.0`, satisfying the declared npm range.
+- `npm pkg set "engines.node=>=22.22.0" "engines.npm=>=10"`: added the manifest metadata.
+- `npm install --package-lock-only --ignore-scripts`: refreshed lock metadata and reported zero vulnerabilities.
+- Manifest/lock consistency check: passed.
+- `npm test`: passed — 30 files, 118 tests.
 - `npm run lint`: passed.
-
-### Failed attempts and assumptions
-
-- The standard patch helper failed before filesystem access because the managed Windows sandbox could not enforce its writable roots. Guarded exact replacements were used for affected existing files.
-- A second patch-helper attempt to add the malformed-JSON test failed for the same sandbox reason; the guarded replacement fallback was used.
-- All unexpected errors are intentionally normalized to HTTP 500. Existing controllers continue to own expected validation, authentication, authorization, and conflict responses.
-- Caller-supplied correlation IDs are preserved only when they match `A-Z`, `a-z`, digits, `.`, `_`, `:`, or `-` and are at most 128 characters.
+- `npm run format:check`: passed.
+- `npm run build`: passed.
 - npm was used exclusively; pnpm was not used.
 
-## 2026-08-01 — Make authentication-event delivery durable
+### Failed attempts, assumptions, and unfinished work
 
-### Problem
+- The first sandboxed lockfile refresh failed with `EPERM` because npm could not create a temporary directory in the user-level npm cache. It was rerun with the required permission and succeeded.
+- npm 11 normalized lockfile metadata for bundled optional Tailwind WASM packages during the refresh. This did not add a new direct dependency or change `package.json` dependency ranges.
+- The declared range intentionally accepts future Node.js 22 patch releases and newer major releases. Dependency compatibility remains governed by the installed package ranges and lockfile.
 
-Authentication audit events were started only after `res.finish` through an unawaited promise. A crash, shutdown, or database-pool closure could lose events after the client had already received its response.
+### Recommended next step
 
-### Changes
+Make `npm run check:all` non-mutating and include the production build.
 
-- Added `server/database/migrations/003_create_auth_event_outbox.sql`:
-  - Creates `auth_event_outbox` with JSON payloads, attempt count, availability, claim ownership, stale-claim timestamps, processing status, and last error.
-  - Adds nullable `auth_events.outbox_id` with a unique key for idempotent delivery.
-- Added `server/modules/auth/shared/events/authEventOutboxRepository.js`:
-  - Validates and normalizes events before enqueueing.
-  - Claims one available row with `FOR UPDATE SKIP LOCKED`.
-  - Reclaims work locked for more than five minutes.
-  - Inserts the final event and marks the outbox row processed in one transaction.
-  - Releases failed claims with retry timing and a truncated error message.
-  - Clears processed JSON payloads so duplicate session, IP, user-agent, and metadata values are not retained in the outbox.
-- Added `server/modules/auth/shared/events/authEventOutboxWorker.js`:
-  - Uses one UUID per worker process.
-  - Polls every second.
-  - Retries indefinitely with exponential backoff capped at five minutes.
-  - Supports clean start, active-work completion, and abortable shutdown waits.
-- Updated `server/modules/auth/shared/events/authEventRepository.js`:
-  - Exposes shared event normalization.
-  - Supports an injected transactional executor and optional outbox ID while preserving the existing direct-write interface used by isolated module tests.
-- Updated `server/modules/auth/shared/events/authEventService.js` to track pending writes and expose `drain()` for graceful shutdown.
-- Updated `server/modules/auth/shared/events/authEventMiddleware.js` so an outbox write attempt completes before the HTTP response is finalized. Event outcome, user, session, IP, user-agent, and response metadata are still resolved from the final response state.
-- Updated `server/expressApp.js` to compose one shared outbox repository, event repository, service, and worker for the auth and account modules.
-- Updated `server/modules/auth/authModule.js` and `server/modules/account/accountModule.js` to accept the shared production event service while retaining direct construction for isolated unit tests.
-- Updated `server/server.js`:
-  - Starts the worker with the HTTP server.
-  - Stops accepting traffic on `SIGINT` or `SIGTERM`.
-  - Drains pending outbox writes, stops the worker after active work, and then closes the MySQL pool.
-- Added `server/modules/auth/shared/events/authEventOutboxRepository.test.js` covering enqueueing, stale-work claiming, transactional completion, and retry state.
-- Added `server/modules/auth/shared/events/authEventOutboxWorker.test.js` covering successful delivery, retry backoff, and empty polling.
-- Updated `server/modules/auth/shared/events/authEventService.test.js` with shutdown-drain and response-finalization regression tests.
-- Updated `README.md` and removed the completed item from `toPatch.md`.
-
-### Validation
-
-- Outbox-focused tests: passed — 3 files, 12 tests.
-- Middleware/policy tests after response-finalization hardening: passed — 2 files, 11 tests.
-- `npm test`: passed — 28 files, 106 tests.
-- `npm run lint`: passed.
-
-### Failed attempts and assumptions
-
-- The standard patch helper repeatedly failed on existing files because the managed Windows sandbox could not enforce its writable roots. Guarded exact or full-file replacements were used after confirming each target.
-- The first response-finalization regression-test run failed at parse time because the new mock was missing a closing parenthesis. The test fixture was corrected.
-- The next run failed because the test assumed Supertest dispatched within one event-loop turn. It was corrected to wait explicitly until the audit mock was invoked; the behavior then passed.
-- No live MySQL integration test was available. SQL behavior is covered with repository mocks and assumes MySQL 8 or later because claiming uses `FOR UPDATE SKIP LOCKED` and JSON columns.
-- Migration `003` must be applied manually after migrations `001` and `002`; the project still has no migration runner.
-- If the initial outbox insert itself fails, the failure is logged and the original HTTP response is still sent. Persisted rows are retried indefinitely, but a write that never reaches MySQL cannot be recovered by the worker.
-- Processed outbox rows retain delivery metadata but their event payload is replaced with an empty JSON object. A future maintenance policy may purge old processed rows if table growth becomes material.
-- Redis was not used or added.
-- npm was used exclusively; pnpm was not used.
-
-## 2026-08-01 — Remove unused MySQL TLS configuration
+## 2026-08-02 — Retain the combined validation and diagram workflow
 
 ### Decision
 
-The deployment target is Hostinger Cloud Startup, where the Node.js application connects to the colocated MySQL database through `localhost`. Hostinger's website SSL certificate protects public HTTPS traffic and is not a MySQL CA certificate. Hostinger's documented Node.js connection example does not provide MySQL CA configuration for this setup.
+The earlier review treated `npm run check:all` as though it should be a non-mutating CI check. The user clarified that its purpose is to run formatting and validation and then regenerate the diagrams in one command.
 
-### Changes
+### Outcome
 
-- Removed `DB_SSL` and `DB_SSL_CA` from `.env.example` because the application never consumed them.
-- Removed the unused variables from the `README.md` environment table.
-- Documented the Hostinger Cloud Startup `DB_HOST=localhost` deployment decision and clarified the separation between HTTPS and MySQL transport security.
-- Updated the startup-configuration recommendation in `toPatch.md` so it no longer references nonexistent optional TLS values.
-- Removed the completed database SSL configuration issue from `toPatch.md`.
+- Kept `scripts/dev/run-all.js` unchanged.
+- Kept the `check:all`, `format`, and diagram npm scripts unchanged.
+- Marked issue 4 dismissed by design rather than resolved through a code change.
+- No application, configuration, package, lockfile, test, or generated diagram file was changed for this decision.
 
-### Failed attempts, assumptions, and unfinished work
+### Failed attempts and assumptions
 
-- The standard patch helper failed before filesystem access because the managed Windows sandbox could not enforce its writable roots. Guarded exact replacements were used.
-- The first guarded replacement expected LF line endings in `.env.example`, which used CRLF, so it stopped without making changes. The retry used anchored line matching that accepts either line-ending style.
-- An explicit Prettier write attempt on `.env.example` reported that no parser could be inferred. The file required no formatting; the project-wide `npm run format:check` passed because unsupported files are ignored.
-- This decision applies while the Node.js application and MySQL database remain colocated in Hostinger Cloud Startup.
-- If MySQL is moved to another host, provider-supported TLS must be added and tested before enabling remote production connections.
-- No application code changed because there was no active TLS behavior to remove.
-- npm is the project package manager; pnpm was not used.
+- The original finding assumed `check:all` was intended as a non-mutating CI gate. That assumption was incorrect.
+- The standard patch helper failed before filesystem access because of the managed Windows sandbox limitation. A guarded change-log replacement was used.
+- The production build remains a separate `npm run build` command. It was not added to `check:all` because the clarified objective was testing followed by diagram generation, not a CI release gate.
+- npm remains the required package manager; pnpm was not used.
 
-## 2026-08-01 — Validate server configuration at startup
+### Recommended next step
+
+No reviewed issue remains. Perform a final validation/status review before preparing the changes for commit.
+
+## 2026-08-02 — Fix successful-login rate-limit settlement across database timezones
 
 ### Problem
 
-Server environment variables were read and converted independently by the server, pool, session middleware, controllers, services, and TOTP encryption helper. Invalid values could remain undiscovered until a feature was used. Session cookie security also depended on `NODE_ENV`, which was not present in the project's environment files.
+The real authentication smoke test reached the sixth login request and received HTTP 429 instead of allowing a valid login after password reset. Successful login requests were configured not to count, but their decrements were skipped.
+
+The MySQL store returned `reset_at` as a JavaScript `Date`. MariaDB `DATETIME` has no timezone, so mysql2 interpreted the database wall-clock value in the application machine's timezone. When the database and application timezones differed, express-rate-limit could see the reset time as already expired and skip its successful-request decrement.
 
 ### Changes
 
-- Added `server/config/serverConfig.js` using the existing Zod dependency:
-  - Requires `APP_ENV` to be `development`, `test`, or `production`.
-  - Normalizes and bounds the HTTP and MySQL ports.
-  - Requires nonempty MySQL host, database, username, and password values.
-  - Normalizes and bounds the MySQL connection limit.
-  - Requires a session secret of at least 32 characters.
-  - Requires `TOTP_ENCRYPTION_KEY` to be canonical Base64 decoding to exactly 32 bytes.
-  - Returns an immutable normalized configuration object.
-  - Reports field-specific validation errors without including supplied secret values.
-- Added `server/config/serverConfig.test.js` covering valid input, defaults, unsupported environments, numeric ranges, weak session secrets, invalid TOTP keys, and secret-safe errors.
-- Updated `server/server.js` so `process.env` is read exactly once and validated before creating the MySQL pool, Express application, worker, or listener.
-- Updated `server/dbConnect/createPool.js` to consume normalized database configuration.
-- Updated `server/middleware/sessionMiddleware.js` to consume validated session configuration and derive secure cookies from `APP_ENV`; the previous `NODE_ENV` dependency was removed.
-- Updated `server/expressApp.js` to consume injected configuration for production proxy/static behavior and pass feature configuration through the composition root.
-- Updated auth registration, verification-resend, and password-recovery module/service construction to receive `APP_ENV` instead of reading the environment.
-- Updated logout and account-deletion controllers to receive the cookie security mode.
-- Added `server/modules/auth/totp/shared/createTotpEncryption.js` and refactored TOTP encryption consumers so the validated 32-byte key is bound once and injected into setup, enable, disable, login, recovery-code, and account-deletion services.
-- Updated `server/modules/auth/totp/shared/totpEncryption.js` so it no longer reads environment variables.
-- Added `server/modules/auth/totp/shared/totpEncryption.test.js` covering bound-key round trips, key length, and user-bound authenticated encryption.
-- Updated `.env.example` with valid defaults for `DB_PORT` and `APP_ENV`.
-- Updated `README.md` with exact requirements and removed all `NODE_ENV` instructions.
-- Removed the completed issue from `toPatch.md`.
+- Updated the counter query to calculate the remaining window inside MariaDB with `TIMESTAMPDIFF(MICROSECOND, CURRENT_TIMESTAMP(3), reset_at)`.
+- Constructed `resetTime` locally from `Date.now()` plus that relative duration, avoiding cross-timezone interpretation of a database `DATETIME`.
+- Updated the MySQL store unit test to use a fixed local clock and assert the relative duration produces the correct future reset time.
+- Added an assertion that the counter query contains `TIMESTAMPDIFF` and uses the expected namespace/key hash.
+
+### Files modified
+
+- `server/modules/auth/shared/middleware/mySqlRateLimitStore.js`
+- `server/modules/auth/shared/middleware/mySqlRateLimitStore.test.js`
+- `codexChanges.md`
+
+No files were created, moved, or deleted.
 
 ### Validation
 
-- Configuration and affected-feature tests: passed — 4 files, 23 tests after the dependency refactor.
-- `npm test`: passed — 30 files, 116 tests.
+- Focused rate-limit tests: passed — 2 files, 11 tests.
+- Real MariaDB isolated probe: incremented a temporary namespaced key, confirmed the returned reset time was in the future, decremented it to zero hits, and removed the probe key.
+- `npm test`: passed — 30 files, 118 tests.
 - `npm run lint`: passed.
-
-### Failed attempts, assumptions, and unfinished work
-
-- The standard patch helper failed on existing files because the managed Windows sandbox could not enforce its writable roots. Guarded exact and full-file replacements were used.
-- A guarded server replacement partially completed before its final pattern failed because PowerShell interpolated a template-literal placeholder. The already-applied edits were inspected and the remaining `config.port` replacements were applied explicitly.
-- The first affected-feature test run had two account-deletion TOTP failures returning HTTP 500. The injected decrypt function had been referenced from a helper outside its factory scope. The helper signature and call were corrected, and all six account-deletion tests then passed.
-- `APP_ENV=test` is accepted for explicit test deployments, while the checked-in example uses `development` and Hostinger production uses `production`.
-- Numeric defaults apply when variables are absent. `.env.example` provides concrete values rather than blank numeric variables because an explicitly blank value is invalid.
-- The server intentionally does not read or require `NODE_ENV`.
-- No live production server was started because startup would connect to the configured MySQL database and begin background processing; validation is covered by isolated tests and the full suite.
+- `npm run format:check`: passed.
+- `npm run build`: passed.
 - npm was used exclusively; pnpm was not used.
 
-## 2026-08-01 — Align the session schema with actual writes
+### Failed attempts, assumptions, and unfinished work
 
-### Problem
+- The standard patch helper failed before filesystem access because the managed Windows sandbox could not enforce its writable roots. Guarded replacements were used for the store and test.
+- Two initial one-line MariaDB inspection commands failed because PowerShell stripped or interpreted nested SQL/JavaScript quoting. They made no database changes. The real verification was rerun successfully through a PowerShell here-string piped directly to Node.
+- One tool invocation for the probe contained a malformed JavaScript property delimiter and failed before executing the command. It made no changes and was corrected immediately.
+- The full interactive `npm run smoke:auth` was not rerun because it requires manually supplied verification and reset tokens. The focused tests and isolated real-MariaDB probe validate the failing store behavior; the recommended confirmation is to rerun the full smoke test.
+- The failed smoke run intentionally preserved `real-user-1785635355849-1efe6c35@example.com` for investigation. This change did not delete that user or its related audit data.
 
-Migration `001` created custom `sessions.user_id`, `ip_address`, `user_agent`, `last_seen_at`, `created_at`, and `updated_at` columns, but `express-mysql-session` writes only `session_id`, `expires`, and serialized `data`. Identity was therefore duplicated conceptually, while the custom user column remained unpopulated and session-revocation queries needed column-or-JSON fallbacks.
+### Recommended next step
 
-### Changes
+Rerun `npm run smoke:auth`. After it passes, clean up the preserved failed-run test user only through an approved, scoped cleanup procedure if it is no longer needed.
 
-- Added `server/database/migrations/004_simplify_sessions.sql`:
-  - Drops the `fk_sessions_user` foreign key and `idx_sessions_user` index.
-  - Drops the unused `user_id`, `ip_address`, `user_agent`, `last_seen_at`, `created_at`, and `updated_at` columns.
-  - Preserves the store-managed `session_id`, `expires`, and `data` columns and the expiration index.
-- Updated `server/modules/auth/shared/authRepository.js`:
-  - `deleteUserSessions()` now matches only valid serialized `data.userId` values.
-  - `deleteOtherUserSessions()` now excludes the current session and matches only valid serialized `data.userId` values.
-  - Removed duplicate parameters and all dependency on `sessions.user_id`.
-- Updated `server/modules/account/deleteAccount/deleteAccountRepository.js` so account deletion uses the same canonical serialized identity.
-- Updated regression expectations in login, TOTP login, TOTP disable, password change, password reset, and account deletion tests.
-- Added explicit assertions that representative session-deletion SQL no longer references `user_id`.
-- Updated `README.md` with migration `004` and the canonical three-column session schema.
-- Removed the completed item from `toPatch.md` while retaining the separate auth-repository scope issue.
+## 2026-08-02 — Clean up rate-limit counters after a successful auth smoke test
+
+### What changed
+
+- Updated `scripts/dev/auth-smoke-test.js` to snapshot the composite rate-limit counter keys before starting the backend.
+- After all smoke assertions and account soft-deletion checks pass, the script deletes only counter keys that were absent from the initial snapshot.
+- The cleanup runs after the server-restart persistence assertion, so the test still proves that database-backed counters survive a restart.
+- Failed smoke tests retain their counters for investigation, matching the existing behavior of retaining a failed test user.
+
+### Architectural decision
+
+The cleanup compares the `namespace` plus the binary `key_hash` represented as hexadecimal. It does not delete by namespace, expiry, or a broad timestamp range, so counters that existed before the smoke run are preserved.
+
+### Assumption
+
+The real authentication smoke test is an exclusive local/development database operation. A different process creating a brand-new counter while this script is running would also be absent from the initial snapshot; do not run unrelated authentication traffic against the same database during this smoke test.
+
+### Failed attempts
+
+- `apply_patch` could not run because the Windows restricted-token sandbox could not enforce split writable roots. The same scoped edits were applied with guarded PowerShell replacements.
+- Several guarded fallback attempts failed because of newline conversion, command escaping, and an incorrect `String.Split` uniqueness check. Every attempt stopped before writing.
+- Inspection confirmed the script uses LF-only newlines; the successful retry preserved that format and verified every marker with `IndexOf` and `LastIndexOf` before writing.
 
 ### Validation
 
-- Affected session-revocation tests: passed — 6 files, 29 tests.
-- `npm test`: passed — 30 files, 116 tests.
+- `node --check scripts/dev/auth-smoke-test.js`: passed.
+- `npm run format`: passed; Prettier reported the smoke script unchanged and made no additional project changes.
 - `npm run lint`: passed.
-
-### Failed attempts, assumptions, and unfinished work
-
-- The combined patch-helper attempt failed on existing repositories because the managed Windows sandbox could not enforce its writable roots. The migration was created separately and the three repository functions were replaced through guarded function boundaries.
-- Migration `004` assumes the foreign-key and index names created by migration `001` are still `fk_sessions_user` and `idx_sessions_user`. Schema drift should be checked before applying it to an independently modified database.
-- Applying migration `004` permanently removes any data that may have been written manually into the six custom columns. They are unused by the reviewed application, but a production backup should still be taken before migration.
-- No live MySQL migration was executed. SQL behavior and parameter changes are covered by repository/service tests.
-- Serialized session data is treated as canonical only when `JSON_VALID(data) = 1`; malformed session rows are not matched by user-based revocation and should be removed through normal expiration or administrative cleanup.
+- `npm run format:check`: passed.
+- `git diff --check`: passed; Git emitted only existing line-ending normalization warnings.
+- `npm test`: passed - 30 files, 118 tests.
+- The interactive `npm run smoke:auth` was not rerun because it requires manual verification and password-reset token entry.
 - npm was used exclusively; pnpm was not used.

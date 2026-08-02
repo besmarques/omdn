@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
-export default function createVerifyEmailService(authRepository) {
+export default function createVerifyEmailService({ emailVerificationRepository, withConnection }) {
+	const authRepository = { ...emailVerificationRepository, withConnection };
 	return async function verifyEmail(token) {
 		const tokenHash = createHash('sha256').update(token).digest();
 

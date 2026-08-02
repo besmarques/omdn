@@ -261,9 +261,9 @@ module.exports = {
 		// The (optional) fileName attribute specifies which file to take (relative to
 		// dependency-cruiser's current working directory). When not provided
 		// defaults to './tsconfig.json'.
-		// tsConfig: {
-		//   fileName: 'tsconfig.json'
-		// },
+		tsConfig: {
+			fileName: 'jsconfig.json',
+		},
 
 		// Webpack configuration to use to get resolve options from.
 		//

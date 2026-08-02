@@ -35,7 +35,12 @@ export default function createMySqlRateLimitStore(db, namespace) {
 					[namespace, keyHash, windowMs * 1000],
 				);
 				const [[counter]] = await connection.execute(
-					`SELECT hits, reset_at
+					`SELECT
+						 hits,
+						 GREATEST(
+							 TIMESTAMPDIFF(MICROSECOND, CURRENT_TIMESTAMP(3), reset_at),
+							 0
+						 ) AS reset_after_microseconds
 					 FROM rate_limit_counters
 					 WHERE namespace = ? AND key_hash = ?
 					 FOR UPDATE`,
@@ -43,9 +48,11 @@ export default function createMySqlRateLimitStore(db, namespace) {
 				);
 				await connection.commit();
 
+				const resetAfterMilliseconds = Number(counter.reset_after_microseconds) / 1000;
+
 				return {
 					totalHits: Number(counter.hits),
-					resetTime: new Date(counter.reset_at),
+					resetTime: new Date(Date.now() + resetAfterMilliseconds),
 				};
 			} catch (error) {
 				await connection.rollback();

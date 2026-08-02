@@ -9,7 +9,18 @@ const argonOptions = {
 	parallelism: 1,
 };
 
-export default function createResetPasswordService(authRepository) {
+export default function createResetPasswordService({
+	credentialsRepository,
+	passwordRecoveryRepository,
+	sessionRepository,
+	withConnection,
+}) {
+	const authRepository = {
+		...credentialsRepository,
+		...passwordRecoveryRepository,
+		...sessionRepository,
+		withConnection,
+	};
 	return async function resetPassword({ token, password }) {
 		const tokenHash = createHash('sha256').update(token).digest();
 
