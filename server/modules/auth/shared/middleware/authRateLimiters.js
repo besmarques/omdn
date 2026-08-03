@@ -54,6 +54,29 @@ function createLimiter({ createRateLimitStore, identifier, windowMs, limit, mess
 	});
 }
 
+function createAuthenticatedOperationRateLimiters({ createRateLimitStore, identifier, message }) {
+	const options = {
+		createRateLimitStore,
+		windowMs: 15 * 60 * 1000,
+		limit: 5,
+		skipSuccessfulRequests: true,
+		message,
+	};
+
+	return [
+		createLimiter({
+			...options,
+			identifier: `${identifier}-ip`,
+			keyGenerator: getClientIp,
+		}),
+		createLimiter({
+			...options,
+			identifier: `${identifier}-user`,
+			keyGenerator: getAuthenticatedUserId,
+		}),
+	];
+}
+
 export function createRegistrationRateLimiter(createRateLimitStore) {
 	return createLimiter({
 		createRateLimitStore,
@@ -82,6 +105,30 @@ export function createPasswordChangeRateLimiter(createRateLimitStore) {
 		keyGenerator(req) {
 			return [getClientIp(req), getAuthenticatedUserId(req)].join(':');
 		},
+	});
+}
+
+export function createTotpDisableRateLimiters(createRateLimitStore) {
+	return createAuthenticatedOperationRateLimiters({
+		createRateLimitStore,
+		identifier: 'auth-totp-disable',
+		message: 'Too many two-factor authentication disable attempts. Please try again later.',
+	});
+}
+
+export function createRecoveryCodesRegenerationRateLimiters(createRateLimitStore) {
+	return createAuthenticatedOperationRateLimiters({
+		createRateLimitStore,
+		identifier: 'auth-recovery-codes-regenerate',
+		message: 'Too many recovery code regeneration attempts. Please try again later.',
+	});
+}
+
+export function createAccountDeletionRateLimiters(createRateLimitStore) {
+	return createAuthenticatedOperationRateLimiters({
+		createRateLimitStore,
+		identifier: 'account-delete',
+		message: 'Too many account deletion attempts. Please try again later.',
 	});
 }
 export function createLoginRateLimiter(createRateLimitStore) {

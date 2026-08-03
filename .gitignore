@@ -27,4 +27,5 @@ dist-ssr
 .env.*
 !.env.example
 
-/docs/
+/docs/*
+!/docs/.gitkeep

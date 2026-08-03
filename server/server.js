@@ -9,6 +9,7 @@ const db = createPool(config.database);
 const app = createApp(db, config);
 
 app.locals.authEventOutboxWorker.start();
+app.locals.deletedAccountCleanupWorker.start();
 
 const server = app.listen(config.port, () => {
 	console.log(`OMDN running on port ${config.port}`);
@@ -38,6 +39,7 @@ async function shutdown(signal) {
 
 	await app.locals.authEventService.drain();
 	await app.locals.authEventOutboxWorker.stop();
+	await app.locals.deletedAccountCleanupWorker.stop();
 	await db.end();
 }
 

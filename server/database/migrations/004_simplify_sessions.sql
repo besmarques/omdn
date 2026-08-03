@@ -1,3 +1,4 @@
+-- Active: 1785708046351@@127.0.0.1@3306@omdn
 ALTER TABLE sessions
 	DROP FOREIGN KEY fk_sessions_user,
 	DROP INDEX idx_sessions_user,

@@ -1,3 +1,4 @@
+-- Active: 1785708046351@@127.0.0.1@3306@omdn
 INSERT IGNORE INTO roles (slug, label)
 VALUES
 	('administrator', 'Administrator'),

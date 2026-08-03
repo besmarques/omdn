@@ -7,6 +7,8 @@ import { apiErrorHandler, apiRequestContext } from '#server/middleware/apiErrorM
 import createSessionMiddleware from '#server/middleware/sessionMiddleware';
 
 import createAccountModule from '#server/modules/account/accountModule';
+import createDeletedAccountCleanupRepository from '#server/modules/account/deletedAccountCleanup/deletedAccountCleanupRepository';
+import createDeletedAccountCleanupWorker from '#server/modules/account/deletedAccountCleanup/deletedAccountCleanupWorker';
 import createAdminModule from '#server/modules/admin/adminModule';
 import createAuthModule from '#server/modules/auth/authModule';
 
@@ -42,9 +44,14 @@ export default function createApp(db, config) {
 		authEventRepository,
 		outboxRepository: authEventOutboxRepository,
 	});
+	const deletedAccountCleanupRepository = createDeletedAccountCleanupRepository(db);
+	const deletedAccountCleanupWorker = createDeletedAccountCleanupWorker({
+		repository: deletedAccountCleanupRepository,
+	});
 
 	app.locals.authEventOutboxWorker = authEventOutboxWorker;
 	app.locals.authEventService = authEventService;
+	app.locals.deletedAccountCleanupWorker = deletedAccountCleanupWorker;
 
 	app.use('/api/auth', createAuthModule(db, createRateLimitStore, authEventService, config));
 

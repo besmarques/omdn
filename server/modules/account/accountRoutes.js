@@ -1,6 +1,9 @@
 import express from 'express';
 
-import { createPasswordChangeRateLimiter } from '#server/modules/auth/shared/middleware/authRateLimiters';
+import {
+	createAccountDeletionRateLimiters,
+	createPasswordChangeRateLimiter,
+} from '#server/modules/auth/shared/middleware/authRateLimiters';
 
 export default function createAccountRoutes({
 	changePasswordAudit,
@@ -12,12 +15,13 @@ export default function createAccountRoutes({
 }) {
 	const router = express.Router();
 	const passwordChangeRateLimiter = createPasswordChangeRateLimiter(createRateLimitStore);
+	const accountDeletionRateLimiters = createAccountDeletionRateLimiters(createRateLimitStore);
 
 	router.get('/me', getCurrentAccountController);
 
 	router.post('/password/change', changePasswordAudit, passwordChangeRateLimiter, changePasswordController);
 
-	router.delete('/', deleteAccountAudit, deleteAccountController);
+	router.delete('/', deleteAccountAudit, ...accountDeletionRateLimiters, deleteAccountController);
 
 	return router;
 }

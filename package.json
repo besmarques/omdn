@@ -23,7 +23,9 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"check:all": "node scripts/dev/run-all.js",
-		"smoke:auth": "node --env-file=.env.development scripts/dev/auth-smoke-test.js"
+		"smoke:auth": "node --env-file=.env.development scripts/dev/auth-smoke-test.js",
+		"db:clear": "node --env-file=.env.development scripts/dev/clear-database.js",
+		"generate:secrets": "node scripts/dev/generate-secrets.js"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",

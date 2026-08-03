@@ -49,6 +49,11 @@ function createDatabaseMock() {
 }
 
 describe('POST /api/auth/register', () => {
+	const registrationResponse = {
+		status: true,
+		message: 'If the email address can be registered, a verification email will be sent.',
+	};
+
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
@@ -89,10 +94,7 @@ describe('POST /api/auth/register', () => {
 		});
 
 		expect(response.status).toBe(202);
-		expect(response.body).toEqual({
-			status: true,
-			message: 'If the email address can be registered, a verification email will be sent.',
-		});
+		expect(response.body).toEqual(registrationResponse);
 
 		expect(argon2.hash).not.toHaveBeenCalled();
 		expect(connection.beginTransaction).not.toHaveBeenCalled();
@@ -128,8 +130,8 @@ describe('POST /api/auth/register', () => {
 			password: 'this is a long test password',
 		});
 
-		expect(response.status).toBe(201);
-		expect(response.body.status).toBe(true);
+		expect(response.status).toBe(202);
+		expect(response.body).toEqual(registrationResponse);
 
 		expect(argon2.hash).toHaveBeenCalledOnce();
 

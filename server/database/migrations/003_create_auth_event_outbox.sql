@@ -1,3 +1,4 @@
+-- Active: 1785708046351@@127.0.0.1@3306@omdn
 CREATE TABLE auth_event_outbox (
 	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 	payload JSON NOT NULL,

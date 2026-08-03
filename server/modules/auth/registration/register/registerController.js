@@ -18,13 +18,9 @@ export default function createRegisterController(registerService) {
 		}
 
 		try {
-			const result = await registerService(validation.data);
+			await registerService(validation.data);
 
-			if (!result.created) {
-				return res.status(202).json(registrationResponse);
-			}
-
-			return res.status(201).json(registrationResponse);
+			return res.status(202).json(registrationResponse);
 		} catch (error) {
 			return next(error);
 		}

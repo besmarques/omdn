@@ -288,6 +288,8 @@ Unexpected API failures return a stable JSON response with an `x-correlation-id`
 
 Authenticated users can change their password through the account module. The flow verifies the current password, updates it transactionally, revokes other sessions, regenerates the current session, and records the outcome in the authentication audit log.
 
+Account deletion is initially a soft delete. A background retention worker runs on application startup and then once per day, permanently deleting accounts whose `deleted_at` timestamp is at least one year old. Each transactional batch also removes serialized sessions, pending authentication-event payloads, and delivered authentication events; foreign-key cascades remove the remaining user-owned records.
+
 ### Frontend routes
 
 | Route                | Availability     | Purpose                     |

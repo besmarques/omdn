@@ -1,18 +1,13 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { once } from 'node:events';
+import { createServer } from 'node:net';
 import process from 'node:process';
-import { createInterface } from 'node:readline/promises';
 
 import mysql from 'mysql2/promise';
 
-const port = Number(process.env.PORT ?? 3000);
-const baseUrl = `http://127.0.0.1:${port}`;
-
-const terminal = createInterface({
-	input: process.stdin,
-	output: process.stdout,
-});
+let port = Number(process.env.PORT ?? 3000);
+let baseUrl = `http://127.0.0.1:${port}`;
 
 const sleep = (milliseconds) =>
 	new Promise((resolve) => {
@@ -31,9 +26,25 @@ function getEnvironmentValue(names) {
 	throw new Error(`Missing environment variable. Expected one of: ${names.join(', ')}`);
 }
 
-const successfulRateLimitPaths = new Set(['/api/auth/login', '/api/auth/totp/login/verify', '/api/account/password/change']);
+const successfulRateLimitPaths = new Set([
+	'/api/auth/login',
+	'/api/auth/totp/login/verify',
+	'/api/auth/totp/recovery-codes/regenerate',
+	'/api/auth/totp/disable',
+	'/api/account/password/change',
+	'/api/account',
+]);
 
 const rateLimitSettlementDelayMs = 1000;
+
+const protectedOperationRateLimitNamespaces = [
+	'auth-totp-disable-ip',
+	'auth-totp-disable-user',
+	'auth-recovery-codes-regenerate-ip',
+	'auth-recovery-codes-regenerate-user',
+	'account-delete-ip',
+	'account-delete-user',
+];
 
 function createDatabasePool() {
 	return mysql.createPool({
@@ -91,6 +102,34 @@ class CookieJar {
 }
 
 let serverProcess = null;
+let serverOutput = '';
+
+function findAvailablePort(preferredPort) {
+	return new Promise((resolve, reject) => {
+		const probe = createServer();
+
+		probe.once('error', (error) => {
+			if (error.code !== 'EADDRINUSE') {
+				reject(error);
+				return;
+			}
+
+			const fallbackProbe = createServer();
+
+			fallbackProbe.once('error', reject);
+
+			fallbackProbe.listen(0, '127.0.0.1', () => {
+				const address = fallbackProbe.address();
+
+				fallbackProbe.close(() => resolve(address.port));
+			});
+		});
+
+		probe.listen(preferredPort, '127.0.0.1', () => {
+			probe.close(() => resolve(preferredPort));
+		});
+	});
+}
 
 async function waitForServer() {
 	const deadline = Date.now() + 30000;
@@ -119,13 +158,37 @@ async function startServer() {
 		throw new Error('The backend is already running');
 	}
 
+	const preferredPort = port;
+
+	port = await findAvailablePort(preferredPort);
+	baseUrl = `http://127.0.0.1:${port}`;
+
+	if (port !== preferredPort) {
+		console.log(`\nPort ${preferredPort} is already in use; using ${port} for the smoke-test backend.`);
+	}
+
 	console.log(`\nStarting the backend at ${baseUrl}...\n`);
 
 	serverProcess = spawn(process.execPath, ['server/server.js'], {
 		cwd: process.cwd(),
-		env: process.env,
-		stdio: 'inherit',
+		env: {
+			...process.env,
+			APP_ENV: 'development',
+			PORT: String(port),
+		},
+		stdio: ['inherit', 'pipe', 'pipe'],
 		windowsHide: true,
+	});
+
+	serverProcess.stdout.on('data', (chunk) => {
+		const output = chunk.toString();
+
+		serverOutput += output;
+		process.stdout.write(output);
+	});
+
+	serverProcess.stderr.on('data', (chunk) => {
+		process.stderr.write(chunk);
 	});
 
 	await waitForServer();
@@ -246,14 +309,26 @@ function getResponseValue(body, paths) {
 	return null;
 }
 
-async function readHexToken(description) {
-	const token = (await terminal.question(`\nPaste the ${description} shown above: `)).trim();
+async function readServerHexToken(description, pattern) {
+	const deadline = Date.now() + 5000;
 
-	if (!/^[a-f0-9]{64}$/i.test(token)) {
-		throw new Error(`Invalid ${description}`);
+	while (Date.now() < deadline) {
+		const match = serverOutput.match(pattern);
+
+		if (match) {
+			serverOutput = serverOutput.replace(match[0], '');
+
+			console.log(`✓ Captured ${description} from the development server`);
+
+			return match[1];
+		}
+
+		await sleep(50);
 	}
 
-	return token;
+	throw new Error(
+		`The ${description} was not emitted by the server. Confirm APP_ENV=development and that the registration created a new user.`,
+	);
 }
 
 function decodeBase32(value) {
@@ -372,6 +447,24 @@ async function readRateLimitCounterKeys(db) {
 	return new Set(rows.map((row) => `${row.namespace}:${row.key_hash}`));
 }
 
+async function deleteLoopbackOperationRateLimitCounters(db) {
+	const loopbackKeyHashes = ['127.0.0.1', '::/56'].map((key) => createHash('sha256').update(key).digest());
+	const ipNamespaces = protectedOperationRateLimitNamespaces.filter((namespace) => namespace.endsWith('-ip'));
+
+	const [result] = await db.query(
+		`
+			DELETE FROM rate_limit_counters
+			WHERE namespace IN (?)
+				AND key_hash IN (?, ?)
+		`,
+		[ipNamespaces, ...loopbackKeyHashes],
+	);
+
+	if (result.affectedRows > 0) {
+		console.log(`✓ ${result.affectedRows} stale localhost operation counters removed`);
+	}
+}
+
 async function deleteNewRateLimitCounters(db, existingKeys) {
 	const [rows] = await db.query(`
 		SELECT
@@ -394,6 +487,27 @@ async function deleteNewRateLimitCounters(db, existingKeys) {
 	}
 
 	return createdCounters.length;
+}
+
+async function expectNewRateLimitNamespaces(db, existingKeys, expectedNamespaces) {
+	const [rows] = await db.query(`
+		SELECT
+			namespace,
+			HEX(key_hash) AS key_hash
+		FROM rate_limit_counters
+	`);
+
+	const createdNamespaces = new Set(
+		rows.filter((row) => !existingKeys.has(`${row.namespace}:${row.key_hash}`)).map((row) => row.namespace),
+	);
+
+	const missingNamespaces = expectedNamespaces.filter((namespace) => !createdNamespaces.has(namespace));
+
+	if (missingNamespaces.length > 0) {
+		throw new Error(`Missing smoke-test rate-limit counters: ${missingNamespaces.join(', ')}`);
+	}
+
+	console.log(`✓ Per-user and per-IP counters verified for ${expectedNamespaces.length / 2} protected operations`);
 }
 
 async function run() {
@@ -433,6 +547,7 @@ async function run() {
 
 	try {
 		await databasePreflight(db);
+		await deleteLoopbackOperationRateLimitCounters(db);
 		existingRateLimitCounterKeys = await readRateLimitCounterKeys(db);
 		await startServer();
 
@@ -449,9 +564,9 @@ async function run() {
 			},
 		});
 
-		expectStatus(registration, 201, 'Register real user');
+		expectStatus(registration, 202, 'Register real user');
 
-		const verificationToken = await readHexToken('email verification token');
+		const verificationToken = await readServerHexToken('email verification token', /Verification token for [^:\r\n]+: ([a-f0-9]{64})/iu);
 
 		const unverifiedLogin = await requestApi({
 			method: 'POST',
@@ -638,7 +753,7 @@ async function run() {
 
 		expectStatus(forgotPassword, 200, 'Request password reset');
 
-		const resetToken = await readHexToken('password reset token');
+		const resetToken = await readServerHexToken('password reset token', /Password reset token for [^:\r\n]+: ([a-f0-9]{64})/iu);
 
 		expectStatus(
 			await requestApi({
@@ -715,10 +830,31 @@ async function run() {
 
 		expectStatus(enableTotp, 200, 'Enable TOTP');
 
-		const recoveryCodes = getResponseValue(enableTotp.body, [['data', 'recoveryCodes'], ['recoveryCodes']]);
+		const initialRecoveryCodes = getResponseValue(enableTotp.body, [['data', 'recoveryCodes'], ['recoveryCodes']]);
+
+		if (!Array.isArray(initialRecoveryCodes) || initialRecoveryCodes.length === 0) {
+			throw new Error('TOTP enable did not return recovery codes');
+		}
+
+		await waitForFreshTotp();
+
+		const recoveryCodesRegeneration = await requestApi({
+			method: 'POST',
+			path: '/api/auth/totp/recovery-codes/regenerate',
+
+			cookies: session4,
+
+			body: {
+				code: generateTotp(totpSecret),
+			},
+		});
+
+		expectStatus(recoveryCodesRegeneration, 200, 'Regenerate recovery codes');
+
+		const recoveryCodes = getResponseValue(recoveryCodesRegeneration.body, [['data', 'recoveryCodes'], ['recoveryCodes']]);
 
 		if (!Array.isArray(recoveryCodes) || recoveryCodes.length === 0) {
-			throw new Error('TOTP enable did not return recovery codes');
+			throw new Error('Recovery-code regeneration did not return recovery codes');
 		}
 
 		const recoveryCode = recoveryCodes[0];
@@ -864,6 +1000,43 @@ async function run() {
 
 			'Disable TOTP',
 		);
+
+		await runAttempts({
+			description: 'Recovery-code regeneration rate limit',
+
+			expectedStatuses: [400, 400, 400, 400, 400, 429],
+
+			request: () =>
+				requestApi({
+					method: 'POST',
+					path: '/api/auth/totp/recovery-codes/regenerate',
+
+					cookies: session6,
+
+					body: {
+						code: '123456',
+					},
+				}),
+		});
+
+		await runAttempts({
+			description: 'TOTP-disable rate limit',
+
+			expectedStatuses: [400, 400, 400, 400, 400, 429],
+
+			request: () =>
+				requestApi({
+					method: 'POST',
+					path: '/api/auth/totp/disable',
+
+					cookies: session6,
+
+					body: {
+						password: resetPassword,
+						code: '123456',
+					},
+				}),
+		});
 
 		await runAttempts({
 			description: 'Login rate limit',
@@ -1056,6 +1229,30 @@ async function run() {
 
 		console.log(`✓ ${rateLimitCounters.length} shared rate-limit counters found`);
 
+		await runAttempts({
+			description: 'Account-deletion rate limit',
+
+			expectedStatuses: [400, 400, 400, 400, 400, 429],
+
+			request: () =>
+				requestApi({
+					method: 'DELETE',
+					path: '/api/account',
+
+					cookies: session6,
+
+					body: {
+						password: 'Wrong-Account-Deletion-Password-2026!',
+					},
+				}),
+		});
+
+		await expectNewRateLimitNamespaces(db, existingRateLimitCounterKeys, protectedOperationRateLimitNamespaces);
+
+		const resetRateLimitCounters = await deleteNewRateLimitCounters(db, existingRateLimitCounterKeys);
+
+		console.log(`✓ ${resetRateLimitCounters} smoke-test rate-limit counters reset before account cleanup`);
+
 		expectStatus(
 			await requestApi({
 				method: 'DELETE',
@@ -1127,8 +1324,21 @@ async function run() {
 		process.exitCode = 1;
 	} finally {
 		await stopServer();
+
+		if (existingRateLimitCounterKeys) {
+			try {
+				const deletedRateLimitCounters = await deleteNewRateLimitCounters(db, existingRateLimitCounterKeys);
+
+				if (deletedRateLimitCounters > 0) {
+					console.log(`✓ ${deletedRateLimitCounters} smoke-test rate-limit counters removed after failure`);
+				}
+			} catch (cleanupError) {
+				console.error('Unable to clean up smoke-test rate-limit counters', cleanupError);
+				process.exitCode = 1;
+			}
+		}
+
 		await db.end();
-		terminal.close();
 	}
 }
 
