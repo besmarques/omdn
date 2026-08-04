@@ -3,12 +3,12 @@ import request from 'supertest';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { apiErrorHandler, apiRequestContext } from '#server/middleware/apiErrorMiddleware';
+import { apiErrorHandler, requestContext } from '#server/middleware/apiErrorMiddleware';
 
 function createTestApp() {
 	const app = express();
 
-	app.use('/api', apiRequestContext);
+	app.use('/api', requestContext);
 
 	app.get('/api/failure', async () => {
 		throw new Error('private database details');

@@ -108,6 +108,9 @@ omdn/
 |   |   |-- createPool.js
 |   |   `-- withConnection.js
 |   |-- frontend/createFrontendHandlers.js
+|   |-- framework/
+|   |   |-- contexts.js
+|   |   `-- createFrameworkRequestContext.js
 |   |-- middleware/
 |   |   |-- apiErrorMiddleware.js
 |   |   |-- securityHeaders.js
@@ -223,6 +226,7 @@ Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files
 - `server/routes/` contains shared/cross-feature routers; `server/middleware/` contains shared middleware.
 - `server/application/` constructs process-level services and owns worker lifecycle without opening a listener.
 - `server/frontend/` owns the current production static-asset and SPA fallback boundary that the React Router request handler will replace.
+- `server/framework/` defines React Router request-context keys and creates one isolated `RouterContextProvider` per page request. It exposes only approved route services, an immutable principal snapshot, the request ID, and a clock—not the database pool.
 - `server/expressApp.js` composes only the HTTP application; `server/server.js` starts the listener and registers shutdown signals.
 - Frontend imports use `@/*`; backend imports use `#server/*`.
 - Development generators live under `scripts/dev/`; generated maps live under `docs/`.
@@ -368,7 +372,7 @@ Account deletion is initially a soft delete. A background retention worker runs 
 | `POST /api/account/password/change`             | Authenticated             | Changes the password, revokes other sessions, and regenerates the current session |
 | `GET /api/admin/test`                           | `users.manage` permission | Tests protected admin access                                                      |
 
-The generic `/api` router and JSON 404 handler are mounted last within the API pipeline. Express applies baseline security headers globally, while JSON parsing, MariaDB sessions, and CSRF checks are scoped to `/api`. With `APP_ENV=production`, Express serves immutable assets and the SPA fallback from `build/client` before session middleware, so static requests never open a session. A nonce-based Content Security Policy will be added with the React Router server handler because the current SPA document contains Framework-generated inline scripts.
+The generic `/api` router and JSON 404 handler are mounted last within the API pipeline. Express assigns every request a correlation ID and applies baseline security headers globally, while JSON parsing, MariaDB sessions, and CSRF checks are scoped to `/api`. With `APP_ENV=production`, Express serves immutable assets and the SPA fallback from `build/client` before session middleware, so static requests never open a session. The frontend boundary creates a fresh React Router context for every page request, ready for the server handler added in Step 2.4. A nonce-based Content Security Policy will be added with that handler because the current SPA document contains Framework-generated inline scripts.
 
 The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, and Framework scripts. Every current URL maps to an explicit module in `src/routes/`, including the development-only design-system route and the not-found fallback. The old declarative SPA router and its compatibility adapter have been removed.
 

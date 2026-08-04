@@ -120,6 +120,13 @@ Framework scripts.
 
 The exact adapter API must be verified against the installed React Router version before implementation.
 
+Step 2.3 verified the installed 8.3 API and uses its public `createContext` and
+`RouterContextProvider` exports. The frontend boundary creates a new provider
+per request with approved route services, principal/guest state, request ID, and
+an injectable clock. Raw database, session, rate-limit, and worker dependencies
+remain outside route context. Step 2.4 will pass this provider through the
+custom server adapter's `getLoadContext` hook.
+
 ### Stage 4: enable SSR incrementally
 
 Migrate one read-only public route first and verify:

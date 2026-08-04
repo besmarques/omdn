@@ -163,7 +163,7 @@ npm install --save-exact @react-router/express@8.3.0
 
 Do not install `@react-router/serve`. The official Express adapter exports `createRequestHandler`, which accepts the Framework build and an optional `getLoadContext` callback.
 
-The handler must be mounted after `/api` routes and the API 404/error boundary, and it must handle all document HTTP methods required by loaders and actions. `getLoadContext` is the supported bridge for request-scoped services, principal information, request IDs, and later Framework CSRF facilities.
+The handler must be mounted after `/api` routes and the API 404/error boundary, and it must handle all document HTTP methods required by loaders and actions. `getLoadContext` is the supported bridge for request-scoped services, principal information, request IDs, and later Framework CSRF facilities. Step 2.3 verified that React Router 8.3 publicly exports `createContext` and `RouterContextProvider`; OMDN now builds a fresh provider at the frontend boundary for every request.
 
 Development with the custom Express server requires Vite middleware mode or the official virtual server-build pattern. That wiring belongs to Phase 2, not the initial SPA conversion. Until then, keep the existing two-process development model: Express on port `3000` and the React Router development server on port `5173` proxying `/api`.
 

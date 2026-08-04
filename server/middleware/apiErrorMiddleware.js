@@ -12,7 +12,7 @@ function getCorrelationId(req) {
 	return randomUUID();
 }
 
-export function apiRequestContext(req, res, next) {
+export function requestContext(req, res, next) {
 	req.correlationId = getCorrelationId(req);
 	res.set('x-correlation-id', req.correlationId);
 

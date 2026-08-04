@@ -26,6 +26,7 @@ export default function createApplicationServices(db, config) {
 		authenticated: requireAuth(db),
 		authEventService,
 		createRateLimitStore: (namespace) => createMySqlRateLimitStore(db, namespace),
+		framework: Object.freeze({}),
 		session,
 		workers: Object.freeze([authEventOutboxWorker, deletedAccountCleanupWorker]),
 	});

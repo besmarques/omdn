@@ -1,7 +1,8 @@
 import express from 'express';
 
 import createFrontendHandlers from '#server/frontend/createFrontendHandlers';
-import { apiErrorHandler, apiRequestContext } from '#server/middleware/apiErrorMiddleware';
+import createFrameworkRequestContext from '#server/framework/createFrameworkRequestContext';
+import { apiErrorHandler, requestContext } from '#server/middleware/apiErrorMiddleware';
 import { requireCsrfProtection } from '#server/middleware/csrfMiddleware';
 import createSecurityHeaders from '#server/middleware/securityHeaders';
 
@@ -11,15 +12,20 @@ import createAuthModule from '#server/modules/auth/authModule';
 
 import createApiRoutes from '#server/routes/apiRoutes';
 
-export default function createApp(db, config, services, { frontend = createFrontendHandlers(config) } = {}) {
+export default function createApp(db, config, services, { frontend: providedFrontend } = {}) {
 	const app = express();
 	const { authenticated, authEventService, createRateLimitStore, session } = services;
+	const frontend =
+		providedFrontend ??
+		createFrontendHandlers(config, {
+			getLoadContext: createFrameworkRequestContext({ services: services.framework }),
+		});
 
 	if (config.appEnvironment === 'production') {
 		app.set('trust proxy', 1);
 	}
 
-	app.use('/api', apiRequestContext);
+	app.use(requestContext);
 	app.use(createSecurityHeaders({ production: config.appEnvironment === 'production' }));
 
 	if (frontend.assets) {
@@ -44,7 +50,9 @@ export default function createApp(db, config, services, { frontend = createFront
 
 	if (frontend.requestHandler) {
 		app.get('/{*splat}', (req, res) => {
-			frontend.requestHandler(req, res);
+			const context = frontend.getLoadContext?.(req, res);
+
+			frontend.requestHandler(req, res, context);
 		});
 	}
 

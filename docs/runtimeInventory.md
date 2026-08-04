@@ -49,6 +49,10 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
 - `server/application/createApplication.js` constructs shared services and the
   Express application without opening a listener; only `server/server.js`
   starts listening and owns process signals.
+- `server/framework/createFrameworkRequestContext.js` creates a fresh React
+  Router context for each page request using public React Router 8.3 APIs. The
+  current SPA fallback does not consume loader data yet; Step 2.4 will pass this
+  context to the server request handler.
 - Vite proxies `/api` to `http://127.0.0.1:3000`.
 - Express listens on port `3000` unless `PORT` overrides it.
 - The development database is MariaDB at `127.0.0.1:3306`, database `omdn`.

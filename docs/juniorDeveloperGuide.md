@@ -107,7 +107,7 @@ An eight-second deadline prevents a broken dependency from keeping the process a
 Middleware is code that runs before or after a route handler. Its order matters. `server/expressApp.js` installs the main pipeline in this order:
 
 1. Configure proxy trust in production.
-2. Add a correlation ID to `/api` requests.
+2. Add a correlation ID to every request.
 3. Add baseline browser security headers to every response.
 4. In production, serve static files and fingerprinted assets.
 5. Parse JSON only for `/api` requests.
@@ -133,7 +133,25 @@ A request can stop at any layer. For example, an admin request with no session r
 
 ### Correlation IDs
 
-Each API request receives an `x-correlation-id`. Unexpected errors are logged with that ID, and the response returns the same ID. A user can report the ID without seeing internal error details.
+Each request receives an `x-correlation-id`. Unexpected API errors are logged with that ID, and the response returns the same ID. A user can report the ID without seeing internal error details.
+
+### Framework request context
+
+React Router loaders and actions need server information, but they must not
+reach into global variables or receive the raw database pool. The files under
+`server/framework/` define a small, explicit bridge.
+
+For every page request, Express creates a new `RouterContextProvider` containing:
+
+- An allow-list of services that routes are permitted to call
+- Either an immutable authenticated principal or `{ authenticated: false }`
+- The request correlation ID
+- A clock object, which tests can replace with a fixed time
+
+The provider and its principal snapshot are recreated for each request. This is
+important: reusing one provider could expose one user's identity to another
+request. Session middleware, workers, the rate-limit store, and the MariaDB pool
+are deliberately absent from this context.
 
 ### Common HTTP statuses
 

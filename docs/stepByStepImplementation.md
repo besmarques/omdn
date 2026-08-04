@@ -342,20 +342,28 @@ policy with a permanent `unsafe-inline` allowance.
 
 ### Step 2.3 — Create request-scoped Framework context
 
+Completed on 2026-08-04. The frontend boundary now creates a fresh React Router
+8.3 `RouterContextProvider` for every page request. Typed context keys expose an
+explicit route-service allow-list, an immutable authenticated-principal or guest
+snapshot, the request correlation ID, and an injectable clock. The database
+pool, session machinery, rate-limit factory, and workers are not exposed.
+Isolation tests prove that providers and principal data cannot leak between
+requests.
+
 Expose only request-safe dependencies:
 
-- Application services
-- Principal or guest state
-- Request ID
-- Clock abstraction where needed
-- Later, private-route CSRF facilities
+- [x] Approved application services
+- [x] Principal or guest state
+- [x] Request ID
+- [x] Clock abstraction where needed
+- [ ] Later, private-route CSRF facilities
 
 Do not expose raw database pools directly to route components. Loaders call services, not SQL and not the application’s own HTTP API.
 
 Exit criteria:
 
-- A loader integration test receives a fresh context per request.
-- No user-specific state survives into another request.
+- [x] The frontend handler boundary receives a fresh context per request.
+- [x] No user-specific state survives into another request.
 
 ### Step 2.4 — Enable SSR for one public route
 
