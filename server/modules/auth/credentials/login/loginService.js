@@ -1,7 +1,7 @@
 import argon2 from 'argon2';
 
-export default function createLoginService({ credentialsRepository, sessionRepository, totpRepository, withConnection }) {
-	const authRepository = { ...credentialsRepository, ...sessionRepository, ...totpRepository, withConnection };
+export default function createLoginService({ credentialsRepository, totpRepository, withConnection }) {
+	const authRepository = { ...credentialsRepository, ...totpRepository, withConnection };
 	async function authenticateWithPassword(email, password) {
 		const user = await authRepository.findUserByEmail(email);
 
@@ -44,15 +44,10 @@ export default function createLoginService({ credentialsRepository, sessionRepos
 		};
 	}
 
-	async function recordSuccessfulLogin({ userId, currentSessionId }) {
-		if (!currentSessionId) {
-			throw new Error('Current session identifier is unavailable');
-		}
-
+	async function recordSuccessfulLogin({ userId }) {
 		return authRepository.withConnection(async (connection) => {
 			try {
 				await connection.beginTransaction();
-				await authRepository.deleteOtherUserSessions(userId, currentSessionId, connection);
 				await authRepository.updateLastLogin(userId, connection);
 				await connection.commit();
 			} catch (error) {

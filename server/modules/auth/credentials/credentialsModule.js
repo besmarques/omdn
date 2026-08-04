@@ -2,7 +2,6 @@ import createWithConnection from '#server/dbConnect/withConnection';
 
 import createCredentialsRepository from '#server/modules/auth/credentials/credentialsRepository';
 import createCredentialsRoutes from '#server/modules/auth/credentials/credentialsRoutes';
-import createSessionRepository from '#server/modules/auth/shared/sessionRepository';
 import createTotpRepository from '#server/modules/auth/totp/totpRepository';
 
 import createLoginController from '#server/modules/auth/credentials/login/loginController';
@@ -13,12 +12,10 @@ import createLogoutService from '#server/modules/auth/credentials/logout/logoutS
 
 export default function createCredentialsModule(db, createRateLimitStore, appEnvironment = 'test') {
 	const credentialsRepository = createCredentialsRepository(db);
-	const sessionRepository = createSessionRepository(db);
 	const totpRepository = createTotpRepository(db);
 	const withConnection = createWithConnection(db);
 	const loginService = createLoginService({
 		credentialsRepository,
-		sessionRepository,
 		totpRepository,
 		withConnection,
 	});

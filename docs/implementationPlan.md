@@ -260,7 +260,7 @@ Changing to a `__Host-` cookie and changing session lifetimes are worthwhile pro
 
 ### Approved session lifetime and revocation policy
 
-The Phase 3 implementation must enforce:
+The Phase 3 implementation enforces:
 
 - A six-hour idle timeout, measured from the last accepted authenticated activity.
 - A 24-hour absolute lifetime by default.
@@ -273,11 +273,10 @@ The Phase 3 implementation must enforce:
   regeneration, revoke every other session while preserving the recently
   authenticated session performing the operation.
 
-The cookie expiry, MariaDB expiry, and server-side checks must agree. The server
+The cookie expiry, MariaDB expiry, and server-side checks agree. The server
 must not trust a client-provided lifetime value other than the allowlisted
-default/remember-me selection. Normal successful-login behavior—whether a new
-login continues revoking older sessions or permits multiple active devices—must
-be decided before implementation.
+default/remember-me selection. Normal successful login permits multiple active
+devices.
 
 ## 7. Application and worker boundaries
 
@@ -712,13 +711,13 @@ Required security tests:
 
 ## 21. Implementation order
 
-| Phase                                      | Status                                                                     |
-| ------------------------------------------ | -------------------------------------------------------------------------- |
-| 0 — Protect baseline                       | Complete (2026-08-04)                                                      |
-| 1 — Framework Mode migration               | Complete (2026-08-04)                                                      |
-| 2 — Express integration and SSR boundaries | Complete (2026-08-04)                                                      |
-| 3 — Authentication hardening               | In progress; CSRF is implemented, session expiry/revocation policy is next |
-| 4–9                                        | Planned                                                                    |
+| Phase                                      | Status                                                                   |
+| ------------------------------------------ | ------------------------------------------------------------------------ |
+| 0 — Protect baseline                       | Complete (2026-08-04)                                                    |
+| 1 — Framework Mode migration               | Complete (2026-08-04)                                                    |
+| 2 — Express integration and SSR boundaries | Complete (2026-08-04)                                                    |
+| 3 — Authentication hardening               | In progress; CSRF and session lifetime/revocation policy are implemented |
+| 4–9                                        | Planned                                                                  |
 
 ### Phase 0: protect the baseline
 
@@ -758,7 +757,7 @@ Status: in progress. Session-bound CSRF tokens, origin/fetch-metadata checks,
 and frontend token refresh are implemented and tested.
 
 1. [x] Implement CSRF and strict origin policy.
-2. [ ] Define session idle/absolute expiry and revocation versioning.
+2. [x] Implement session idle/absolute expiry and targeted session revocation.
 3. [x] Move private account presentation into server loaders.
 4. [ ] Enforce pending-TOTP state in private route loaders.
 5. [ ] Migrate the TOTP-required login response contract if approved.
@@ -823,9 +822,8 @@ and frontend token refresh are implemented and tested.
 
 ## 23. Next decision
 
-The next implementation task is Phase 3 session expiry and revocation. The
-lifetimes and sensitive-event rules are approved; normal successful-login
-behavior and the persistence design must be finalized before coding. After authentication hardening, the next domain
+The next implementation task is enforcing pending-TOTP authentication state in
+private loaders and finalizing the TOTP-required login response contract. After authentication hardening, the next domain
 decision is the editor/article-source proof of concept because it determines the
 revision schema, renderer, sanitizer, media references, and editorial interface.
 
@@ -857,10 +855,9 @@ cookies, client-IP rate limits, and the default pool limit of 10 must be checked
 against that evidence before launch.
 
 The session cookie is `omdn_session`, HTTP-only, same-site `Lax`, host-only,
-secure in production, and stored in the MariaDB `sessions` table. The current
-code still has a nominal seven-day lifetime. Phase 3 must replace it with the
-approved six-hour idle timeout and user-selected 24-hour or 30-day absolute
-lifetime.
+secure in production, and stored in the MariaDB `sessions` table. Authenticated
+session JSON carries the implemented six-hour idle timeout and user-selected
+24-hour or 30-day absolute lifetime.
 
 ## 25. Dependency policy
 

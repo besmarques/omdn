@@ -1,4 +1,5 @@
 import { totpLoginSchema } from '#server/modules/auth/shared/authSchemas';
+import { establishAuthenticatedSession } from '#server/modules/auth/shared/sessionPolicy';
 
 const maximumAttempts = 5;
 
@@ -32,6 +33,7 @@ function clearPendingChallenge(session) {
 	delete session.pendingTwoFactorUserId;
 	delete session.pendingTwoFactorExpiresAt;
 	delete session.pendingTwoFactorAttempts;
+	delete session.pendingTwoFactorRememberMe;
 }
 
 function invalidCodeResponse(res) {
@@ -86,14 +88,16 @@ export default function createVerifyTotpLoginController(verifyTotpLoginService) 
 				return invalidCodeResponse(res);
 			}
 
+			const rememberMe = req.session.pendingTwoFactorRememberMe === true;
+
 			await regenerateSession(req);
 
 			await verifyTotpLoginService.recordSuccessfulLogin({
 				userId: result.user.id,
-				currentSessionId: req.sessionID,
 			});
 
 			req.session.userId = result.user.id;
+			establishAuthenticatedSession(req.session, { rememberMe });
 
 			await saveSession(req);
 

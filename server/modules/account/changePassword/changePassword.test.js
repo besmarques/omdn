@@ -17,9 +17,7 @@ import createAccountModule from '#server/modules/account/accountModule';
 
 function createSession(values = {}) {
 	return {
-		regenerate: vi.fn((callback) => callback()),
-
-		save: vi.fn((callback) => callback()),
+		destroy: vi.fn((callback) => callback()),
 
 		...values,
 	};
@@ -174,10 +172,10 @@ describe('POST /api/account/password/change', () => {
 
 		expect(connection.commit).not.toHaveBeenCalled();
 
-		expect(session.regenerate).not.toHaveBeenCalled();
+		expect(session.destroy).not.toHaveBeenCalled();
 	});
 
-	it('changes the password and keeps only the regenerated session', async () => {
+	it('changes the password and revokes every session including the current one', async () => {
 		const { db, connection } = createDatabaseMock();
 
 		connection.execute
@@ -223,7 +221,7 @@ describe('POST /api/account/password/change', () => {
 
 		expect(response.body).toEqual({
 			status: true,
-			message: 'Password changed successfully',
+			message: 'Password changed successfully. Please log in again.',
 		});
 
 		expect(argon2.hash).toHaveBeenCalledWith('completely new password value', {
@@ -237,16 +235,13 @@ describe('POST /api/account/password/change', () => {
 
 		expect(String(connection.execute.mock.calls[2][0])).toContain('DELETE FROM sessions');
 
-		expect(connection.execute.mock.calls[2][1]).toEqual(['current-session', 42]);
+		expect(connection.execute.mock.calls[2][1]).toEqual([42]);
 
 		expect(connection.commit).toHaveBeenCalledOnce();
 
 		expect(connection.rollback).not.toHaveBeenCalled();
 
-		expect(session.regenerate).toHaveBeenCalledOnce();
-
-		expect(session.userId).toBe(42);
-
-		expect(session.save).toHaveBeenCalledOnce();
+		expect(session.destroy).toHaveBeenCalledOnce();
+		expect(response.headers['set-cookie']?.[0]).toContain('omdn_session=;');
 	});
 });

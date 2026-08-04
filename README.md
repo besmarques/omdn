@@ -346,7 +346,14 @@ For Hostinger Cloud Startup, run the Node.js application and MySQL database in t
 
 ## Authentication and routing
 
-Sessions are stored in MySQL for seven days. The `sessions` table uses the three columns maintained by `express-mysql-session`: `session_id`, `expires`, and serialized `data`. Authenticated identity is canonical in valid serialized `data.userId`; session revocation queries do not depend on duplicate metadata columns. Cookies are HTTP-only, use `SameSite=Lax`, and become secure in production.
+Sessions are stored in MySQL with a six-hour idle timeout. Login creates a
+24-hour absolute lifetime by default or 30 days when the user selects “Remember
+me”; activity never extends the absolute deadline. The `sessions` table uses the
+three columns maintained by `express-mysql-session`: `session_id`, `expires`,
+and serialized `data`. Authenticated identity and lifetime metadata are
+canonical in valid serialized session JSON. Cookies are HTTP-only, use
+`SameSite=Lax`, and become secure in production. Normal login permits multiple
+devices.
 
 TOTP setup uses `otplib` and `qrcode`. Secrets are encrypted with AES-256-GCM and user-bound additional authenticated data; recovery codes are supported for second-factor login.
 
@@ -356,7 +363,11 @@ Unexpected API failures return a stable JSON response with an `x-correlation-id`
 
 Every state-changing `/api` request requires a session-bound CSRF token in the `X-CSRF-Token` header. Clients obtain it from `GET /api/auth/csrf`; the frontend API client fetches, caches, and refreshes it automatically. Browser requests are also checked with Fetch Metadata and Origin/Referer information, including when a development or reverse proxy rewrites the internal host.
 
-Authenticated users can change their password through the account module. The flow verifies the current password, updates it transactionally, revokes other sessions, regenerates the current session, and records the outcome in the authentication audit log.
+Authenticated users can change their password through the account module. The
+flow verifies and updates the password transactionally, revokes every session
+including the caller, clears its cookie, and records the outcome in the
+authentication audit log. TOTP enable/disable and recovery-code regeneration
+preserve the current session but revoke all other devices.
 
 Account deletion is initially a soft delete. A background retention worker runs on application startup and then once per day, permanently deleting accounts whose `deleted_at` timestamp is at least one year old. Each transactional batch also removes serialized sessions, pending authentication-event payloads, and delivered authentication events; foreign-key cascades remove the remaining user-owned records.
 
@@ -370,29 +381,29 @@ Account deletion is initially a soft delete. A background retention worker runs 
 
 ### Backend routes
 
-| Method and route                                | Access                    | Purpose                                                                           |
-| ----------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------- |
-| `GET /api`                                      | Public                    | API health response                                                               |
-| `GET /api/test-items`                           | Public                    | Reads test items from MySQL                                                       |
-| `GET /api/auth/status`                          | Public                    | Reports session authentication status                                             |
-| `GET /api/auth/csrf`                            | Public                    | Issues the session-bound token required by state-changing API requests            |
-| `GET /api/auth/guest-test`                      | Guests only               | Exercises guest middleware                                                        |
-| `POST /api/auth/register`                       | Guests only               | Registers a pending subscriber                                                    |
-| `POST /api/auth/login`                          | Guests only               | Authenticates and creates a session                                               |
-| `POST /api/auth/logout`                         | Session-aware             | Destroys the session and clears its cookie                                        |
-| `POST /api/auth/email/verify`                   | Public                    | Activates an account with a valid token                                           |
-| `POST /api/auth/email/resend`                   | Guests only               | Replaces an eligible verification token                                           |
-| `POST /api/auth/password/forgot`                | Guests only               | Creates a reset token without exposing account existence                          |
-| `POST /api/auth/password/reset`                 | Guests only               | Resets a password with a valid token                                              |
-| `GET /api/auth/totp/status`                     | Authenticated             | Reports whether TOTP is enabled                                                   |
-| `POST /api/auth/totp/setup`                     | Authenticated             | Creates an encrypted pending secret and authenticator QR code                     |
-| `POST /api/auth/totp/enable`                    | Authenticated             | Verifies setup and enables TOTP                                                   |
-| `POST /api/auth/totp/recovery-codes/regenerate` | Authenticated             | Replaces recovery codes                                                           |
-| `POST /api/auth/totp/disable`                   | Authenticated             | Disables TOTP                                                                     |
-| `POST /api/auth/totp/login/verify`              | Guests with pending login | Completes login using a TOTP or recovery code                                     |
-| `GET /api/account/me`                           | Authenticated             | Returns the current user, roles, and permissions                                  |
-| `POST /api/account/password/change`             | Authenticated             | Changes the password, revokes other sessions, and regenerates the current session |
-| `GET /api/admin/test`                           | `users.manage` permission | Tests protected admin access                                                      |
+| Method and route                                | Access                    | Purpose                                                                |
+| ----------------------------------------------- | ------------------------- | ---------------------------------------------------------------------- |
+| `GET /api`                                      | Public                    | API health response                                                    |
+| `GET /api/test-items`                           | Public                    | Reads test items from MySQL                                            |
+| `GET /api/auth/status`                          | Public                    | Reports session authentication status                                  |
+| `GET /api/auth/csrf`                            | Public                    | Issues the session-bound token required by state-changing API requests |
+| `GET /api/auth/guest-test`                      | Guests only               | Exercises guest middleware                                             |
+| `POST /api/auth/register`                       | Guests only               | Registers a pending subscriber                                         |
+| `POST /api/auth/login`                          | Guests only               | Authenticates and creates a session                                    |
+| `POST /api/auth/logout`                         | Session-aware             | Destroys the session and clears its cookie                             |
+| `POST /api/auth/email/verify`                   | Public                    | Activates an account with a valid token                                |
+| `POST /api/auth/email/resend`                   | Guests only               | Replaces an eligible verification token                                |
+| `POST /api/auth/password/forgot`                | Guests only               | Creates a reset token without exposing account existence               |
+| `POST /api/auth/password/reset`                 | Guests only               | Resets a password with a valid token                                   |
+| `GET /api/auth/totp/status`                     | Authenticated             | Reports whether TOTP is enabled                                        |
+| `POST /api/auth/totp/setup`                     | Authenticated             | Creates an encrypted pending secret and authenticator QR code          |
+| `POST /api/auth/totp/enable`                    | Authenticated             | Verifies setup and enables TOTP                                        |
+| `POST /api/auth/totp/recovery-codes/regenerate` | Authenticated             | Replaces recovery codes                                                |
+| `POST /api/auth/totp/disable`                   | Authenticated             | Disables TOTP                                                          |
+| `POST /api/auth/totp/login/verify`              | Guests with pending login | Completes login using a TOTP or recovery code                          |
+| `GET /api/account/me`                           | Authenticated             | Returns the current user, roles, and permissions                       |
+| `POST /api/account/password/change`             | Authenticated             | Changes the password, revokes every session, and requires a new login  |
+| `GET /api/admin/test`                           | `users.manage` permission | Tests protected admin access                                           |
 
 The generic `/api` router and JSON 404 handler are mounted last within the API pipeline. Express assigns every request a correlation ID and applies baseline security headers globally, while JSON parsing, MariaDB sessions, and CSRF checks are scoped to `/api`. With `APP_ENV=production`, Express serves immutable assets from `build/client` and delegates document requests to the official React Router handler backed by `build/server`. Static and page requests never open an API session. The frontend boundary creates a fresh React Router context for every page request. Production responses use a per-request Content Security Policy nonce, which the security middleware overwrites on an internal request header before the server entry applies it to Framework scripts.
 

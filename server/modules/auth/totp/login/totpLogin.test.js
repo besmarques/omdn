@@ -19,6 +19,7 @@ import createAuthModule from '#server/modules/auth/authModule';
 
 function createSession(values = {}) {
 	return {
+		cookie: {},
 		regenerate: vi.fn((callback) => callback()),
 
 		save: vi.fn((callback) => callback()),
@@ -103,7 +104,7 @@ describe('POST /api/auth/totp/login/verify', () => {
 		expect(deleteSessionCall).toBeUndefined();
 	});
 
-	it('authenticates a valid TOTP code and removes older sessions', async () => {
+	it('authenticates a valid TOTP code without removing other devices', async () => {
 		const { db, connection } = createDatabaseMock();
 
 		const session = createSession({
@@ -112,6 +113,8 @@ describe('POST /api/auth/totp/login/verify', () => {
 			pendingTwoFactorExpiresAt: Date.now() + 300000,
 
 			pendingTwoFactorAttempts: 0,
+
+			pendingTwoFactorRememberMe: true,
 		});
 
 		connection.execute
@@ -151,7 +154,6 @@ describe('POST /api/auth/totp/login/verify', () => {
 					},
 				],
 			])
-			.mockResolvedValueOnce([{ affectedRows: 2 }])
 			.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
 		verify.mockResolvedValueOnce({
@@ -193,12 +195,12 @@ describe('POST /api/auth/totp/login/verify', () => {
 		expect(session.userId).toBe(42);
 
 		expect(session.save).toHaveBeenCalledOnce();
+		expect(session.rememberMe).toBe(true);
+		expect(session.absoluteExpiresAt - session.authenticatedAt).toBe(30 * 24 * 60 * 60 * 1000);
 
 		const deleteSessionCall = findDatabaseCall(connection, 'DELETE FROM sessions');
 
-		expect(deleteSessionCall).toBeDefined();
-
-		expect(deleteSessionCall[1]).toEqual(['new-totp-session', 42]);
+		expect(deleteSessionCall).toBeUndefined();
 
 		const updateLastLoginCall = findDatabaseCall(connection, 'last_login_at');
 
@@ -240,7 +242,7 @@ describe('POST /api/auth/totp/login/verify', () => {
 					},
 				],
 			])
-			.mockRejectedValueOnce(new Error('Unable to revoke previous sessions'));
+			.mockRejectedValueOnce(new Error('Unable to update last login'));
 		verify.mockResolvedValueOnce({
 			valid: true,
 			timeStep: 101,

@@ -16,6 +16,7 @@ import createAuthModule from '#server/modules/auth/authModule';
 
 function createSession() {
 	return {
+		cookie: {},
 		regenerate: vi.fn((callback) => callback()),
 		save: vi.fn((callback) => callback()),
 	};
@@ -178,20 +179,13 @@ describe('POST /api/auth/login', () => {
 		expect(session.userId).toBeUndefined();
 	});
 
-	it('creates one session and removes older sessions', async () => {
+	it('creates a default 24-hour session without removing other devices', async () => {
 		const connection = {
-			execute: vi
-				.fn()
-				.mockResolvedValueOnce([
-					{
-						affectedRows: 2,
-					},
-				])
-				.mockResolvedValueOnce([
-					{
-						affectedRows: 1,
-					},
-				]),
+			execute: vi.fn().mockResolvedValueOnce([
+				{
+					affectedRows: 1,
+				},
+			]),
 			beginTransaction: vi.fn().mockResolvedValue(),
 			commit: vi.fn().mockResolvedValue(),
 			rollback: vi.fn().mockResolvedValue(),
@@ -239,10 +233,10 @@ describe('POST /api/auth/login', () => {
 		expect(session.userId).toBe(42);
 		expect(session.save).toHaveBeenCalledOnce();
 		expect(db.execute.mock.calls[0][1]).toEqual(['test@example.com']);
-		expect(connection.execute.mock.calls[0][1]).toEqual(['new-session-id', 42]);
-		expect(String(connection.execute.mock.calls[0][0])).toContain('DELETE FROM sessions');
-		expect(String(connection.execute.mock.calls[0][0])).not.toContain('user_id');
-		expect(connection.execute.mock.calls[1][1]).toEqual([42]);
+		expect(connection.execute.mock.calls[0][1]).toEqual([42]);
+		expect(String(connection.execute.mock.calls[0][0])).not.toContain('DELETE FROM sessions');
+		expect(session.rememberMe).toBe(false);
+		expect(session.absoluteExpiresAt - session.authenticatedAt).toBe(24 * 60 * 60 * 1000);
 		expect(connection.beginTransaction).toHaveBeenCalledOnce();
 		expect(connection.commit).toHaveBeenCalledOnce();
 		expect(connection.rollback).not.toHaveBeenCalled();
@@ -250,7 +244,7 @@ describe('POST /api/auth/login', () => {
 	});
 
 	it('does not persist authentication when login finalization fails', async () => {
-		const finalizationError = new Error('Unable to revoke previous sessions');
+		const finalizationError = new Error('Unable to update last login');
 		const connection = {
 			execute: vi.fn().mockRejectedValueOnce(finalizationError),
 			beginTransaction: vi.fn().mockResolvedValue(),
@@ -331,11 +325,13 @@ describe('POST /api/auth/login', () => {
 		const response = await request(app).post('/api/auth/login').send({
 			email: 'test@example.com',
 			password: 'this is a long test password',
+			rememberMe: true,
 		});
 
 		expect(response.status).toBe(202);
 
 		expect(session.pendingTwoFactorUserId).toBe(42);
+		expect(session.pendingTwoFactorRememberMe).toBe(true);
 
 		const sessionDeletes = db.execute.mock.calls.filter(([sql]) => String(sql).includes('DELETE FROM sessions'));
 

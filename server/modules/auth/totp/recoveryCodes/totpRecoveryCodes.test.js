@@ -63,6 +63,7 @@ function createTestApp(db) {
 		req.session = {
 			userId: 42,
 		};
+		req.sessionID = 'current-session';
 
 		next();
 	});
@@ -176,6 +177,11 @@ describe('POST /api/auth/totp/recovery-codes/regenerate', () => {
 				{
 					affectedRows: 10,
 				},
+			])
+			.mockResolvedValueOnce([
+				{
+					affectedRows: 2,
+				},
 			]);
 
 		verify.mockResolvedValueOnce({
@@ -211,6 +217,8 @@ describe('POST /api/auth/totp/recovery-codes/regenerate', () => {
 
 			expect(insertParameters[index + 1]).toMatch(/^[a-f0-9]{64}$/);
 		}
+
+		expect(connection.execute.mock.calls[4][1]).toEqual(['current-session', 42]);
 
 		expect(connection.commit).toHaveBeenCalledOnce();
 

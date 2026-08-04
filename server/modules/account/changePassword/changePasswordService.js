@@ -9,11 +9,7 @@ const argonOptions = {
 
 export default function createChangePasswordService({ credentialsRepository, sessionRepository, withConnection }) {
 	const authRepository = { ...credentialsRepository, ...sessionRepository, withConnection };
-	return async function changePassword({ userId, currentPassword, newPassword, currentSessionId }) {
-		if (!currentSessionId) {
-			throw new Error('Current session identifier is unavailable');
-		}
-
+	return async function changePassword({ userId, currentPassword, newPassword }) {
 		if (currentPassword === newPassword) {
 			return {
 				changed: false,
@@ -48,7 +44,7 @@ export default function createChangePasswordService({ credentialsRepository, ses
 
 				await authRepository.updateUserPassword(userId, passwordHash, connection);
 
-				const revokedSessions = await authRepository.deleteOtherUserSessions(userId, currentSessionId, connection);
+				const revokedSessions = await authRepository.deleteUserSessions(userId, connection);
 
 				await connection.commit();
 

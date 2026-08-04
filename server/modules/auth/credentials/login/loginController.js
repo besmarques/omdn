@@ -1,4 +1,5 @@
 import { loginSchema } from '#server/modules/auth/shared/authSchemas';
+import { establishAuthenticatedSession } from '#server/modules/auth/shared/sessionPolicy';
 
 const twoFactorChallengeDuration = 5 * 60 * 1000;
 
@@ -39,7 +40,7 @@ export default function createLoginController(loginService) {
 			});
 		}
 
-		const { email, password } = validation.data;
+		const { email, password, rememberMe } = validation.data;
 
 		try {
 			const authentication = await loginService.authenticateWithPassword(email, password);
@@ -71,6 +72,7 @@ export default function createLoginController(loginService) {
 
 			if (requiresTwoFactor) {
 				req.session.pendingTwoFactorUserId = user.id;
+				req.session.pendingTwoFactorRememberMe = rememberMe;
 
 				req.session.pendingTwoFactorExpiresAt = Date.now() + twoFactorChallengeDuration;
 
@@ -89,10 +91,10 @@ export default function createLoginController(loginService) {
 
 			await loginService.recordSuccessfulLogin({
 				userId: user.id,
-				currentSessionId: req.sessionID,
 			});
 
 			req.session.userId = user.id;
+			establishAuthenticatedSession(req.session, { rememberMe });
 
 			await saveSession(req);
 

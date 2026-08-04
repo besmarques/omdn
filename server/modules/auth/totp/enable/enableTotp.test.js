@@ -50,6 +50,8 @@ function createRepositoryMock({
 		replaceRecoveryCodes: vi.fn().mockResolvedValue(),
 
 		enableTotp: vi.fn().mockResolvedValue(enabledRows),
+
+		deleteOtherUserSessions: vi.fn().mockResolvedValue(2),
 	};
 
 	return {
@@ -91,6 +93,7 @@ describe('enable TOTP', () => {
 		});
 
 		const enableTotpService = createEnableTotpService({
+			sessionRepository: authRepository,
 			totpRepository: authRepository,
 			withConnection: authRepository.withConnection,
 		});
@@ -98,6 +101,7 @@ describe('enable TOTP', () => {
 		const result = await enableTotpService({
 			userId: 42,
 			code: '123456',
+			currentSessionId: 'current-session',
 		});
 
 		expect(decryptTotpSecret).toHaveBeenCalledWith('encrypted-secret', 42);
@@ -122,6 +126,7 @@ describe('enable TOTP', () => {
 		);
 
 		expect(authRepository.enableTotp).toHaveBeenCalledWith(42, 101, connection);
+		expect(authRepository.deleteOtherUserSessions).toHaveBeenCalledWith(42, 'current-session', connection);
 
 		expect(connection.commit).toHaveBeenCalledOnce();
 
@@ -142,6 +147,7 @@ describe('enable TOTP', () => {
 		});
 
 		const enableTotpService = createEnableTotpService({
+			sessionRepository: authRepository,
 			totpRepository: authRepository,
 			withConnection: authRepository.withConnection,
 		});
@@ -149,6 +155,7 @@ describe('enable TOTP', () => {
 		const result = await enableTotpService({
 			userId: 42,
 			code: '123456',
+			currentSessionId: 'current-session',
 		});
 
 		expect(result).toEqual({
@@ -172,6 +179,7 @@ describe('enable TOTP', () => {
 		});
 
 		const enableTotpService = createEnableTotpService({
+			sessionRepository: authRepository,
 			totpRepository: authRepository,
 			withConnection: authRepository.withConnection,
 		});
@@ -179,6 +187,7 @@ describe('enable TOTP', () => {
 		const result = await enableTotpService({
 			userId: 42,
 			code: '123456',
+			currentSessionId: 'current-session',
 		});
 
 		expect(result).toEqual({
@@ -206,6 +215,7 @@ describe('enable TOTP', () => {
 		});
 
 		const enableTotpService = createEnableTotpService({
+			sessionRepository: authRepository,
 			totpRepository: authRepository,
 			withConnection: authRepository.withConnection,
 		});
@@ -214,6 +224,7 @@ describe('enable TOTP', () => {
 			enableTotpService({
 				userId: 42,
 				code: '123456',
+				currentSessionId: 'current-session',
 			}),
 		).rejects.toThrow('Unable to enable TOTP');
 

@@ -7,6 +7,7 @@ export default function LoginPage() {
 	const navigate = useNavigate();
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [rememberMe, setRememberMe] = useState(false);
 	const [message, setMessage] = useState('');
 	const [submitting, setSubmitting] = useState(false);
 
@@ -16,7 +17,7 @@ export default function LoginPage() {
 		setSubmitting(true);
 
 		try {
-			const result = await login({ email, password });
+			const result = await login({ email, password, rememberMe });
 
 			if (result.status === 202) {
 				setMessage('Two-factor authentication is required. The TOTP screen is not implemented yet.');
@@ -76,6 +77,17 @@ export default function LoginPage() {
 					value={password}
 					onChange={(event) => setPassword(event.target.value)}
 				/>
+
+				<label htmlFor="remember-me">
+					<input
+						id="remember-me"
+						name="rememberMe"
+						type="checkbox"
+						checked={rememberMe}
+						onChange={(event) => setRememberMe(event.target.checked)}
+					/>
+					Remember me for 30 days
+				</label>
 
 				<button type="submit" disabled={submitting}>
 					{submitting ? 'Logging in...' : 'Login'}

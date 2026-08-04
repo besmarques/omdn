@@ -5,8 +5,15 @@ import { decryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncrypti
 import { generateRecoveryCodes, hashRecoveryCode } from '#server/modules/auth/totp/shared/recoveryCodes';
 
 export default function createRegenerateRecoveryCodesService(dependencies, decryptSecret = decryptTotpSecret) {
-	const authRepository = { ...dependencies.totpRepository, withConnection: dependencies.withConnection };
-	return async function regenerateRecoveryCodes({ userId, code }) {
+	const authRepository = {
+		...dependencies.sessionRepository,
+		...dependencies.totpRepository,
+		withConnection: dependencies.withConnection,
+	};
+	return async function regenerateRecoveryCodes({ userId, code, currentSessionId }) {
+		if (!currentSessionId) {
+			throw new Error('Current session identifier is unavailable');
+		}
 		return authRepository.withConnection(async (connection) => {
 			try {
 				await connection.beginTransaction();
@@ -65,6 +72,7 @@ export default function createRegenerateRecoveryCodesService(dependencies, decry
 				const recoveryCodeHashes = recoveryCodes.map(hashRecoveryCode);
 
 				await authRepository.replaceRecoveryCodes(userId, recoveryCodeHashes, connection);
+				await authRepository.deleteOtherUserSessions(userId, currentSessionId, connection);
 
 				await connection.commit();
 

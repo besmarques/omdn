@@ -11,7 +11,6 @@ function isTotpCode(code) {
 export default function createVerifyTotpLoginService(dependencies, decryptSecret = decryptTotpSecret) {
 	const authRepository = {
 		...dependencies.credentialsRepository,
-		...dependencies.sessionRepository,
 		...dependencies.totpRepository,
 		withConnection: dependencies.withConnection,
 	};
@@ -122,15 +121,10 @@ export default function createVerifyTotpLoginService(dependencies, decryptSecret
 		});
 	}
 
-	async function recordSuccessfulLogin({ userId, currentSessionId }) {
-		if (!currentSessionId) {
-			throw new Error('Current session identifier is unavailable');
-		}
-
+	async function recordSuccessfulLogin({ userId }) {
 		return authRepository.withConnection(async (connection) => {
 			try {
 				await connection.beginTransaction();
-				await authRepository.deleteOtherUserSessions(userId, currentSessionId, connection);
 				await authRepository.updateLastLogin(userId, connection);
 				await connection.commit();
 			} catch (error) {

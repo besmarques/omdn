@@ -1,16 +1,18 @@
 import session from 'express-session';
 import MySQLStoreFactory from 'express-mysql-session';
 
+import { evaluateAuthenticatedSession, rememberedSessionAbsoluteLifetime } from '#server/modules/auth/shared/sessionPolicy';
+
 const MySQLStore = MySQLStoreFactory(session);
 
-const sessionDuration = 7 * 24 * 60 * 60 * 1000;
+const sessionCookieName = 'omdn_session';
 
 export default function createSessionMiddleware(db, config) {
 	const sessionStore = new MySQLStore(
 		{
 			clearExpired: true,
 			checkExpirationInterval: 15 * 60 * 1000,
-			expiration: sessionDuration,
+			expiration: rememberedSessionAbsoluteLifetime,
 			createDatabaseTable: false,
 			schema: {
 				tableName: 'sessions',
@@ -24,8 +26,8 @@ export default function createSessionMiddleware(db, config) {
 		db,
 	);
 
-	const middleware = session({
-		name: 'omdn_session',
+	const sessionLoader = session({
+		name: sessionCookieName,
 		secret: config.secret,
 		store: sessionStore,
 		resave: false,
@@ -34,9 +36,41 @@ export default function createSessionMiddleware(db, config) {
 			httpOnly: true,
 			secure: config.secureCookie,
 			sameSite: 'lax',
-			maxAge: sessionDuration,
+			maxAge: rememberedSessionAbsoluteLifetime,
 		},
 	});
+	const middleware = (req, res, next) =>
+		sessionLoader(req, res, (error) => {
+			if (error) {
+				return next(error);
+			}
+
+			const policy = evaluateAuthenticatedSession(req.session);
+
+			if (policy.expired) {
+				return req.session.destroy((destroyError) => {
+					if (destroyError) {
+						return next(destroyError);
+					}
+
+					res.clearCookie(sessionCookieName, {
+						httpOnly: true,
+						path: '/',
+						secure: config.secureCookie,
+						sameSite: 'lax',
+					});
+
+					return next();
+				});
+			}
+
+			if (policy.authenticated) {
+				req.session.lastActivityAt = Date.now();
+				req.session.cookie.maxAge = policy.maxAge;
+			}
+
+			return next();
+		});
 
 	return {
 		middleware,

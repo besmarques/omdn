@@ -170,10 +170,12 @@ are deliberately absent from this context.
 The browser receives a cookie named `omdn_session`. The cookie contains a signed, opaque session identifier—not the user object, roles, or permissions.
 
 The matching session data is stored in MariaDB's `sessions` table. After login,
-it contains a `userId`. The current code expires it after seven days. The
-approved Phase 3 policy, not implemented yet, replaces that with a six-hour idle
-timeout and a 24-hour absolute lifetime, or 30 days when the user deliberately
-selects “remember me.”
+it contains a `userId`, authentication/activity timestamps, the absolute
+deadline, and the selected remember-me policy. The server enforces a six-hour
+idle timeout and a 24-hour absolute lifetime, or 30 days when the user
+deliberately selects “Remember me.” Activity refreshes the idle deadline but
+never extends the absolute deadline. Sessions created before this metadata
+existed are rejected and must log in again.
 
 Cookie security settings:
 
@@ -273,10 +275,11 @@ Verification hashes the submitted token, locks and checks the database record, a
 4. Pending, disabled, and deleted accounts are rejected.
 5. If TOTP is disabled, the session is regenerated to prevent session fixation.
 6. `userId` is stored in the new session.
-7. Other sessions belonging to that user are removed.
-8. `last_login_at` is updated.
+7. The chosen 24-hour or 30-day absolute deadline is stored.
+8. `last_login_at` is updated without removing sessions on other devices.
 
-The current policy allows one authenticated session per user. A new successful login revokes older sessions.
+The current policy permits several authenticated devices. Each session has its
+own idle and absolute deadlines.
 
 ### Login with TOTP
 
@@ -302,13 +305,11 @@ The backend flow exists, but the dedicated frontend TOTP screen is still pending
 
 Forgot-password responses do not reveal whether an email exists. Reset tokens are random; only their hashes are stored. A successful reset changes the password, consumes reset tokens, and deletes all existing sessions in one transaction.
 
-An authenticated password change verifies the current password, updates the hash, regenerates the current session, and revokes all other sessions.
-
-That sentence describes the current code. The approved Phase 3 policy will
-instead revoke every session after a password change, including the current
-one. Password reset and account deletion also revoke every session. TOTP enable,
-disable, and recovery-code regeneration will preserve the current recently
-authenticated session but revoke all other sessions.
+An authenticated password change verifies the current password, updates the
+hash, and revokes every session—including the current one—so the user must log
+in again. Password reset and account deletion also revoke every session. TOTP
+enable, disable, and recovery-code regeneration preserve the current session
+but revoke every other device.
 
 ### Logout
 

@@ -73,6 +73,7 @@ async function loginThroughPage(page) {
 	await page.goto('/login');
 	await page.getByLabel('Email').fill(email);
 	await page.getByLabel('Password').fill(password);
+	await expect(page.getByLabel('Remember me for 30 days')).toBeVisible();
 	await page.getByRole('button', { name: 'Login' }).click();
 }
 

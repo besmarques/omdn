@@ -692,6 +692,8 @@ async function run() {
 				email,
 
 				password: initialPassword,
+
+				rememberMe: true,
 			},
 		});
 
@@ -738,9 +740,9 @@ async function run() {
 				cookies: session1,
 			}),
 
-			401,
+			200,
 
-			'First session revoked',
+			'First session remains active after another device logs in',
 		);
 
 		expectStatus(
@@ -754,6 +756,33 @@ async function run() {
 
 			'Second session remains active',
 		);
+
+		const [concurrentSessions] = await db.query(
+			`
+				SELECT
+					JSON_UNQUOTE(JSON_EXTRACT(data, '$.rememberMe')) AS remember_me,
+					CAST(JSON_UNQUOTE(JSON_EXTRACT(data, '$.authenticatedAt')) AS UNSIGNED) AS authenticated_at,
+					CAST(JSON_UNQUOTE(JSON_EXTRACT(data, '$.absoluteExpiresAt')) AS UNSIGNED) AS absolute_expires_at
+				FROM sessions
+				WHERE JSON_VALID(data) = 1
+					AND CAST(JSON_UNQUOTE(JSON_EXTRACT(data, '$.userId')) AS UNSIGNED) = ?
+			`,
+			[userId],
+		);
+
+		if (concurrentSessions.length !== 2) {
+			throw new Error(`Expected two concurrent login sessions. Found ${concurrentSessions.length}.`);
+		}
+
+		const absoluteLifetimes = concurrentSessions.map(
+			(storedSession) => Number(storedSession.absolute_expires_at) - Number(storedSession.authenticated_at),
+		);
+
+		if (!absoluteLifetimes.includes(24 * 60 * 60 * 1000) || !absoluteLifetimes.includes(30 * 24 * 60 * 60 * 1000)) {
+			throw new Error('Default and remembered absolute session lifetimes were not persisted correctly');
+		}
+
+		console.log('✓ Concurrent default and remembered sessions verified in MariaDB');
 
 		const passwordChange = await requestApi({
 			method: 'POST',
@@ -779,9 +808,19 @@ async function run() {
 				cookies: session2,
 			}),
 
-			200,
+			401,
 
-			'Current session survives password change',
+			'Current session revoked after password change',
+		);
+
+		expectStatus(
+			await requestApi({
+				method: 'GET',
+				path: '/api/account/me',
+				cookies: session1,
+			}),
+			401,
+			'Other device revoked after password change',
 		);
 
 		expectStatus(
@@ -829,7 +868,7 @@ async function run() {
 
 			401,
 
-			'Previous session revoked after new login',
+			'Password-change session remains revoked after new login',
 		);
 
 		const forgotPassword = await requestApi({
@@ -892,6 +931,20 @@ async function run() {
 			'Login with reset password',
 		);
 
+		expectStatus(
+			await requestApi({
+				method: 'POST',
+				path: '/api/auth/login',
+				cookies: session5,
+				body: {
+					email,
+					password: resetPassword,
+				},
+			}),
+			200,
+			'Create second device before TOTP change',
+		);
+
 		const totpSetup = await requestApi({
 			method: 'POST',
 			path: '/api/auth/totp/setup',
@@ -919,6 +972,16 @@ async function run() {
 		});
 
 		expectStatus(enableTotp, 200, 'Enable TOTP');
+
+		expectStatus(
+			await requestApi({
+				method: 'GET',
+				path: '/api/account/me',
+				cookies: session5,
+			}),
+			401,
+			'TOTP enable revoked the other device',
+		);
 
 		const initialRecoveryCodes = getResponseValue(enableTotp.body, [['data', 'recoveryCodes'], ['recoveryCodes']]);
 
@@ -1264,7 +1327,7 @@ async function run() {
 			throw new Error(`Expected one active session. Found ${sessionCount.count}.`);
 		}
 
-		console.log('✓ Single-session policy verified in MariaDB');
+		console.log('✓ Sensitive TOTP changes revoked other sessions in MariaDB');
 
 		const [[eventCount]] = await db.query(
 			`

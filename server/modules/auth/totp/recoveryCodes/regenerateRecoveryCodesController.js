@@ -15,6 +15,7 @@ export default function createRegenerateRecoveryCodesController(regenerateRecove
 			const result = await regenerateRecoveryCodesService({
 				userId: req.auth.user.id,
 				code: validation.data.code,
+				currentSessionId: req.sessionID,
 			});
 
 			if (!result.regenerated) {

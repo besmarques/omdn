@@ -15,6 +15,7 @@ export default function createEnableTotpController(enableTotpService) {
 			const result = await enableTotpService({
 				userId: req.auth.user.id,
 				code: validation.data.code,
+				currentSessionId: req.sessionID,
 			});
 
 			if (!result.enabled) {

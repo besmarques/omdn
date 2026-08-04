@@ -1,21 +1,8 @@
 import { changePasswordSchema } from '#server/modules/auth/shared/authSchemas';
 
-function regenerateSession(req) {
+function destroySession(req) {
 	return new Promise((resolve, reject) => {
-		req.session.regenerate((error) => {
-			if (error) {
-				reject(error);
-				return;
-			}
-
-			resolve();
-		});
-	});
-}
-
-function saveSession(req) {
-	return new Promise((resolve, reject) => {
-		req.session.save((error) => {
+		req.session.destroy((error) => {
 			if (error) {
 				reject(error);
 				return;
@@ -47,8 +34,6 @@ export default function createChangePasswordController(changePasswordService) {
 				currentPassword: validation.data.currentPassword,
 
 				newPassword: validation.data.newPassword,
-
-				currentSessionId: req.sessionID,
 			});
 
 			if (!result.changed) {
@@ -58,11 +43,8 @@ export default function createChangePasswordController(changePasswordService) {
 				});
 			}
 
-			await regenerateSession(req);
-
-			req.session.userId = userId;
-
-			await saveSession(req);
+			await destroySession(req);
+			res.clearCookie('omdn_session', { path: '/' });
 
 			res.locals.authEventUserId = userId;
 
@@ -72,7 +54,7 @@ export default function createChangePasswordController(changePasswordService) {
 
 			return res.json({
 				status: true,
-				message: 'Password changed successfully',
+				message: 'Password changed successfully. Please log in again.',
 			});
 		} catch (error) {
 			return next(error);

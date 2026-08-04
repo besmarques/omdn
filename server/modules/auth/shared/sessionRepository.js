@@ -1,6 +1,6 @@
 export default function createSessionRepository(db) {
 	async function deleteUserSessions(userId, executor = db) {
-		await executor.execute(
+		const [result] = await executor.execute(
 			`
 			DELETE FROM sessions
 			WHERE JSON_VALID(data) = 1
@@ -11,6 +11,8 @@ export default function createSessionRepository(db) {
 		`,
 			[userId],
 		);
+
+		return result.affectedRows;
 	}
 
 	async function deleteOtherUserSessions(userId, currentSessionId, executor = db) {

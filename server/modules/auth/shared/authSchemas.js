@@ -25,6 +25,8 @@ export const loginSchema = z.object({
 	email: emailSchema,
 
 	password: z.string().min(1).max(128),
+
+	rememberMe: z.boolean().optional().default(false),
 });
 
 export const emailVerificationSchema = z.object({

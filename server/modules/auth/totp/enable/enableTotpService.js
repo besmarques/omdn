@@ -5,8 +5,15 @@ import { decryptTotpSecret } from '#server/modules/auth/totp/shared/totpEncrypti
 import { generateRecoveryCodes, hashRecoveryCode } from '#server/modules/auth/totp/shared/recoveryCodes';
 
 export default function createEnableTotpService(dependencies, decryptSecret = decryptTotpSecret) {
-	const authRepository = { ...dependencies.totpRepository, withConnection: dependencies.withConnection };
-	return async function enableTotp({ userId, code }) {
+	const authRepository = {
+		...dependencies.sessionRepository,
+		...dependencies.totpRepository,
+		withConnection: dependencies.withConnection,
+	};
+	return async function enableTotp({ userId, code, currentSessionId }) {
+		if (!currentSessionId) {
+			throw new Error('Current session identifier is unavailable');
+		}
 		return authRepository.withConnection(async (connection) => {
 			try {
 				await connection.beginTransaction();
@@ -55,6 +62,8 @@ export default function createEnableTotpService(dependencies, decryptSecret = de
 				if (affectedRows !== 1) {
 					throw new Error('Unable to enable TOTP');
 				}
+
+				await authRepository.deleteOtherUserSessions(userId, currentSessionId, connection);
 
 				await connection.commit();
 
