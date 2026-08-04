@@ -43,7 +43,7 @@ export const pagePresentationExamples = Object.freeze({
 			],
 			kind: 'recipe',
 			prepMinutes: 20,
-			schemaVersion: 2,
+			schemaVersion: 1,
 			title: 'Christmas biscuits',
 			yield: { quantity: 16, unit: 'biscuits' },
 		},

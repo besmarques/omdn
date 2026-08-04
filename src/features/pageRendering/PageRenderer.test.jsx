@@ -22,7 +22,7 @@ describe('PageRenderer', () => {
 						instructions: [{ id: 'mix', text: 'Combine the ingredients.', title: 'Mix' }],
 						kind: 'recipe',
 						prepMinutes: 10,
-						schemaVersion: 2,
+						schemaVersion: 1,
 						title: 'Biscuits',
 						yield: { quantity: 12, unit: 'biscuits' },
 					},

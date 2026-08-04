@@ -61,37 +61,17 @@ function validateStableItemIdentifiers(source, context) {
 	}
 }
 
-export const recipeArticleSourceV1Schema = z
+export const recipeArticleSourceSchema = z
 	.object({
 		...recipeFields,
+		difficulty: recipeDifficultySchema,
 		schemaVersion: z.literal(1),
 	})
 	.strict()
 	.superRefine(validateStableItemIdentifiers);
 
-export const recipeArticleSourceSchema = z
-	.object({
-		...recipeFields,
-		difficulty: recipeDifficultySchema,
-		schemaVersion: z.literal(2),
-	})
-	.strict()
-	.superRefine(validateStableItemIdentifiers);
-
-const supportedRecipeArticleSourceSchema = z.discriminatedUnion('schemaVersion', [recipeArticleSourceV1Schema, recipeArticleSourceSchema]);
-
 export function parseRecipeArticleSource(source) {
-	return supportedRecipeArticleSourceSchema.parse(source);
-}
-
-export function migrateRecipeArticleSourceV1(source, difficulty) {
-	const legacyRecipe = recipeArticleSourceV1Schema.parse(source);
-
-	return recipeArticleSourceSchema.parse({
-		...legacyRecipe,
-		difficulty: recipeDifficultySchema.parse(difficulty),
-		schemaVersion: 2,
-	});
+	return recipeArticleSourceSchema.parse(source);
 }
 
 export function serializeRecipeArticleSource(source) {

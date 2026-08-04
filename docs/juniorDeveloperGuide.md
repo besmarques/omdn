@@ -566,9 +566,8 @@ page configuration
 `src/features/pageRendering/PageRenderer.jsx` performs that composition. The layout controls the available structural regions, while the template renders the content fields. This allows the same recipe template to use different layouts and headers without duplicating the recipe implementation. The trusted registries translate identifiers into components; stored page data must never contain executable JSX, JavaScript, or arbitrary import paths.
 
 The recipe example now also proves a small article-source boundary.
-`src/features/articleSource/recipeSource.js` owns the versioned recipe JSON.
-Version 2 is the current write format and includes difficulty; version 1 remains
-readable. It validates and restores revision data, derives plain text for future
+`src/features/articleSource/recipeSource.js` owns the initial recipe JSON schema.
+Version 1 includes difficulty and validates and restores revision data, derives plain text for future
 search indexing, formats ingredients, and creates schema.org `Recipe` data for
 SEO. `RecipeTemplate` accepts only data that passes a supported schema. Stable
 IDs on ingredients and instructions let future editors reorder items without
@@ -752,11 +751,11 @@ versioned.
   presentation fields on the revision. They are not recipe source and cannot
   contain executable component paths.
 
-The current recipe proof writes source-schema version 2. Difficulty is required
-and limited to `easy`, `medium`, or `hard`. Version 1 can still be restored, but
-upgrading it requires a caller to select difficulty explicitly because old data
-contains no truthful value to infer. Changing the old schema silently would make
-stored documents ambiguous, so the new shape received a new version instead.
+The current recipe proof writes source-schema version 1. Difficulty is required
+and limited to `easy`, `medium`, or `hard`. No recipe table or persisted recipe
+documents existed before this definition, so there is no older recipe format to
+migrate. A version 2 will be introduced only after version 1 data exists and a
+real incompatible format change requires it.
 
 References that describe historical actors, such as “created by,” become null
 if that user is permanently purged; the recipe history remains. The ownership
