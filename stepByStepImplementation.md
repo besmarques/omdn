@@ -135,6 +135,10 @@ Exit criteria:
 
 ### Step 1.1 — Verify the exact Framework package matrix
 
+Status: completed on 2026-08-04. The verified compatibility table, selected
+packages, deferred packages, configuration contract, and official sources are
+recorded in `frameworkPackageMatrix.md`. No dependency was changed in this step.
+
 Before installation:
 
 - Check React Router 8.3.0 Framework Mode and custom Express server documentation.
