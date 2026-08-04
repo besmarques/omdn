@@ -102,6 +102,23 @@ test('hydrates a direct Framework route with the document metadata', async ({ pa
 	expect(browserErrors).toEqual([]);
 });
 
+test('renders the homepage through the temporary Framework index adapter', async ({ page }) => {
+	const browserProblems = [];
+
+	page.on('console', (message) => {
+		if (['warning', 'error'].includes(message.type())) {
+			browserProblems.push(message.text());
+		}
+	});
+	page.on('pageerror', (error) => browserProblems.push(error.message));
+
+	const response = await page.goto('/');
+
+	expect(response?.status()).toBe(200);
+	await expect(page.getByRole('heading', { name: 'O Melhor do Natal' })).toBeVisible();
+	expect(browserProblems).toEqual([]);
+});
+
 test('characterizes registration, authentication, TOTP, and admin access', async ({ page }) => {
 	const database = await createTestDatabaseConnection();
 

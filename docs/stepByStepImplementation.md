@@ -176,7 +176,7 @@ Exit criteria:
 Status: completed on 2026-08-04. Framework SPA Mode now uses
 `react-router.config.js`, `src/root.jsx`, `src/routes.js`, the React Router Vite
 plugin and CLI, and `build/client` production assets. A Framework catch-all
-route temporarily delegates to the existing route tree so page conversion can
+index route renders the homepage directly and a catch-all temporarily delegates the remaining URLs to the existing route tree so page conversion can
 remain incremental. The API proxy and `@` alias are preserved, and Playwright's
 backend is isolated from the normal development server.
 

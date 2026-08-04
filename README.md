@@ -187,7 +187,9 @@ omdn/
 |   |-- index.css
 |   |-- root.jsx
 |   |-- routes.js
-|   `-- routes/legacy.jsx
+|   `-- routes/
+|       |-- home.jsx
+|       `-- legacy.jsx
 |-- .dependency-cruiser.cjs
 |-- .env.example
 |-- .gitignore
@@ -256,8 +258,9 @@ Playwright rebuilds and uses a separate database named by appending
 `_playwright` to `DB_NAME`. The configured database user must be allowed to
 create and drop that isolated database. Install its local browser once with
 `npx playwright install chromium`; CI installs Chromium automatically.
-The test backend defaults to port `3100` so it can run beside the normal
-development backend; `PLAYWRIGHT_BACKEND_PORT` may override that test-only port.
+The test backend and frontend default to ports `3100` and `5174` so they can run
+beside normal development servers. `PLAYWRIGHT_BACKEND_PORT` and
+`PLAYWRIGHT_FRONTEND_PORT` may override those test-only ports.
 
 ## Architecture maps
 
@@ -359,7 +362,7 @@ Account deletion is initially a soft delete. A background retention worker runs 
 
 The generic `/api` router and JSON 404 handler are mounted last. With `APP_ENV=production`, Express serves immutable assets and the SPA fallback from `build/client`.
 
-The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, and Framework scripts. During incremental conversion, one Framework catch-all route delegates to the existing `AppRoutes` tree; individual pages move to dedicated route modules in Step 1.5.
+The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, and Framework scripts. The Framework index adapter renders the homepage directly, while a temporary catch-all delegates the remaining URLs to the existing `AppRoutes` tree until their incremental conversion in Step 1.5.
 
 ## Design system
 
