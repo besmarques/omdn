@@ -148,6 +148,24 @@ test('composes development page templates independently from layouts and regions
 	await expect(page.getByRole('complementary', { name: 'Related content' })).toHaveCount(0);
 });
 
+test('edits and restores a recipe description with the self-hosted TinyMCE proof', async ({ page }) => {
+	await page.goto('/dev/recipe-editor');
+
+	await expect(page.getByRole('heading', { level: 1, name: 'Recipe description editor proof' })).toBeVisible();
+	await expect(page.locator('.tox-tinymce')).toBeVisible();
+	await expect(page.frameLocator('.tox-edit-area iframe').locator('body')).toContainText('buttery biscuits');
+
+	await page.evaluate(() => {
+		globalThis.tinymce.activeEditor.setContent('<p onclick="alert(1)"><strong>Updated locally</strong><script>alert(1)</script></p>');
+	});
+	await page.getByRole('button', { name: 'Save proof revision' }).click();
+
+	await expect(page.getByText('Recipe revision validated, sanitized on the server, restored, and rendered below.')).toBeVisible();
+	await expect(page.locator('article').getByText('Updated locally')).toBeVisible();
+	expect(await page.locator('article').innerHTML()).not.toContain('onclick');
+	expect(await page.locator('article').innerHTML()).not.toContain('<script>alert(1)</script>');
+});
+
 test('characterizes registration, authentication, TOTP, and admin access', async ({ page }) => {
 	const database = await createTestDatabaseConnection();
 

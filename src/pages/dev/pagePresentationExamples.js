@@ -29,6 +29,7 @@ export const pagePresentationExamples = Object.freeze({
 		content: {
 			cookMinutes: 15,
 			description: 'Buttery biscuits with a simple Christmas shape.',
+			descriptionHtml: '<p>These <strong>buttery biscuits</strong> are simple to prepare and easy to shape with the family.</p>',
 			ingredients: [
 				{ id: 'flour', name: 'plain flour', quantity: '200', unit: 'g' },
 				{ id: 'butter', name: 'butter', note: 'softened', quantity: '100', unit: 'g' },

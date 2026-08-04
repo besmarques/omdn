@@ -394,6 +394,16 @@ their visible text as identity. This is intentionally a recipe-only decision;
 it does not yet define how arbitrary rich articles will store galleries,
 tables, embeds, or other editor content.
 
+`/dev/recipe-editor` adds a self-hosted TinyMCE Community editor only for the
+optional recipe description. TinyMCE loads in the browser from locally bundled
+npm modules and uses the GPL configuration; it does not contact Tiny Cloud.
+The toolbar exposes only emphasis, lists, and links. When the proof is saved,
+React Router sends the whole serialized recipe to its server action. The action
+validates its size and recipe schema, sanitizes the HTML with
+`sanitize-html`, serializes/restores the revision, and returns the safe preview.
+Never render raw editor output before that server boundary. The future database
+service must run the same sanitization before persisting an immutable revision.
+
 `AdminPage` receives its initial principal and permission result from server
 loader data, so it does not need a browser effect or an unmount guard for that
 initial check. The `verificationStarted` ref in the verification page prevents

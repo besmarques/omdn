@@ -6,6 +6,7 @@ const developmentRoutes =
 		: [
 				route('dev/design-system', 'routes/design-system.jsx'),
 				route('dev/page-examples/:example?', 'routes/page-presentation-examples.jsx'),
+				route('dev/recipe-editor', 'routes/recipe-editor-proof.jsx'),
 			];
 
 export default [

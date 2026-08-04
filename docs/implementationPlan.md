@@ -399,13 +399,23 @@ Redirects target a resource identity, not another redirect, preventing redirect 
 
 ## 9. Article editor and rendering pipeline
 
-Do not install an editor until a short proof of concept compares the required experience.
+The recipe-description editor decision is complete. Use the self-hosted
+TinyMCE Community edition under GPLv2+ for optional, narrowly formatted recipe
+descriptions. OMDN bundles the editor locally, uses no Tiny Cloud or premium
+plugins, and explicitly configures `licenseKey="gpl"`. Preserve TinyMCE's
+copyright/license material and reassess licensing before any change to OMDN's
+distribution model.
 
-Evaluate:
+TinyMCE does not control the recipe document. Normal fields continue to own the
+title, timings, yield, ingredients, instructions, media references, and
+taxonomy. The editor allowlist contains only paragraphs, bold, italic, lists,
+links, and line breaks. A server-side `sanitize-html` allowlist is the security
+boundary; the browser toolbar and `valid_elements` configuration are only
+authoring assistance.
 
-- TipTap structured JSON
-- Lexical structured state
-- Markdown
+The development route `/dev/recipe-editor` proves local/offline loading,
+editing, server sanitization, revision serialization/restoration, and rendering.
+No database writes are part of this proof.
 
 The proof of concept must cover:
 

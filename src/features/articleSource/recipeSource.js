@@ -9,6 +9,7 @@ const itemId = z
 const shortText = z.string().trim().min(1).max(200);
 const optionalShortText = shortText.optional();
 const longText = z.string().trim().min(1).max(5000);
+const richText = z.string().trim().min(1).max(20000).optional();
 
 const ingredientSchema = z
 	.object({
@@ -32,6 +33,7 @@ export const recipeArticleSourceSchema = z
 	.object({
 		cookMinutes: z.number().int().nonnegative(),
 		description: longText,
+		descriptionHtml: richText,
 		ingredients: z.array(ingredientSchema).min(1).max(100),
 		instructions: z.array(instructionSchema).min(1).max(100),
 		kind: z.literal('recipe'),

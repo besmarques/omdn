@@ -25,6 +25,7 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | -------------------------- | ------------- | ---------------------------------------------------------- |
 | `@base-ui/react`           | `^1.6.0`      | Accessible React UI primitives                             |
 | `@tailwindcss/vite`        | `^4.3.3`      | Tailwind integration for Vite                              |
+| `@tinymce/tinymce-react`   | `^6.3.0`      | React integration for the self-hosted recipe editor        |
 | `argon2`                   | `^0.45.1`     | Password hashing and verification                          |
 | `class-variance-authority` | `^0.7.1`      | Component variant definitions                              |
 | `clsx`                     | `^2.1.1`      | Conditional class-name composition                         |
@@ -41,9 +42,11 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | `react`                    | `^19.2.7`     | Browser UI library                                         |
 | `react-dom`                | `^19.2.7`     | React DOM renderer                                         |
 | `react-router`             | `8.3.0`       | Framework and client-side routing                          |
+| `sanitize-html`            | `^2.17.6`     | Server-side allowlist sanitization for editor HTML         |
 | `shadcn`                   | `^4.16.0`     | UI component tooling                                       |
 | `tailwind-merge`           | `^3.6.0`      | Tailwind class conflict resolution                         |
 | `tailwindcss`              | `^4.3.3`      | Utility-first CSS framework                                |
+| `tinymce`                  | `^8.8.2`      | Self-hosted Community rich-text editor                     |
 | `tw-animate-css`           | `^1.4.0`      | Tailwind animation utilities                               |
 | `zod`                      | `^4.4.3`      | Configuration and request validation                       |
 
@@ -419,6 +422,15 @@ The frontend now builds with React Router Framework SSR. `src/root.jsx` is the s
 The frontend uses Tailwind CSS, shadcn/ui with Base UI primitives, Lucide icons, and shared class/variant utilities. The development-only design-system page previews components, variations, sizes, and states.
 
 The development-only `/dev/page-examples/:example?` route demonstrates the independent page-presentation layers without committing to final styling. `/dev/page-examples/recipe` combines a recipe template, sidebar layout, hero header, related-posts block, and newsletter block. Its content uses a validated, versioned recipe JSON source that round-trips revision data and derives both search text and schema.org `Recipe` structured data. `/dev/page-examples/gift-ideas` combines a gift-ideas template, full-width layout, and minimal header. Database-backed pages will eventually store only validated source data plus allowlisted registry keys and settings—not JSX, import paths, or executable code.
+
+The development-only `/dev/recipe-editor` route proves the selected recipe
+description editor. TinyMCE Community is bundled and served by OMDN without
+Tiny Cloud, configured with `licenseKey="gpl"`, and limited to paragraphs,
+emphasis, lists, and links. Saving the proof submits a serialized recipe to a
+server action, sanitizes the description with the same allowlist, restores the
+revision, and renders the result. TinyMCE is licensed under GPLv2 or later; its
+copyright and license files remain in the installed `tinymce` package. OMDN
+does not use TinyMCE premium plugins or services.
 
 ## Deployment
 

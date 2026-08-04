@@ -7,7 +7,7 @@ export default function RecipeTemplate({ content }) {
 		<article>
 			<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeRecipeStructuredData(recipe) }} />
 			<h1>{recipe.title}</h1>
-			<p>{recipe.description}</p>
+			{recipe.descriptionHtml ? <div dangerouslySetInnerHTML={{ __html: recipe.descriptionHtml }} /> : <p>{recipe.description}</p>}
 			<dl>
 				<div>
 					<dt>Preparation time</dt>
