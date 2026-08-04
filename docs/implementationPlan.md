@@ -82,7 +82,11 @@ Before changing the router:
 
 ### Stage 2: adopt Framework Mode without SSR
 
-- Replace `BrowserRouter` and the manual route tree with Framework route modules.
+Current progress on 2026-08-04: Framework SPA Mode and its document shell are
+configured with `ssr: false`; the old HTML/`BrowserRouter` bootstrap is removed.
+Dedicated Framework route-module conversion remains pending.
+
+- Keep the completed `BrowserRouter` replacement and convert the remaining manual route tree to Framework route modules.
 - Introduce the Framework-owned document shell.
 - Keep `ssr: false` initially.
 - Preserve current routes and API behavior.

@@ -76,6 +76,32 @@ async function loginThroughPage(page) {
 	await page.getByRole('button', { name: 'Login' }).click();
 }
 
+test('hydrates a direct Framework route with the document metadata', async ({ page }) => {
+	const browserErrors = [];
+
+	page.on('console', (message) => {
+		if (message.type() === 'error') {
+			browserErrors.push(message.text());
+		}
+	});
+	page.on('pageerror', (error) => browserErrors.push(error.message));
+
+	const response = await page.goto('/register');
+
+	expect(response?.status()).toBe(200);
+	await expect(page.getByLabel('Display name')).toBeVisible();
+	await expect(page).toHaveTitle('omdn');
+	expect(await page.locator('html').getAttribute('lang')).toBe('en');
+	expect(await page.locator('meta[name="viewport"]').getAttribute('content')).toBe('width=device-width, initial-scale=1.0');
+
+	const faviconPath = await page.locator('link[rel="icon"]').getAttribute('href');
+	const faviconResponse = await page.request.get(faviconPath);
+
+	expect(faviconResponse.status()).toBe(200);
+	expect(faviconResponse.headers()['content-type']).toContain('image/svg+xml');
+	expect(browserErrors).toEqual([]);
+});
+
 test('characterizes registration, authentication, TOTP, and admin access', async ({ page }) => {
 	const database = await createTestDatabaseConnection();
 

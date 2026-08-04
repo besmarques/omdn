@@ -205,6 +205,12 @@ Exit criteria:
 
 ### Step 1.4 — Move the document shell
 
+Status: completed on 2026-08-04. `src/root.jsx` is now the sole document shell
+and renders Framework metadata, links, scroll restoration, scripts, global CSS,
+language, viewport, and favicon declarations. The obsolete `index.html`,
+`src/main.jsx`, and nested `BrowserRouter` bootstrap were removed after direct
+route hydration passed without browser console or page errors.
+
 - Move the HTML document responsibilities into the Framework root route.
 - Preserve global CSS imports.
 - Preserve the existing favicon and viewport metadata.
@@ -244,7 +250,7 @@ Exit criteria:
 
 Only after every route has migrated:
 
-- Remove `BrowserRouter` bootstrap code.
+- The `BrowserRouter` bootstrap was removed in Step 1.4 after the Framework shell was proven.
 - Remove the old manual `AppRoutes` tree if no longer used.
 - Remove obsolete SPA-only files.
 - Keep the API client unchanged.

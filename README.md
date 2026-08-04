@@ -91,6 +91,7 @@ omdn/
 |   `-- dependency-graph.svg
 |-- scripts/
 |   `-- dev/generate-logic-map.js
+|-- public/favicon.svg
 |-- server/
 |   |-- database/
 |   |   |-- migrations/
@@ -184,7 +185,6 @@ omdn/
 |   |-- App.css
 |   |-- App.jsx
 |   |-- index.css
-|   |-- main.jsx
 |   |-- root.jsx
 |   |-- routes.js
 |   `-- routes/legacy.jsx
@@ -195,7 +195,6 @@ omdn/
 |-- .prettierrc
 |-- components.json
 |-- eslint.config.js
-|-- index.html
 |-- jsconfig.json
 |-- package-lock.json
 |-- package.json
@@ -360,7 +359,7 @@ Account deletion is initially a soft delete. A background retention worker runs 
 
 The generic `/api` router and JSON 404 handler are mounted last. With `APP_ENV=production`, Express serves immutable assets and the SPA fallback from `build/client`.
 
-The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` owns the Framework document shell. During incremental conversion, one Framework catch-all route delegates to the existing `AppRoutes` tree; individual pages move to dedicated route modules in Step 1.5. `index.html` and `src/main.jsx` remain temporarily as the previous bootstrap reference and are no longer Framework build entry points.
+The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, and Framework scripts. During incremental conversion, one Framework catch-all route delegates to the existing `AppRoutes` tree; individual pages move to dedicated route modules in Step 1.5.
 
 ## Design system
 
