@@ -16,5 +16,5 @@ export default [
 		route('register', 'routes/register.jsx'),
 		route('verify-email', 'routes/verify-email.jsx'),
 	]),
-	layout('routes/private-layout.jsx', [route('admin', 'routes/admin.jsx')]),
+	layout('routes/private-layout.jsx', [route('account/security', 'routes/account-security.jsx'), route('admin', 'routes/admin.jsx')]),
 ];

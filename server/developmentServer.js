@@ -16,9 +16,16 @@ if (config.appEnvironment !== 'development') {
 
 process.env.OMDN_COMBINED_DEV = 'true';
 
+const hmrPort = process.env.OMDN_HMR_PORT ? Number(process.env.OMDN_HMR_PORT) : undefined;
+
+if (hmrPort !== undefined && (!Number.isInteger(hmrPort) || hmrPort < 1 || hmrPort > 65_535)) {
+	throw new Error('OMDN_HMR_PORT must be a valid port');
+}
+
 const vite = await createViteServer({
 	appType: 'custom',
 	server: {
+		...(hmrPort === undefined ? {} : { ws: { port: hmrPort } }),
 		middlewareMode: true,
 	},
 });

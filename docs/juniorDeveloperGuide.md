@@ -44,7 +44,6 @@ Currently implemented:
 
 Not yet implemented as a complete user interface:
 
-- TOTP setup and account-management screens
 - Password recovery and account management screens
 - The blog/post system
 - Server-side rendering (SSR)
@@ -309,6 +308,12 @@ The login page detects that explicit state and replaces the password form with a
 6. The user scans the QR code and submits the current code.
 7. Successful verification enables TOTP and returns new recovery codes once.
 
+The protected `/account/security` skeleton implements this flow. It displays
+the QR code and manual secret, confirms setup, shows recovery codes once, and
+provides basic regeneration and disable forms. It intentionally has no final
+design yet. Administrators can reach it from `/admin`; authenticated users
+without admin permission are sent there after login.
+
 `TOTP_ENCRYPTION_KEY` must be a Base64 encoding of exactly 32 random bytes. It must not be exposed through a `VITE_*` variable.
 
 ### Password recovery and change
@@ -366,8 +371,9 @@ SSR is enabled for the Framework application. Public, authentication, and
 private route layouts now own cache policy and account-loading boundaries. Only
 private document/data requests load the MariaDB session; public pages do not.
 The Express boundary covers `/admin`, future nested routes such as
-`/admin/posts`, and their `.data` requests. It deliberately does not match a
-different public name such as `/administrator`.
+`/admin/posts`, `/account/security`, and their `.data` requests. It deliberately
+does not match a different public name such as `/administrator` or unrelated
+future account pages automatically.
 
 In production, the security middleware creates a new Content Security Policy nonce for every response. It replaces any client-supplied internal nonce header, and the server entry applies that trusted value to React Router's inline scripts. This lets the browser run the generated scripts without allowing arbitrary inline scripts.
 
@@ -375,7 +381,8 @@ In production, the security middleware creates a new Content Security Policy non
 
 - `/register` manages form state and displays server validation errors.
 - `/verify-email?token=...` submits the verification token once.
-- `/login` logs in, calls `/me`, and navigates administrators to `/admin`.
+- `/login` logs in, calls `/me`, and navigates administrators to `/admin` or other users to `/account/security`.
+- `/account/security` exposes the basic TOTP setup and management flow to every authenticated user.
 - `/admin` resolves the session and permission in server loaders and supports logout.
 - `/dev/design-system` exists only in development.
 - `/dev/page-examples/recipe` and `/dev/page-examples/gift-ideas` demonstrate how a template can use independently selected layouts, headers, footers, and region blocks. These are in-memory examples rather than database content.

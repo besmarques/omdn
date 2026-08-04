@@ -169,9 +169,12 @@ describe('Express application construction', () => {
 		await request(app).get('/admin.data');
 		await request(app).get('/admin/posts');
 		await request(app).get('/admin/posts.data');
+		await request(app).get('/account/security');
+		await request(app).get('/account/security.data');
+		await request(app).get('/account/profile');
 		await request(app).get('/administrator');
 
-		expect(sessionMiddleware).toHaveBeenCalledTimes(4);
-		expect(resolvePrincipal).toHaveBeenCalledTimes(4);
+		expect(sessionMiddleware).toHaveBeenCalledTimes(6);
+		expect(resolvePrincipal).toHaveBeenCalledTimes(6);
 	});
 });

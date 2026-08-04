@@ -16,13 +16,14 @@ if (!/^[a-zA-Z0-9_]+_playwright$/.test(testDatabaseName)) {
 	throw new Error(`Unsafe Playwright database name: ${testDatabaseName}`);
 }
 
-if (!Number.isInteger(frontendPort) || frontendPort < 1 || frontendPort > 65_535) {
+if (!Number.isInteger(frontendPort) || frontendPort < 1 || frontendPort > 65_534) {
 	throw new Error(`Invalid Playwright frontend port: ${frontendPort}`);
 }
 
 process.env.APP_ENV = 'development';
 process.env.DB_NAME = testDatabaseName;
 process.env.PORT = String(frontendPort);
+process.env.OMDN_HMR_PORT = String(frontendPort + 1);
 
 export default defineConfig({
 	testDir: './tests/e2e',

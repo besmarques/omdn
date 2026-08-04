@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import { logout } from '@/api/authApi';
 
@@ -27,6 +27,9 @@ export default function AdminPage({ authorized, principal }) {
 			<h1>Admin</h1>
 			<p>{message}</p>
 			{authorized && <p>Signed in as {principal.user.email}</p>}
+			<p>
+				<Link to="/account/security">Account security</Link>
+			</p>
 			<button type="button" onClick={handleLogout}>
 				Logout
 			</button>

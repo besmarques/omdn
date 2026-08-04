@@ -111,6 +111,35 @@ export function getCurrentAccount() {
 	return requestApi('/api/account/me');
 }
 
+export function getTotpStatus() {
+	return requestApi('/api/auth/totp/status');
+}
+
+export function setupTotp() {
+	return requestApi('/api/auth/totp/setup', { method: 'POST' });
+}
+
+export function enableTotp(code) {
+	return requestApi('/api/auth/totp/enable', {
+		method: 'POST',
+		body: JSON.stringify({ code }),
+	});
+}
+
+export function regenerateTotpRecoveryCodes(code) {
+	return requestApi('/api/auth/totp/recovery-codes/regenerate', {
+		method: 'POST',
+		body: JSON.stringify({ code }),
+	});
+}
+
+export function disableTotp({ code, password }) {
+	return requestApi('/api/auth/totp/disable', {
+		method: 'POST',
+		body: JSON.stringify({ code, password }),
+	});
+}
+
 export async function logout() {
 	const result = await requestApi('/api/auth/logout', {
 		method: 'POST',

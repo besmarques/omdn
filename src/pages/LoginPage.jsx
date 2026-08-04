@@ -28,7 +28,7 @@ export default function LoginPage() {
 			return;
 		}
 
-		setMessage('Login successful. This account does not have administrator access.');
+		navigate('/account/security');
 	}
 
 	async function handleSubmit(event) {

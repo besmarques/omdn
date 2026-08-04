@@ -786,7 +786,8 @@ public routes avoid MariaDB sessions.
 
 Status: complete. Session-bound CSRF tokens, origin/fetch-metadata checks,
 frontend token refresh, session lifetime/revocation rules, loader-owned account
-presentation, and the complete TOTP login challenge are implemented and tested.
+presentation, the complete TOTP login challenge, and the basic authenticated
+TOTP account-security screen are implemented and tested.
 
 1. [x] Implement CSRF and strict origin policy.
 2. [x] Implement session idle/absolute expiry and targeted session revocation.

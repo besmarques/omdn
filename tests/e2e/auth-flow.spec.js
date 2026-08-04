@@ -58,17 +58,6 @@ async function getCsrfToken(request) {
 	return body.data.csrfToken;
 }
 
-async function postWithCsrf(request, path, data) {
-	const csrfToken = await getCsrfToken(request);
-
-	return request.post(path, {
-		data,
-		headers: {
-			'x-csrf-token': csrfToken,
-		},
-	});
-}
-
 async function loginThroughPage(page) {
 	await page.goto('/login');
 	await page.getByLabel('Email').fill(email);
@@ -198,7 +187,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 
 		await test.step('deny a subscriber access to the admin page', async () => {
 			await loginThroughPage(page);
-			await expect(page.getByText('Login successful. This account does not have administrator access.')).toBeVisible();
+			await expect(page).toHaveURL(/\/account\/security$/u);
+			await expect(page.getByRole('heading', { name: 'Account security' })).toBeVisible();
 
 			await page.goto('/admin');
 			await expect(page.getByText('Forbidden')).toBeVisible();
@@ -225,17 +215,18 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		let recoveryCode;
 
 		await test.step('enable TOTP in the authenticated browser session', async () => {
-			const setupResponse = await postWithCsrf(page.request, '/api/auth/totp/setup');
-			const setupBody = await expectApiResponse(setupResponse, 200);
+			await page.getByRole('link', { name: 'Account security' }).click();
+			await expect(page).toHaveURL(/\/account\/security$/u);
+			await page.getByRole('button', { name: 'Set up authenticator' }).click();
+			await expect(page.getByAltText('Authenticator setup QR code')).toBeVisible();
 
-			totpSecret = setupBody.data.secret;
+			const manualSetupText = await page.getByText(/Manual setup key:/u).textContent();
+			totpSecret = manualSetupText.replace('Manual setup key:', '').trim();
+			await page.getByLabel('Authenticator code').fill(generateTotp(totpSecret));
+			await page.getByRole('button', { name: 'Confirm and enable' }).click();
+			await expect(page.getByText('Two-factor authentication enabled. Save the recovery codes now.')).toBeVisible();
 
-			const enableResponse = await postWithCsrf(page.request, '/api/auth/totp/enable', {
-				code: generateTotp(totpSecret),
-			});
-			const enableBody = await expectApiResponse(enableResponse, 200);
-
-			[recoveryCode] = enableBody.data.recoveryCodes;
+			recoveryCode = await page.locator('section').filter({ hasText: 'Recovery codes' }).locator('code').first().textContent();
 
 			expect(recoveryCode).toBeTruthy();
 
@@ -248,6 +239,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 				[email],
 			);
 
+			await page.getByRole('link', { name: 'Back' }).click();
 			await page.getByRole('button', { name: 'Logout' }).click();
 			await expect(page).toHaveURL(/\/login$/u);
 		});
