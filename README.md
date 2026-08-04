@@ -102,7 +102,8 @@ omdn/
 |   |   |   |-- 001_create_auth_tables.sql
 |   |   |   |-- 002_create_rate_limit_counters.sql
 |   |   |   |-- 003_create_auth_event_outbox.sql
-|   |   |   `-- 004_simplify_sessions.sql
+|   |   |   |-- 004_simplify_sessions.sql
+|   |   |   `-- 005_add_deleted_user_retention_index.sql
 |   |   `-- seeds/001_seed_roles_permissions.sql
 |   |-- dbConnect/
 |   |   |-- createPool.js
@@ -316,7 +317,8 @@ Apply these SQL files in order:
 2. `server/database/migrations/002_create_rate_limit_counters.sql`
 3. `server/database/migrations/003_create_auth_event_outbox.sql`
 4. `server/database/migrations/004_simplify_sessions.sql`
-5. `server/database/seeds/001_seed_roles_permissions.sql`
+5. `server/database/migrations/005_add_deleted_user_retention_index.sql`
+6. `server/database/seeds/001_seed_roles_permissions.sql`
 
 They create and evolve the authentication, authorization, session, token, TOTP, recovery-code, audit, shared rate-limit, and authentication-event outbox schema, then seed the initial roles and permissions. There is no npm migration command.
 
