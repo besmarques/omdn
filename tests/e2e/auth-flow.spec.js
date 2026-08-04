@@ -51,6 +51,24 @@ async function expectApiResponse(response, expectedStatus) {
 	return body;
 }
 
+async function getCsrfToken(request) {
+	const response = await request.get('/api/auth/csrf');
+	const body = await expectApiResponse(response, 200);
+
+	return body.data.csrfToken;
+}
+
+async function postWithCsrf(request, path, data) {
+	const csrfToken = await getCsrfToken(request);
+
+	return request.post(path, {
+		data,
+		headers: {
+			'x-csrf-token': csrfToken,
+		},
+	});
+}
+
 async function loginThroughPage(page) {
 	await page.goto('/login');
 	await page.getByLabel('Email').fill(email);
@@ -117,13 +135,13 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		let recoveryCode;
 
 		await test.step('enable TOTP in the authenticated browser session', async () => {
-			const setupResponse = await page.request.post('/api/auth/totp/setup');
+			const setupResponse = await postWithCsrf(page.request, '/api/auth/totp/setup');
 			const setupBody = await expectApiResponse(setupResponse, 200);
 
 			totpSecret = setupBody.data.secret;
 
-			const enableResponse = await page.request.post('/api/auth/totp/enable', {
-				data: { code: generateTotp(totpSecret) },
+			const enableResponse = await postWithCsrf(page.request, '/api/auth/totp/enable', {
+				code: generateTotp(totpSecret),
 			});
 			const enableBody = await expectApiResponse(enableResponse, 200);
 
@@ -148,8 +166,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await loginThroughPage(page);
 			await expect(page.getByText('Two-factor authentication is required')).toBeVisible();
 
-			const verifyResponse = await page.request.post('/api/auth/totp/login/verify', {
-				data: { code: generateTotp(totpSecret) },
+			const verifyResponse = await postWithCsrf(page.request, '/api/auth/totp/login/verify', {
+				code: generateTotp(totpSecret),
 			});
 
 			await expectApiResponse(verifyResponse, 200);
@@ -163,8 +181,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await loginThroughPage(page);
 			await expect(page.getByText('Two-factor authentication is required')).toBeVisible();
 
-			const recoveryResponse = await page.request.post('/api/auth/totp/login/verify', {
-				data: { code: recoveryCode },
+			const recoveryResponse = await postWithCsrf(page.request, '/api/auth/totp/login/verify', {
+				code: recoveryCode,
 			});
 
 			const recoveryBody = await expectApiResponse(recoveryResponse, 200);
@@ -190,9 +208,14 @@ test('rate limits invalid password reset attempts', async ({ request }) => {
 		password: 'Invalid-Reset-Password-2026!',
 	};
 
+	const csrfToken = await getCsrfToken(request);
+
 	for (let attempt = 0; attempt < 5; attempt += 1) {
 		const response = await request.post('/api/auth/password/reset', {
 			data: payload,
+			headers: {
+				'x-csrf-token': csrfToken,
+			},
 		});
 
 		expect(response.status()).toBe(400);
@@ -200,6 +223,9 @@ test('rate limits invalid password reset attempts', async ({ request }) => {
 
 	const limitedResponse = await request.post('/api/auth/password/reset', {
 		data: payload,
+		headers: {
+			'x-csrf-token': csrfToken,
+		},
 	});
 
 	expect(limitedResponse.status()).toBe(429);

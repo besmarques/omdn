@@ -1,9 +1,12 @@
 import express from 'express';
 
+import { issueCsrfToken } from '#server/middleware/csrfMiddleware';
 import requireGuest from '#server/modules/auth/shared/middleware/requireGuest';
 
 export default function createAuthRoutes() {
 	const router = express.Router();
+
+	router.get('/csrf', issueCsrfToken);
 
 	router.get('/status', (req, res) => {
 		return res.json({

@@ -104,6 +104,8 @@ class CookieJar {
 	}
 }
 
+const anonymousCookies = new CookieJar();
+
 let serverProcess = null;
 let serverOutput = '';
 
@@ -241,9 +243,10 @@ async function stopServer() {
 	console.log('✓ Backend stopped');
 }
 
-async function requestApi({ method, path, body, cookies }) {
+async function requestApiWithoutCsrf({ method, path, body, cookies, additionalHeaders = {} }) {
 	const headers = {
 		accept: 'application/json',
+		...additionalHeaders,
 	};
 
 	if (cookies?.header) {
@@ -288,6 +291,78 @@ async function requestApi({ method, path, body, cookies }) {
 	}
 
 	return result;
+}
+
+async function requestApi({ method, path, body, cookies }) {
+	const requestCookies = cookies ?? anonymousCookies;
+	const normalizedMethod = method.toUpperCase();
+
+	if (!['GET', 'HEAD', 'OPTIONS'].includes(normalizedMethod)) {
+		const csrfResponse = await requestApiWithoutCsrf({
+			method: 'GET',
+			path: '/api/auth/csrf',
+			cookies: requestCookies,
+		});
+		const csrfToken = csrfResponse.body?.data?.csrfToken;
+
+		if (csrfResponse.status !== 200 || typeof csrfToken !== 'string') {
+			throw new Error(`Unable to obtain CSRF token: ${JSON.stringify(csrfResponse.body)}`);
+		}
+
+		return requestApiWithoutCsrf({
+			method,
+			path,
+			body,
+			cookies: requestCookies,
+			additionalHeaders: {
+				'x-csrf-token': csrfToken,
+			},
+		});
+	}
+
+	return requestApiWithoutCsrf({
+		method,
+		path,
+		body,
+		cookies: requestCookies,
+	});
+}
+
+async function verifyCsrfProtection() {
+	const cookies = new CookieJar();
+	const missingToken = await requestApiWithoutCsrf({
+		method: 'POST',
+		path: '/api/auth/register',
+		cookies,
+		body: {},
+	});
+
+	expectStatus(missingToken, 403, 'Reject state change without CSRF token');
+
+	const tokenResponse = await requestApiWithoutCsrf({
+		method: 'GET',
+		path: '/api/auth/csrf',
+		cookies,
+	});
+	const csrfToken = tokenResponse.body?.data?.csrfToken;
+
+	if (tokenResponse.status !== 200 || typeof csrfToken !== 'string') {
+		throw new Error(`Unable to obtain CSRF token: ${JSON.stringify(tokenResponse.body)}`);
+	}
+
+	const crossSite = await requestApiWithoutCsrf({
+		method: 'POST',
+		path: '/api/auth/register',
+		cookies,
+		body: {},
+		additionalHeaders: {
+			origin: 'https://attacker.example',
+			'sec-fetch-site': 'cross-site',
+			'x-csrf-token': csrfToken,
+		},
+	});
+
+	expectStatus(crossSite, 403, 'Reject cross-site state change with a valid CSRF token');
 }
 
 function expectStatus(result, expectedStatus, description) {
@@ -564,6 +639,7 @@ async function run() {
 		await deleteLoopbackOperationRateLimitCounters(db);
 		existingRateLimitCounterKeys = await readRateLimitCounterKeys(db);
 		await startServer();
+		await verifyCsrfProtection();
 
 		const registration = await requestApi({
 			method: 'POST',

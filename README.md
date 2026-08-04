@@ -303,6 +303,8 @@ Sensitive authentication routes use account/IP-aware rate limits backed by MySQL
 
 Unexpected API failures return a stable JSON response with an `x-correlation-id` response header and matching `correlationId` body field. Valid caller-supplied correlation IDs are preserved; unsafe values are replaced. Internal error details are logged server-side and are not exposed to clients.
 
+Every state-changing `/api` request requires a session-bound CSRF token in the `X-CSRF-Token` header. Clients obtain it from `GET /api/auth/csrf`; the frontend API client fetches, caches, and refreshes it automatically. Browser requests are also checked with Fetch Metadata and Origin/Referer information, including when a development or reverse proxy rewrites the internal host.
+
 Authenticated users can change their password through the account module. The flow verifies the current password, updates it transactionally, revokes other sessions, regenerates the current session, and records the outcome in the authentication audit log.
 
 Account deletion is initially a soft delete. A background retention worker runs on application startup and then once per day, permanently deleting accounts whose `deleted_at` timestamp is at least one year old. Each transactional batch also removes serialized sessions, pending authentication-event payloads, and delivered authentication events; foreign-key cascades remove the remaining user-owned records.
@@ -322,6 +324,7 @@ Account deletion is initially a soft delete. A background retention worker runs 
 | `GET /api`                                      | Public                    | API health response                                                               |
 | `GET /api/test-items`                           | Public                    | Reads test items from MySQL                                                       |
 | `GET /api/auth/status`                          | Public                    | Reports session authentication status                                             |
+| `GET /api/auth/csrf`                            | Public                    | Issues the session-bound token required by state-changing API requests            |
 | `GET /api/auth/guest-test`                      | Guests only               | Exercises guest middleware                                                        |
 | `POST /api/auth/register`                       | Guests only               | Registers a pending subscriber                                                    |
 | `POST /api/auth/login`                          | Guests only               | Authenticates and creates a session                                               |

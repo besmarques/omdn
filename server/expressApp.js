@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 
 import { apiErrorHandler, apiRequestContext } from '#server/middleware/apiErrorMiddleware';
+import { requireCsrfProtection } from '#server/middleware/csrfMiddleware';
 import createSessionMiddleware from '#server/middleware/sessionMiddleware';
 
 import createAccountModule from '#server/modules/account/accountModule';
@@ -37,6 +38,7 @@ export default function createApp(db, config) {
 
 	app.locals.sessionStore = session.store;
 	app.use(session.middleware);
+	app.use('/api', requireCsrfProtection);
 
 	const authenticated = requireAuth(db);
 	const createRateLimitStore = (namespace) => createMySqlRateLimitStore(db, namespace);
