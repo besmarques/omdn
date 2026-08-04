@@ -9,6 +9,8 @@
 	"scripts": {
 		"test": "vitest run",
 		"test:watch": "vitest",
+		"test:e2e": "playwright test",
+		"test:e2e:headed": "playwright test --headed",
 		"dev": "vite",
 		"dev:server": "node --env-file=.env.development --watch server/server.js",
 		"build": "vite build",
@@ -61,6 +63,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@playwright/test": "^1.62.1",
 		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.3",

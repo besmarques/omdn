@@ -84,6 +84,10 @@ Exit criteria:
 
 ### Step 0.3 — Add browser characterization tests
 
+Status: completed on 2026-08-04. The Chromium suite uses an automatically
+rebuilt `*_playwright` database and combines browser interaction with the same
+browser context's API client for the not-yet-implemented TOTP screen.
+
 Decision required: approve Playwright.
 
 After approval:

@@ -220,22 +220,29 @@ npm run dev:server
 
 ## Available scripts
 
-| Command                | Description                                                 |
-| ---------------------- | ----------------------------------------------------------- |
-| `npm test`             | Runs Vitest once                                            |
-| `npm run test:watch`   | Runs Vitest in watch mode                                   |
-| `npm run dev`          | Starts Vite                                                 |
-| `npm run dev:server`   | Loads `.env.development` and starts Express in watch mode   |
-| `npm run build`        | Builds the frontend into `dist/`                            |
-| `npm start`            | Builds the frontend through `prestart`, then starts Express |
-| `npm run lint`         | Runs ESLint                                                 |
-| `npm run preview`      | Previews the production frontend build                      |
-| `npm run diagram`      | Generates the DOT dependency graph and SVG                  |
-| `npm run logic-map`    | Regenerates Mermaid logic maps under `docs/logic/`          |
-| `npm run maps`         | Regenerates dependency and logic maps                       |
-| `npm run diagram:all`  | Alias for regenerating both map sets                        |
-| `npm run format`       | Formats the repository with Prettier                        |
-| `npm run format:check` | Checks formatting without writing files                     |
+| Command                   | Description                                                 |
+| ------------------------- | ----------------------------------------------------------- |
+| `npm test`                | Runs Vitest once                                            |
+| `npm run test:watch`      | Runs Vitest in watch mode                                   |
+| `npm run test:e2e`        | Runs Playwright auth characterization tests                 |
+| `npm run test:e2e:headed` | Runs Playwright with a visible Chromium browser             |
+| `npm run dev`             | Starts Vite                                                 |
+| `npm run dev:server`      | Loads `.env.development` and starts Express in watch mode   |
+| `npm run build`           | Builds the frontend into `dist/`                            |
+| `npm start`               | Builds the frontend through `prestart`, then starts Express |
+| `npm run lint`            | Runs ESLint                                                 |
+| `npm run preview`         | Previews the production frontend build                      |
+| `npm run diagram`         | Generates the DOT dependency graph and SVG                  |
+| `npm run logic-map`       | Regenerates Mermaid logic maps under `docs/logic/`          |
+| `npm run maps`            | Regenerates dependency and logic maps                       |
+| `npm run diagram:all`     | Alias for regenerating both map sets                        |
+| `npm run format`          | Formats the repository with Prettier                        |
+| `npm run format:check`    | Checks formatting without writing files                     |
+
+Playwright rebuilds and uses a separate database named by appending
+`_playwright` to `DB_NAME`. The configured database user must be allowed to
+create and drop that isolated database. Install its local browser once with
+`npx playwright install chromium`; CI installs Chromium automatically.
 
 ## Architecture maps
 
