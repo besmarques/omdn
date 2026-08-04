@@ -53,21 +53,22 @@ The files under `src/components/ui/` are an offline shadcn reference library. Th
 
 ## 3. Important folders
 
-| Path                 | Responsibility                                 |
-| -------------------- | ---------------------------------------------- |
-| `src/`               | Code that runs in the browser                  |
-| `src/pages/`         | Page components such as login and registration |
-| `src/api/`           | Browser-to-backend API calls                   |
-| `src/routes.js`      | Maps URLs to React Router Framework modules    |
-| `src/routes/`        | Framework route modules for individual pages   |
-| `src/components/ui/` | Offline shadcn reference components            |
-| `server/`            | Code that runs in Node.js                      |
-| `server/modules/`    | Business features grouped by domain            |
-| `server/middleware/` | Rules applied to many requests                 |
-| `server/database/`   | SQL migrations and seed data                   |
-| `scripts/dev/`       | Maintenance, diagram, and smoke-test scripts   |
-| `tests/e2e/`         | Playwright browser tests                       |
-| `docs/`              | Architecture decisions and generated diagrams  |
+| Path                  | Responsibility                                 |
+| --------------------- | ---------------------------------------------- |
+| `src/`                | Code that runs in the browser                  |
+| `src/pages/`          | Page components such as login and registration |
+| `src/api/`            | Browser-to-backend API calls                   |
+| `src/routes.js`       | Maps URLs to React Router Framework modules    |
+| `src/routes/`         | Framework route modules for individual pages   |
+| `src/components/ui/`  | Offline shadcn reference components            |
+| `server/`             | Code that runs in Node.js                      |
+| `server/application/` | Process services and worker lifecycle          |
+| `server/modules/`     | Business features grouped by domain            |
+| `server/middleware/`  | Rules applied to many requests                 |
+| `server/database/`    | SQL migrations and seed data                   |
+| `scripts/dev/`        | Maintenance, diagram, and smoke-test scripts   |
+| `tests/e2e/`          | Playwright browser tests                       |
+| `docs/`               | Architecture decisions and generated diagrams  |
 
 Frontend imports beginning with `@/` point to `src/`. Backend imports beginning with `#server/` point to `server/`.
 
@@ -78,12 +79,16 @@ The entry point is `server/server.js`.
 It performs these steps in order:
 
 1. `serverConfig.js` reads and validates environment variables with Zod.
-2. `createPool.js` creates the MariaDB connection pool.
-3. `expressApp.js` creates and connects the Express application.
-4. The authentication-event worker starts.
-5. The deleted-account cleanup worker starts.
+2. `createApplication.js` creates the MariaDB pool and process-level services.
+3. `expressApp.js` composes the Express middleware and routes without listening.
+4. `createWorkerLifecycle.js` groups the current background workers.
+5. The worker lifecycle starts both workers.
 6. Express starts listening on the configured port.
 7. Shutdown handlers are registered for `SIGINT` and `SIGTERM`.
+
+This separation matters because tests and the future React Router handler can
+construct the complete HTTP application without opening a port. Only
+`server.js`, the process entry point, is allowed to call `app.listen()`.
 
 The program refuses to start if required configuration is missing or invalid. This is intentional: discovering a bad secret or database setting during startup is safer than discovering it during a real request.
 
@@ -91,7 +96,7 @@ When the process stops, `server/shutdown.js`:
 
 1. Stops accepting HTTP traffic.
 2. Drains pending audit-event writes.
-3. Stops both background workers.
+3. Stops all registered background workers through the worker lifecycle.
 4. Closes the session store.
 5. Closes the database pool.
 

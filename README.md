@@ -93,6 +93,10 @@ omdn/
 |   `-- dev/generate-logic-map.js
 |-- public/favicon.svg
 |-- server/
+|   |-- application/
+|   |   |-- createApplication.js
+|   |   |-- createApplicationServices.js
+|   |   `-- createWorkerLifecycle.js
 |   |-- database/
 |   |   |-- migrations/
 |   |   |   |-- 001_create_auth_tables.sql
@@ -179,7 +183,6 @@ omdn/
 |   |-- pages/
 |   |   |-- dev/DesignSystemPage.jsx
 |   |   `-- HomePage.jsx
-|   |-- App.css
 |   |-- index.css
 |   |-- root.jsx
 |   |-- routes.js
@@ -216,7 +219,8 @@ Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files
 - Auth is divided into credentials, registration, email-verification, password-recovery, and TOTP submodules. Each capability owns its persistence repository; only cross-capability session persistence, schemas, events, and middleware live under `auth/shared/`.
 - Auth services receive explicit dependency objects. Transactional services obtain one executor through `dbConnect/withConnection.js` and pass it to capability repositories so related queries remain on the same connection.
 - `server/routes/` contains shared/cross-feature routers; `server/middleware/` contains shared middleware.
-- `server/expressApp.js` composes the application; `server/server.js` starts the listener.
+- `server/application/` constructs process-level services and owns worker lifecycle without opening a listener.
+- `server/expressApp.js` composes only the HTTP application; `server/server.js` starts the listener and registers shutdown signals.
 - Frontend imports use `@/*`; backend imports use `#server/*`.
 - Development generators live under `scripts/dev/`; generated maps live under `docs/`.
 

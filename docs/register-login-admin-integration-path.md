@@ -14,14 +14,14 @@ The first implementation will use plain HTML elements. Styling, layout systems, 
 
 ## Existing backend contract
 
-| Action | Request | Successful result | Important alternatives |
-| --- | --- | --- | --- |
-| Register | `POST /api/auth/register` | `202` with a generic message | `400` validation error, `429` rate limit |
-| Verify email | `POST /api/auth/email/verify` | `200` | Invalid or expired token response |
-| Login | `POST /api/auth/login` | `200` and a session cookie | `202` TOTP required, `401` invalid credentials, `403` unavailable/unverified account, `429` rate limit |
-| Read current account | `GET /api/account/me` | `200` with `user`, `roles`, and `permissions` | `401` unauthenticated |
-| Test admin access | `GET /api/admin/test` | `200` for `users.manage` | `401` unauthenticated, `403` missing permission |
-| Logout | `POST /api/auth/logout` | `200` and cleared session cookie | Server error |
+| Action               | Request                       | Successful result                             | Important alternatives                                                                                 |
+| -------------------- | ----------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Register             | `POST /api/auth/register`     | `202` with a generic message                  | `400` validation error, `429` rate limit                                                               |
+| Verify email         | `POST /api/auth/email/verify` | `200`                                         | Invalid or expired token response                                                                      |
+| Login                | `POST /api/auth/login`        | `200` and a session cookie                    | `202` TOTP required, `401` invalid credentials, `403` unavailable/unverified account, `429` rate limit |
+| Read current account | `GET /api/account/me`         | `200` with `user`, `roles`, and `permissions` | `401` unauthenticated                                                                                  |
+| Test admin access    | `GET /api/admin/test`         | `200` for `users.manage`                      | `401` unauthenticated, `403` missing permission                                                        |
+| Logout               | `POST /api/auth/logout`       | `200` and cleared session cookie              | Server error                                                                                           |
 
 The frontend and API are served from the same origin. Requests should still use `credentials: 'include'` explicitly so session-cookie behavior remains clear and continues to work if development hosting changes later.
 
@@ -72,12 +72,12 @@ This is test setup, not part of the public registration endpoint. The frontend m
 
 ## Proposed frontend routes
 
-| Frontend route | Purpose | Access behavior |
-| --- | --- | --- |
-| `/register` | Submit `displayName`, `email`, and `password` | If already authenticated, offer navigation to `/admin` or logout |
-| `/verify-email` | Submit the `token` query parameter | On success, link or navigate to `/login` |
-| `/login` | Submit `email` and `password` | On success, load `/api/account/me` and navigate according to permissions |
-| `/admin` | Call `/api/account/me`, require `users.manage`, then call `/api/admin/test` | Redirect `401` to `/login`; render a plain forbidden message for `403` |
+| Frontend route  | Purpose                                                                     | Access behavior                                                          |
+| --------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `/register`     | Submit `displayName`, `email`, and `password`                               | If already authenticated, offer navigation to `/admin` or logout         |
+| `/verify-email` | Submit the `token` query parameter                                          | On success, link or navigate to `/login`                                 |
+| `/login`        | Submit `email` and `password`                                               | On success, load `/api/account/me` and navigate according to permissions |
+| `/admin`        | Call `/api/account/me`, require `users.manage`, then call `/api/admin/test` | Redirect `401` to `/login`; render a plain forbidden message for `403`   |
 
 The existing `/` and development-only routes remain unchanged. This document
 originally preceded the Framework migration; the file layout below reflects the

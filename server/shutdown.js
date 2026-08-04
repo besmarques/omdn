@@ -16,8 +16,7 @@ function closeHttpServer(server) {
 export default function createGracefulShutdown({
 	server,
 	authEventService,
-	authEventOutboxWorker,
-	deletedAccountCleanupWorker,
+	workerLifecycle,
 	sessionStore,
 	db,
 	timeoutMs = 8000,
@@ -43,8 +42,7 @@ export default function createGracefulShutdown({
 			try {
 				await closeHttpServer(server);
 				await authEventService.drain();
-				await authEventOutboxWorker.stop();
-				await deletedAccountCleanupWorker.stop();
+				await workerLifecycle.stop();
 				await sessionStore.close();
 				await db.end();
 

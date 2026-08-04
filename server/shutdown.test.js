@@ -20,10 +20,7 @@ function createDependencies({ closeServer = true } = {}) {
 	const authEventService = {
 		drain: vi.fn().mockResolvedValue(),
 	};
-	const authEventOutboxWorker = {
-		stop: vi.fn().mockResolvedValue(),
-	};
-	const deletedAccountCleanupWorker = {
+	const workerLifecycle = {
 		stop: vi.fn().mockResolvedValue(),
 	};
 	const sessionStore = {
@@ -41,8 +38,7 @@ function createDependencies({ closeServer = true } = {}) {
 	return {
 		server,
 		authEventService,
-		authEventOutboxWorker,
-		deletedAccountCleanupWorker,
+		workerLifecycle,
 		sessionStore,
 		db,
 		logger,
@@ -64,8 +60,7 @@ describe('graceful shutdown', () => {
 		expect(dependencies.server.close).toHaveBeenCalledOnce();
 		expect(dependencies.server.closeIdleConnections).toHaveBeenCalledOnce();
 		expect(dependencies.authEventService.drain).toHaveBeenCalledOnce();
-		expect(dependencies.authEventOutboxWorker.stop).toHaveBeenCalledOnce();
-		expect(dependencies.deletedAccountCleanupWorker.stop).toHaveBeenCalledOnce();
+		expect(dependencies.workerLifecycle.stop).toHaveBeenCalledOnce();
 		expect(dependencies.sessionStore.close).toHaveBeenCalledOnce();
 		expect(dependencies.db.end).toHaveBeenCalledOnce();
 		expect(dependencies.forceExit).not.toHaveBeenCalled();

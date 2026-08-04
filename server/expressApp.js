@@ -5,26 +5,16 @@ import express from 'express';
 
 import { apiErrorHandler, apiRequestContext } from '#server/middleware/apiErrorMiddleware';
 import { requireCsrfProtection } from '#server/middleware/csrfMiddleware';
-import createSessionMiddleware from '#server/middleware/sessionMiddleware';
 
 import createAccountModule from '#server/modules/account/accountModule';
-import createDeletedAccountCleanupRepository from '#server/modules/account/deletedAccountCleanup/deletedAccountCleanupRepository';
-import createDeletedAccountCleanupWorker from '#server/modules/account/deletedAccountCleanup/deletedAccountCleanupWorker';
 import createAdminModule from '#server/modules/admin/adminModule';
 import createAuthModule from '#server/modules/auth/authModule';
 
-import createAuthEventOutboxRepository from '#server/modules/auth/shared/events/authEventOutboxRepository';
-import createAuthEventOutboxWorker from '#server/modules/auth/shared/events/authEventOutboxWorker';
-import createAuthEventRepository from '#server/modules/auth/shared/events/authEventRepository';
-import createAuthEventService from '#server/modules/auth/shared/events/authEventService';
-
-import requireAuth from '#server/modules/auth/shared/middleware/requireAuth';
-import createMySqlRateLimitStore from '#server/modules/auth/shared/middleware/mySqlRateLimitStore';
-
 import createApiRoutes from '#server/routes/apiRoutes';
 
-export default function createApp(db, config) {
+export default function createApp(db, config, services) {
 	const app = express();
+	const { authenticated, authEventService, createRateLimitStore, session } = services;
 
 	app.use('/api', apiRequestContext);
 
@@ -34,29 +24,9 @@ export default function createApp(db, config) {
 		app.set('trust proxy', 1);
 	}
 
-	const session = createSessionMiddleware(db, config.session);
-
-	app.locals.sessionStore = session.store;
+	app.locals.applicationServices = services;
 	app.use(session.middleware);
 	app.use('/api', requireCsrfProtection);
-
-	const authenticated = requireAuth(db);
-	const createRateLimitStore = (namespace) => createMySqlRateLimitStore(db, namespace);
-	const authEventRepository = createAuthEventRepository(db);
-	const authEventOutboxRepository = createAuthEventOutboxRepository(db);
-	const authEventService = createAuthEventService(authEventOutboxRepository);
-	const authEventOutboxWorker = createAuthEventOutboxWorker({
-		authEventRepository,
-		outboxRepository: authEventOutboxRepository,
-	});
-	const deletedAccountCleanupRepository = createDeletedAccountCleanupRepository(db);
-	const deletedAccountCleanupWorker = createDeletedAccountCleanupWorker({
-		repository: deletedAccountCleanupRepository,
-	});
-
-	app.locals.authEventOutboxWorker = authEventOutboxWorker;
-	app.locals.authEventService = authEventService;
-	app.locals.deletedAccountCleanupWorker = deletedAccountCleanupWorker;
 
 	app.use('/api/auth', createAuthModule(db, createRateLimitStore, authEventService, config));
 

@@ -276,6 +276,13 @@ Release gate:
 
 ### Step 2.1 — Refactor application construction for a Framework handler
 
+Completed on 2026-08-04. `server/application/` now constructs the database,
+process-level services, Express application, and a single worker-lifecycle
+boundary. `expressApp.js` only composes HTTP behavior, while `server.js` alone
+starts the listener and registers process signals. Focused tests prove that both
+the application graph and the real Express application can be constructed
+without opening a network listener.
+
 Split construction concerns without changing behavior:
 
 ```text
@@ -288,14 +295,14 @@ React Router request context
 
 Requirements:
 
-- Tests can construct Express without starting a network listener.
-- Services remain stateless process-level dependencies where appropriate.
-- Request-specific state is never stored globally.
-- Existing API routes remain mounted under `/api`.
+- [x] Tests can construct Express without starting a network listener.
+- [x] Services remain stateless process-level dependencies where appropriate.
+- [x] Request-specific state is never stored globally.
+- [x] Existing API routes remain mounted under `/api`.
 
 Exit criteria:
 
-- Existing API integration tests pass unchanged.
+- [x] Existing API integration tests pass unchanged.
 
 ### Step 2.2 — Establish middleware order
 

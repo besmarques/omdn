@@ -225,6 +225,12 @@ Changing to a `__Host-` cookie and changing session lifetimes are worthwhile pro
 
 The existing code already uses services and repositories. New blog modules must follow the same dependency direction and improve consistency rather than create a parallel architecture.
 
+The Phase 2 bootstrap refactor is complete. `server/application/` constructs
+the database, process-level services, Express application, and worker lifecycle.
+`expressApp.js` owns only HTTP composition, and `server.js` is the sole owner of
+the network listener and process signals. This boundary is ready to receive the
+React Router request handler without moving request-specific state into globals.
+
 Repository methods must not independently commit partial business workflows. A service owns one transaction for operations such as:
 
 - Publish post

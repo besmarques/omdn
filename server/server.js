@@ -1,16 +1,13 @@
 import process from 'node:process';
 
+import createApplication from '#server/application/createApplication';
 import loadServerConfig from '#server/config/serverConfig';
-import createApp from '#server/expressApp';
-import createPool from '#server/dbConnect/createPool';
 import createGracefulShutdown from '#server/shutdown';
 
 const config = loadServerConfig(process.env);
-const db = createPool(config.database);
-const app = createApp(db, config);
+const { app, db, services, workerLifecycle } = createApplication(config);
 
-app.locals.authEventOutboxWorker.start();
-app.locals.deletedAccountCleanupWorker.start();
+workerLifecycle.start();
 
 const server = app.listen(config.port, () => {
 	console.log(`OMDN running on port ${config.port}`);
@@ -18,10 +15,9 @@ const server = app.listen(config.port, () => {
 
 const shutdown = createGracefulShutdown({
 	server,
-	authEventService: app.locals.authEventService,
-	authEventOutboxWorker: app.locals.authEventOutboxWorker,
-	deletedAccountCleanupWorker: app.locals.deletedAccountCleanupWorker,
-	sessionStore: app.locals.sessionStore,
+	authEventService: services.authEventService,
+	workerLifecycle,
+	sessionStore: services.session.store,
 	db,
 });
 
