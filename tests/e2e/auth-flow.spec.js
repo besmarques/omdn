@@ -130,6 +130,20 @@ test('renders the homepage through its Framework route module', async ({ page })
 	expect(browserProblems).toEqual([]);
 });
 
+test('composes development page templates independently from layouts and regions', async ({ page }) => {
+	const recipeResponse = await page.goto('/dev/page-examples/recipe');
+
+	expect(recipeResponse?.status()).toBe(200);
+	await expect(page.getByRole('heading', { level: 1, name: 'Christmas biscuits' })).toBeVisible();
+	await expect(page.getByRole('complementary', { name: 'Related content' })).toContainText('Related recipes');
+	await expect(page.getByRole('complementary', { name: 'Related content' })).toContainText('Christmas newsletter');
+
+	await page.getByRole('link', { name: 'Gift ideas, full width' }).click();
+	await expect(page).toHaveURL(/\/dev\/page-examples\/gift-ideas$/u);
+	await expect(page.getByRole('heading', { level: 1, name: 'Gift ideas for a close friend' })).toBeVisible();
+	await expect(page.getByRole('complementary', { name: 'Related content' })).toHaveCount(0);
+});
+
 test('characterizes registration, authentication, TOTP, and admin access', async ({ page }) => {
 	const database = await createTestDatabaseConnection();
 

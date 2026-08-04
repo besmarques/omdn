@@ -220,6 +220,7 @@ Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files
 ### Structure conventions
 
 - `src/` contains the browser application.
+- `src/features/pageRendering/` contains the safe registries, layouts, content templates, and region blocks used to compose data-driven public pages.
 - `server/modules/` contains feature-owned composition, routes, controllers, services, schemas, repositories, middleware, and colocated tests.
 - Each `*Module.js` file wires its feature dependencies and returns a router.
 - Auth is divided into credentials, registration, email-verification, password-recovery, and TOTP submodules. Each capability owns its persistence repository; only cross-capability session persistence, schemas, events, and middleware live under `auth/shared/`.
@@ -386,6 +387,8 @@ The frontend now builds with React Router Framework SSR. `src/root.jsx` is the s
 ## Design system
 
 The frontend uses Tailwind CSS, shadcn/ui with Base UI primitives, Lucide icons, and shared class/variant utilities. The development-only design-system page previews components, variations, sizes, and states.
+
+The development-only `/dev/page-examples/:example?` route demonstrates the independent page-presentation layers without committing to final styling. `/dev/page-examples/recipe` combines a recipe template, sidebar layout, hero header, related-posts block, and newsletter block. `/dev/page-examples/gift-ideas` combines a gift-ideas template, full-width layout, and minimal header. Database-backed pages will eventually store only allowlisted registry keys and settings—not JSX, import paths, or executable code.
 
 ## Deployment
 

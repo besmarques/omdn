@@ -349,6 +349,21 @@ In production, the security middleware creates a new Content Security Policy non
 - `/login` logs in, calls `/me`, and navigates administrators to `/admin`.
 - `/admin` verifies the session and permission, calls the protected admin endpoint, and supports logout.
 - `/dev/design-system` exists only in development.
+- `/dev/page-examples/recipe` and `/dev/page-examples/gift-ideas` demonstrate how a template can use independently selected layouts, headers, footers, and region blocks. These are in-memory examples rather than database content.
+
+### Dynamic page presentation
+
+React Router layouts define broad security areas such as public, authentication, and private pages. Content presentation adds a separate composition layer inside a public route:
+
+```text
+page configuration
+  -> allowlisted layout (full width or sidebar)
+  -> allowlisted content template (recipe or gift ideas)
+  -> allowlisted header and footer variants
+  -> allowlisted blocks assigned to regions such as the sidebar
+```
+
+`src/features/pageRendering/PageRenderer.jsx` performs that composition. The layout controls the available structural regions, while the template renders the content fields. This allows the same recipe template to use different layouts and headers without duplicating the recipe implementation. The trusted registries translate identifiers into components; stored page data must never contain executable JSX, JavaScript, or arbitrary import paths.
 
 The `active` flag in `AdminPage` prevents an asynchronous request from updating state after the component unmounts. The `verificationStarted` ref prevents React StrictMode from submitting an email token twice during development.
 

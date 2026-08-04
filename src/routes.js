@@ -1,6 +1,12 @@
 import { index, route } from '@react-router/dev/routes';
 
-const developmentRoutes = process.env.NODE_ENV === 'production' ? [] : [route('dev/design-system', 'routes/design-system.jsx')];
+const developmentRoutes =
+	process.env.NODE_ENV === 'production'
+		? []
+		: [
+				route('dev/design-system', 'routes/design-system.jsx'),
+				route('dev/page-examples/:example?', 'routes/page-presentation-examples.jsx'),
+			];
 
 export default [
 	index('routes/home.jsx'),

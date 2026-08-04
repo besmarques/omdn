@@ -389,6 +389,12 @@ Exit criteria:
 
 ### Step 2.5 — Establish public/private route layouts
 
+Initial presentation examples added on 2026-08-04: development-only recipe and
+gift-ideas pages now prove that content templates can be combined independently
+with full-width/sidebar layouts, header variants, footers, and region blocks.
+These examples establish the composition vocabulary; the public/private React
+Router boundaries and cache policies in this step are not complete yet.
+
 Create separate route layouts:
 
 ```text
