@@ -1,21 +1,45 @@
+import { formatIngredient, parseRecipeArticleSource, serializeRecipeStructuredData } from '../../articleSource/recipeSource';
+
 export default function RecipeTemplate({ content }) {
+	const recipe = parseRecipeArticleSource(content);
+
 	return (
 		<article>
-			<h1>{content.title}</h1>
-			<p>Preparation time: {content.preparationTime}</p>
+			<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeRecipeStructuredData(recipe) }} />
+			<h1>{recipe.title}</h1>
+			<p>{recipe.description}</p>
+			<dl>
+				<div>
+					<dt>Preparation time</dt>
+					<dd>{recipe.prepMinutes} minutes</dd>
+				</div>
+				<div>
+					<dt>Cooking time</dt>
+					<dd>{recipe.cookMinutes} minutes</dd>
+				</div>
+				<div>
+					<dt>Yield</dt>
+					<dd>
+						{recipe.yield.quantity} {recipe.yield.unit}
+					</dd>
+				</div>
+			</dl>
 			<section>
 				<h2>Ingredients</h2>
 				<ul>
-					{content.ingredients.map((ingredient) => (
-						<li key={ingredient}>{ingredient}</li>
+					{recipe.ingredients.map((ingredient) => (
+						<li key={ingredient.id}>{formatIngredient(ingredient)}</li>
 					))}
 				</ul>
 			</section>
 			<section>
 				<h2>Instructions</h2>
 				<ol>
-					{content.instructions.map((instruction) => (
-						<li key={instruction}>{instruction}</li>
+					{recipe.instructions.map((instruction) => (
+						<li key={instruction.id}>
+							{instruction.title && <strong>{instruction.title}: </strong>}
+							{instruction.text}
+						</li>
 					))}
 				</ol>
 			</section>

@@ -384,6 +384,16 @@ page configuration
 
 `src/features/pageRendering/PageRenderer.jsx` performs that composition. The layout controls the available structural regions, while the template renders the content fields. This allows the same recipe template to use different layouts and headers without duplicating the recipe implementation. The trusted registries translate identifiers into components; stored page data must never contain executable JSX, JavaScript, or arbitrary import paths.
 
+The recipe example now also proves a small article-source boundary.
+`src/features/articleSource/recipeSource.js` owns schema version 1 for recipe
+JSON. It validates and restores revision data, derives plain text for future
+search indexing, formats ingredients, and creates schema.org `Recipe` data for
+SEO. `RecipeTemplate` accepts only data that passes that schema. Stable IDs on
+ingredients and instructions let future editors reorder items without using
+their visible text as identity. This is intentionally a recipe-only decision;
+it does not yet define how arbitrary rich articles will store galleries,
+tables, embeds, or other editor content.
+
 `AdminPage` receives its initial principal and permission result from server
 loader data, so it does not need a browser effect or an unmount guard for that
 initial check. The `verificationStarted` ref in the verification page prevents

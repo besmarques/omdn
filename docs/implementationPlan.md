@@ -420,6 +420,20 @@ The proof of concept must cover:
 - Revision serialization and restoration
 - Server rendering without a browser
 
+The first narrow source-format slice is complete for recipes. It uses a
+versioned, application-owned JSON schema rather than editor-specific state. The
+schema validates recipe identity, timings, yield, ingredients, and ordered
+instructions; rejects unknown fields and duplicate stable item identifiers;
+round-trips immutable revision JSON; renders without a browser; and derives
+plain search text plus schema.org `Recipe` data from the same source. The
+development example at `/dev/page-examples/recipe` exercises this source inside
+the existing configurable presentation system.
+
+This recipe slice does not settle the general article editor decision. Rich
+article features such as galleries, tables, code blocks, quotes, links, and safe
+video embeds still require the later focused comparison. Do not design the
+general revision schema around the recipe source alone.
+
 If structured JSON is selected, freeze an application-owned schema version. Never accept arbitrary editor extensions, raw HTML, scripts, styles, event attributes, or arbitrary iframes.
 
 Recommended processing pipeline:
@@ -768,7 +782,7 @@ presentation, and the complete TOTP login challenge are implemented and tested.
 
 ### Phase 4: content decisions and schema
 
-1. Complete the editor/source-format proof of concept.
+1. [ ] Complete the editor/source-format proof of concept (recipe slice complete; general rich content remains).
 2. Approve the publication lifecycle and permissions.
 3. Finalize corrected post/revision/category/slug schema.
 4. Select migration tooling.
@@ -826,9 +840,11 @@ presentation, and the complete TOTP login challenge are implemented and tested.
 
 ## 23. Next decision
 
-Authentication hardening is complete. The next domain decision is the
-editor/article-source proof of concept because it determines the
-revision schema, renderer, sanitizer, media references, and editorial interface.
+Authentication hardening and the narrow recipe-source proof are complete. The
+next decision is whether to continue the source proof with general rich content
+or first approve the publication lifecycle and permissions. The general source
+decision still determines the revision schema, renderer, sanitizer, media
+references, and editorial interface.
 
 ## 24. Verified runtime and deployment contract
 

@@ -418,7 +418,7 @@ The frontend now builds with React Router Framework SSR. `src/root.jsx` is the s
 
 The frontend uses Tailwind CSS, shadcn/ui with Base UI primitives, Lucide icons, and shared class/variant utilities. The development-only design-system page previews components, variations, sizes, and states.
 
-The development-only `/dev/page-examples/:example?` route demonstrates the independent page-presentation layers without committing to final styling. `/dev/page-examples/recipe` combines a recipe template, sidebar layout, hero header, related-posts block, and newsletter block. `/dev/page-examples/gift-ideas` combines a gift-ideas template, full-width layout, and minimal header. Database-backed pages will eventually store only allowlisted registry keys and settings—not JSX, import paths, or executable code.
+The development-only `/dev/page-examples/:example?` route demonstrates the independent page-presentation layers without committing to final styling. `/dev/page-examples/recipe` combines a recipe template, sidebar layout, hero header, related-posts block, and newsletter block. Its content uses a validated, versioned recipe JSON source that round-trips revision data and derives both search text and schema.org `Recipe` structured data. `/dev/page-examples/gift-ideas` combines a gift-ideas template, full-width layout, and minimal header. Database-backed pages will eventually store only validated source data plus allowlisted registry keys and settings—not JSX, import paths, or executable code.
 
 ## Deployment
 

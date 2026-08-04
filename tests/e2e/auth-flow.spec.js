@@ -136,6 +136,9 @@ test('composes development page templates independently from layouts and regions
 
 	expect(recipeResponse?.status()).toBe(200);
 	await expect(page.getByRole('heading', { level: 1, name: 'Christmas biscuits' })).toBeVisible();
+	await expect(page.getByText('200 g plain flour')).toBeVisible();
+	await expect(page.getByText('15 minutes')).toBeVisible();
+	expect(await page.locator('script[type="application/ld+json"]').textContent()).toContain('"@type":"Recipe"');
 	await expect(page.getByRole('complementary', { name: 'Related content' })).toContainText('Related recipes');
 	await expect(page.getByRole('complementary', { name: 'Related content' })).toContainText('Christmas newsletter');
 

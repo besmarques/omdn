@@ -27,10 +27,23 @@ export const pagePresentationExamples = Object.freeze({
 	},
 	recipe: {
 		content: {
-			ingredients: ['200 g flour', '100 g butter', '80 g sugar'],
-			instructions: ['Mix the ingredients.', 'Shape the biscuits.', 'Bake until golden.'],
-			preparationTime: '35 minutes',
+			cookMinutes: 15,
+			description: 'Buttery biscuits with a simple Christmas shape.',
+			ingredients: [
+				{ id: 'flour', name: 'plain flour', quantity: '200', unit: 'g' },
+				{ id: 'butter', name: 'butter', note: 'softened', quantity: '100', unit: 'g' },
+				{ id: 'sugar', name: 'sugar', quantity: '80', unit: 'g' },
+			],
+			instructions: [
+				{ id: 'mix', text: 'Combine the flour, butter, and sugar into a soft dough.', title: 'Mix' },
+				{ id: 'shape', text: 'Roll the dough and cut it into Christmas shapes.', title: 'Shape' },
+				{ id: 'bake', text: 'Bake until the edges are lightly golden.', title: 'Bake' },
+			],
+			kind: 'recipe',
+			prepMinutes: 20,
+			schemaVersion: 1,
 			title: 'Christmas biscuits',
+			yield: { quantity: 16, unit: 'biscuits' },
 		},
 		presentation: {
 			footer: { type: 'standard' },

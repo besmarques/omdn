@@ -15,10 +15,15 @@ describe('PageRenderer', () => {
 			<PageRenderer
 				page={{
 					content: {
-						ingredients: ['Flour'],
-						instructions: ['Mix'],
-						preparationTime: '10 minutes',
+						cookMinutes: 5,
+						description: 'Quick test biscuits.',
+						ingredients: [{ id: 'flour', name: 'flour', quantity: '200', unit: 'g' }],
+						instructions: [{ id: 'mix', text: 'Combine the ingredients.', title: 'Mix' }],
+						kind: 'recipe',
+						prepMinutes: 10,
+						schemaVersion: 1,
 						title: 'Biscuits',
+						yield: { quantity: 12, unit: 'biscuits' },
 					},
 					presentation: {
 						...sharedPresentation,
@@ -38,6 +43,8 @@ describe('PageRenderer', () => {
 
 		expect(html).toContain('<aside aria-label="Related content">');
 		expect(html).toContain('<h1>Biscuits</h1>');
+		expect(html).toContain('application/ld+json');
+		expect(html).toContain('"@type":"Recipe"');
 		expect(html).toContain('<h2>Newsletter</h2>');
 	});
 
