@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { ipKeyGenerator, rateLimit } from 'express-rate-limit';
 
 function getClientIp(req) {
@@ -18,6 +20,22 @@ function getNormalizedEmail(req) {
 	}
 
 	return email.trim().toLowerCase() || 'missing-email';
+}
+
+function getTokenKey(req) {
+	const token = req.body?.token;
+
+	if (typeof token !== 'string') {
+		return 'missing-token';
+	}
+
+	const normalizedToken = token.trim().toLowerCase();
+
+	if (!normalizedToken) {
+		return 'missing-token';
+	}
+
+	return createHash('sha256').update(normalizedToken).digest('hex');
 }
 function getAuthenticatedUserId(req) {
 	const userId = Number(req.auth?.user?.id);
@@ -160,6 +178,29 @@ export function createForgotPasswordRateLimiter(createRateLimitStore) {
 			return [getClientIp(req), getNormalizedEmail(req)].join(':');
 		},
 	});
+}
+
+export function createPasswordResetRateLimiters(createRateLimitStore) {
+	const options = {
+		createRateLimitStore,
+		windowMs: 15 * 60 * 1000,
+		limit: 5,
+		skipSuccessfulRequests: true,
+		message: 'Too many password reset attempts. Please try again later.',
+	};
+
+	return [
+		createLimiter({
+			...options,
+			identifier: 'auth-password-reset-ip',
+			keyGenerator: getClientIp,
+		}),
+		createLimiter({
+			...options,
+			identifier: 'auth-password-reset-token',
+			keyGenerator: getTokenKey,
+		}),
+	];
 }
 
 export function createEmailResendRateLimiter(createRateLimitStore) {

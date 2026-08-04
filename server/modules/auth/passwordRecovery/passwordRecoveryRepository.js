@@ -68,6 +68,30 @@ export default function createPasswordRecoveryRepository(db) {
 				AND users.password_hash IS NOT NULL
 				AND users.deleted_at IS NULL
 			LIMIT 1
+		`,
+			[tokenHash],
+		);
+
+		return tokens[0] ?? null;
+	}
+
+	async function findValidPasswordResetByTokenHashForUpdate(tokenHash, executor = db) {
+		const [tokens] = await executor.execute(
+			`
+			SELECT
+				password_reset_tokens.id,
+				password_reset_tokens.user_id
+			FROM password_reset_tokens
+			INNER JOIN users
+				ON users.id = password_reset_tokens.user_id
+			WHERE password_reset_tokens.token_hash = ?
+				AND password_reset_tokens.used_at IS NULL
+				AND password_reset_tokens.expires_at > CURRENT_TIMESTAMP(3)
+				AND users.status = 'active'
+				AND users.email_verified_at IS NOT NULL
+				AND users.password_hash IS NOT NULL
+				AND users.deleted_at IS NULL
+			LIMIT 1
 			FOR UPDATE
 		`,
 			[tokenHash],
@@ -93,6 +117,7 @@ export default function createPasswordRecoveryRepository(db) {
 		deleteUnusedPasswordResetTokens,
 		createPasswordResetToken,
 		findValidPasswordResetByTokenHash,
+		findValidPasswordResetByTokenHashForUpdate,
 		markPasswordResetTokensUsed,
 	};
 }

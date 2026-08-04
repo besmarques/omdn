@@ -28,6 +28,7 @@ function getEnvironmentValue(names) {
 
 const successfulRateLimitPaths = new Set([
 	'/api/auth/login',
+	'/api/auth/password/reset',
 	'/api/auth/totp/login/verify',
 	'/api/auth/totp/recovery-codes/regenerate',
 	'/api/auth/totp/disable',
@@ -38,6 +39,8 @@ const successfulRateLimitPaths = new Set([
 const rateLimitSettlementDelayMs = 1000;
 
 const protectedOperationRateLimitNamespaces = [
+	'auth-password-reset-ip',
+	'auth-password-reset-token',
 	'auth-totp-disable-ip',
 	'auth-totp-disable-user',
 	'auth-recovery-codes-regenerate-ip',
@@ -1228,6 +1231,23 @@ async function run() {
 		}
 
 		console.log(`✓ ${rateLimitCounters.length} shared rate-limit counters found`);
+
+		await runAttempts({
+			description: 'Password-reset rate limit',
+
+			expectedStatuses: [400, 400, 400, 400, 400, 429],
+
+			request: () =>
+				requestApi({
+					method: 'POST',
+					path: '/api/auth/password/reset',
+
+					body: {
+						token: 'f'.repeat(64),
+						password: 'Invalid-Reset-Password-2026!',
+					},
+				}),
+		});
 
 		await runAttempts({
 			description: 'Account-deletion rate limit',

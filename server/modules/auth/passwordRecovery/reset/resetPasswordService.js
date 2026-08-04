@@ -23,6 +23,13 @@ export default function createResetPasswordService({
 	};
 	return async function resetPassword({ token, password }) {
 		const tokenHash = createHash('sha256').update(token).digest();
+		const passwordResetPreflight = await authRepository.findValidPasswordResetByTokenHash(tokenHash);
+
+		if (!passwordResetPreflight) {
+			return {
+				reset: false,
+			};
+		}
 
 		const passwordHash = await argon2.hash(password, argonOptions);
 
@@ -30,7 +37,7 @@ export default function createResetPasswordService({
 			try {
 				await connection.beginTransaction();
 
-				const passwordReset = await authRepository.findValidPasswordResetByTokenHash(tokenHash, connection);
+				const passwordReset = await authRepository.findValidPasswordResetByTokenHashForUpdate(tokenHash, connection);
 
 				if (!passwordReset) {
 					await connection.rollback();

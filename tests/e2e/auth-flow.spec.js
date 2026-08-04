@@ -183,3 +183,28 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		await database.end();
 	}
 });
+
+test('rate limits invalid password reset attempts', async ({ request }) => {
+	const payload = {
+		token: 'f'.repeat(64),
+		password: 'Invalid-Reset-Password-2026!',
+	};
+
+	for (let attempt = 0; attempt < 5; attempt += 1) {
+		const response = await request.post('/api/auth/password/reset', {
+			data: payload,
+		});
+
+		expect(response.status()).toBe(400);
+	}
+
+	const limitedResponse = await request.post('/api/auth/password/reset', {
+		data: payload,
+	});
+
+	expect(limitedResponse.status()).toBe(429);
+	expect(await limitedResponse.json()).toMatchObject({
+		status: false,
+		message: 'Too many password reset attempts. Please try again later.',
+	});
+});

@@ -9,6 +9,7 @@ import {
 	createForgotPasswordRateLimiter,
 	createLoginRateLimiter,
 	createPasswordChangeRateLimiter,
+	createPasswordResetRateLimiters,
 	createRecoveryCodesRegenerationRateLimiters,
 	createRegistrationRateLimiter,
 	createTotpDisableRateLimiters,
@@ -274,6 +275,40 @@ describe('auth rate limiters', () => {
 			status: false,
 			message: 'Too many password reset requests. Please try again later.',
 		});
+	});
+
+	it('blocks the sixth failed password reset attempt', async () => {
+		const app = createTestApp(createPasswordResetRateLimiters(), {
+			responseStatus: 400,
+		});
+
+		await sendRequests(app, 5, {
+			token: 'a'.repeat(64),
+		});
+
+		const response = await request(app)
+			.post('/test')
+			.send({
+				token: 'a'.repeat(64),
+			});
+
+		expect(response.status).toBe(429);
+		expect(response.body).toEqual({
+			status: false,
+			message: 'Too many password reset attempts. Please try again later.',
+		});
+	});
+
+	it('does not count successful password resets', async () => {
+		const app = createTestApp(createPasswordResetRateLimiters(), {
+			responseStatus: 200,
+		});
+
+		const response = await sendRequests(app, 10, {
+			token: 'b'.repeat(64),
+		});
+
+		expect(response.status).toBe(200);
 	});
 
 	it('blocks the fourth verification email request', async () => {
