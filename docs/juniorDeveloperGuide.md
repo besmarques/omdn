@@ -566,3 +566,17 @@ Read the relevant test beside each feature. Tests often provide the clearest exa
 The browser is responsible for presentation and user interaction. Express is responsible for trust decisions and business rules. MariaDB is responsible for durable truth. The frontend may hide a link or cache data for speed, but the backend must still validate the session, CSRF token, input, account state, and permission before changing anything.
 
 When you are unsure where logic belongs, ask: “Would this rule still need to be enforced if someone skipped the React application and called the API directly?” If yes, it belongs on the backend.
+
+## Documentation map
+
+Only two maintained prose documents exist:
+
+- This guide explains what the application does, how requests flow, and how a
+  junior developer can work safely in the current codebase.
+- `implementationPlan.md` owns architecture decisions, verified runtime and
+  deployment constraints, completed phase status, and all future work.
+
+The SVG files under `docs/diagrams/` are generated views of code dependencies
+and runtime request flows; they are not separate sources of architecture policy.
+When code and prose disagree, verify the code and tests, then update both of
+these documents and regenerate the diagrams.

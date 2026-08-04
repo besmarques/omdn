@@ -2,12 +2,10 @@
 
 ## 1. Purpose
 
-This document defines what OMDN should actually implement based on:
-
-- The current repository and installed runtime
-- The architecture discussion in `pingPong.md`
-- The consolidated `firstDraft.md`
-- The review of the external production-design document
+This is the single authoritative OMDN architecture and implementation plan. It
+consolidates the accepted architecture decisions, verified runtime constraints,
+completed migration record, and remaining production roadmap. The junior-facing
+explanation of the current code lives in `juniorDeveloperGuide.md`.
 
 It deliberately separates immediate work from later production improvements. Optional technologies are not treated as decisions until their costs and migration paths have been reviewed.
 
@@ -15,7 +13,22 @@ Implementation checkpoint (2026-08-04): Phases 0 through 2 are complete,
 including React Router Framework SSR, the combined Express/Vite development
 server, public/authentication/private layouts, and principal resolution for the
 entire `/admin` document and `.data` route family. Detailed completion evidence
-is maintained in `stepByStepImplementation.md`.
+is recorded in the phase status and exit criteria below.
+
+### Accepted architecture decisions
+
+| Decision              | Current rule                                                                                     | Reconsider when                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Rendering             | Use React Router Framework Mode with incremental SSR                                             | The selected framework can no longer meet routing, SSR, or deployment needs |
+| HTTP ownership        | Express remains the only outer HTTP server in development and production                         | Hosting requires an incompatible runtime topology                           |
+| Cache boundaries      | Public routes contain no account data; authentication and private routes use `private, no-store` | A proven alternative preserves the same isolation guarantees                |
+| Sessions              | MariaDB-backed server sessions are authoritative; the browser stores only the opaque cookie      | Measured scale or availability requirements justify another shared store    |
+| Application structure | Keep a modular monolith with route/controller/service/repository boundaries                      | Independently scaling a measured domain becomes necessary                   |
+| Authorization         | Backend permissions are final; frontend checks only improve navigation and presentation          | Never—client state cannot become an authorization boundary                  |
+
+Rejected defaults include JWTs in browser storage, independent frontend and API
+servers, microservices before measured need, business logic in controllers or
+loaders, and globally private rendering.
 
 ## 2. Current baseline
 
@@ -34,7 +47,7 @@ Current installed baseline:
 | MariaDB         | 11.8.8 in the current smoke-test environment   |
 | Database driver | mysql2 3.23.2 installed                        |
 
-There is no required major-version upgrade before adopting React Router Framework Mode. Dependency versions should be pinned and verified through the lockfile and deployment image, but runtime migration must not be combined with the rendering migration unnecessarily.
+The completed React Router Framework Mode migration required no major runtime upgrade. Dependency versions remain pinned through the lockfile and must be verified against the deployment image.
 
 ## 3. Confirmed target architecture
 
@@ -101,7 +114,7 @@ homepage is the first production-verified public SSR route.
 
 ### Stage 3: integrate Framework Mode with Express
 
-Production request order should become:
+The implemented production request order is:
 
 ```text
 1. Exact trust-proxy policy
@@ -123,7 +136,7 @@ scoped to `/api`; and API errors retain correlation IDs. Baseline response
 headers are active. Step 2.4 added a per-response nonce-based Content Security
 Policy for the React Router server entry and its inline Framework scripts.
 
-The exact adapter API must be verified against the installed React Router version before implementation.
+The official Express adapter API is verified against and pinned to React Router 8.3.0.
 
 Step 2.3 verified the installed 8.3 API and uses its public `createContext` and
 `RouterContextProvider` exports. The frontend boundary creates a new provider
@@ -661,24 +674,35 @@ Required security tests:
 
 ## 20. Package adoption plan
 
-| Package/capability                   | Decision                                                                     |
-| ------------------------------------ | ---------------------------------------------------------------------------- |
-| React Router Framework Mode packages | Add during router migration after verifying exact 8.3.0 adapter requirements |
-| TanStack Query                       | Add when the first independently refreshed admin/feed use case exists        |
-| Zustand                              | Do not add without a concrete client-only global-state requirement           |
-| TipTap/Lexical/Markdown editor       | Decide through an editor proof of concept                                    |
-| React Hook Form                      | Evaluate when administration forms begin                                     |
-| Zod                                  | Already present; define browser-safe schema boundaries before frontend reuse |
-| sharp                                | Add with the media worker                                                    |
-| React Testing Library                | Add with Framework route/component tests                                     |
-| Playwright                           | Add before the router/auth migration begins                                  |
-| dbmate or alternative                | Separate migration-tool decision                                             |
-| Redis                                | Deferred until measured contention or queue requirements justify it          |
-| External search engine               | Deferred until MariaDB search is demonstrably insufficient                   |
+| Package/capability                   | Decision                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| React Router Framework Mode packages | Installed and pinned together at 8.3.0                                        |
+| TanStack Query                       | Add when the first independently refreshed admin/feed use case exists         |
+| Zustand                              | Do not add without a concrete client-only global-state requirement            |
+| TipTap/Lexical/Markdown editor       | Decide through an editor proof of concept                                     |
+| React Hook Form                      | Evaluate when administration forms begin                                      |
+| Zod                                  | Already present; define browser-safe schema boundaries before frontend reuse  |
+| sharp                                | Add with the media worker                                                     |
+| React Testing Library                | Evaluate when interaction tests need capabilities beyond current Vitest tests |
+| Playwright                           | Installed; keep browser and production SSR characterization coverage          |
+| dbmate or alternative                | Separate migration-tool decision                                              |
+| Redis                                | Deferred until measured contention or queue requirements justify it           |
+| External search engine               | Deferred until MariaDB search is demonstrably insufficient                    |
 
 ## 21. Implementation order
 
+| Phase                                      | Status                                                                     |
+| ------------------------------------------ | -------------------------------------------------------------------------- |
+| 0 — Protect baseline                       | Complete (2026-08-04)                                                      |
+| 1 — Framework Mode migration               | Complete (2026-08-04)                                                      |
+| 2 — Express integration and SSR boundaries | Complete (2026-08-04)                                                      |
+| 3 — Authentication hardening               | In progress; CSRF is implemented, session expiry/revocation policy is next |
+| 4–9                                        | Planned                                                                    |
+
 ### Phase 0: protect the baseline
+
+Status: complete. Runtime inventory, browser characterization, and architecture
+decisions were captured before the migration.
 
 1. Commit or otherwise preserve the current working baseline.
 2. Inventory exact lockfile/runtime/deployment versions.
@@ -687,12 +711,20 @@ Required security tests:
 
 ### Phase 1: Framework Mode without SSR
 
+Status: complete. React Router 8.3 owns the document shell and route manifest;
+the obsolete SPA router was removed.
+
 1. Add required Framework packages.
 2. Convert the route tree and document shell.
 3. Keep `ssr: false`.
 4. Preserve all current frontend and API behavior.
 
 ### Phase 2: Express integration and first SSR route
+
+Status: complete. Express and the official Framework adapter serve SSR from one
+origin. Public, authentication, and private layouts are active. `/admin`, nested
+`/admin/*` documents, and their `.data` requests resolve the session principal;
+public routes avoid MariaDB sessions.
 
 1. Add the Framework request handler and request context.
 2. Implement the public/private route-tree separation.
@@ -701,11 +733,14 @@ Required security tests:
 
 ### Phase 3: authentication hardening
 
-1. Implement CSRF and strict origin policy.
-2. Define session idle/absolute expiry and revocation versioning.
-3. Move private account presentation into server loaders.
-4. Enforce pending-TOTP state in private route loaders.
-5. Migrate the TOTP-required login response contract if approved.
+Status: in progress. Session-bound CSRF tokens, origin/fetch-metadata checks,
+and frontend token refresh are implemented and tested.
+
+1. [x] Implement CSRF and strict origin policy.
+2. [ ] Define session idle/absolute expiry and revocation versioning.
+3. [x] Move private account presentation into server loaders.
+4. [ ] Enforce pending-TOTP state in private route loaders.
+5. [ ] Migrate the TOTP-required login response contract if approved.
 
 ### Phase 4: content decisions and schema
 
@@ -767,6 +802,49 @@ Required security tests:
 
 ## 23. Next decision
 
-The next implementation task should be the React Router Framework migration plan and characterization tests.
+The next implementation task is Phase 3 session expiry and revocation: define
+idle and absolute lifetimes, session-version invalidation, and the exact events
+that revoke other sessions. After authentication hardening, the next domain
+decision is the editor/article-source proof of concept because it determines the
+revision schema, renderer, sanitizer, media references, and editorial interface.
 
-The next domain decision should be the editor/article-source proof of concept because it determines the revision schema, renderer, sanitizer, media references, and editorial interface.
+## 24. Verified runtime and deployment contract
+
+Recorded locally on 2026-08-04:
+
+| Component                           | Verified value                              |
+| ----------------------------------- | ------------------------------------------- |
+| Node.js                             | 24.18.1; repository requirement `>=22.22.0` |
+| npm                                 | 11.16.0; repository requirement `>=10`      |
+| React / React DOM                   | 19.2.8                                      |
+| React Router / first-party adapters | 8.3.0                                       |
+| Vite                                | 8.1.5                                       |
+| Express                             | 5.2.1                                       |
+| mysql2                              | 3.23.2                                      |
+| Development MariaDB                 | 11.8.8                                      |
+
+Development uses one `server/developmentServer.js` process: Express owns
+`PORT`, Vite runs as middleware, and `/api`, SSR, assets, and HMR share an
+origin. Production uses `npm start`; `prestart` builds `build/client` and
+`build/server`, then `server/server.js` serves both the API and Framework build.
+
+Production values still requiring hosting evidence are the Node/npm/MariaDB
+versions, process count and restart behavior, reverse-proxy hop count, canonical
+hostname, HTTPS redirect behavior, database connection limit, backup/restore
+facilities, and actual same-host database topology. `trust proxy = 1`, secure
+cookies, client-IP rate limits, and the default pool limit of 10 must be checked
+against that evidence before launch.
+
+The session cookie is `omdn_session`, HTTP-only, same-site `Lax`, host-only,
+secure in production, and stored in the MariaDB `sessions` table. The current
+nominal lifetime is seven days; Phase 3 must replace this simple lifetime with
+the approved idle/absolute-expiry and revocation contract.
+
+## 25. Dependency policy
+
+Keep all first-party React Router packages on the same exact version. Do not add
+`@react-router/serve`, RSC packages, Cloudflare tooling, Redis, an external
+search engine, Zustand, or TypeScript without a concrete approved requirement.
+TanStack Query belongs only in independently refreshed interactive server-state
+views. Select the editor, migration tool, form library, media processor, and
+object-storage adapter during the phases that first require them.

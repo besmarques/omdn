@@ -68,14 +68,22 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 
 The ranges above mirror `package.json`. `package-lock.json` is the authoritative record of the exact resolved dependency tree; use `npm ci` for reproducible installs and commit lockfile changes with dependency updates.
 
+## Documentation
+
+- [`juniorDeveloperGuide.md`](docs/juniorDeveloperGuide.md) explains the current
+  codebase, request flows, security model, and safe development workflow.
+- [`implementationPlan.md`](docs/implementationPlan.md) is the authoritative
+  architecture decision, runtime/deployment contract, phase status, and future
+  roadmap.
+
+Generated SVGs under `docs/diagrams/` visualize the code but are not additional
+sources of architecture policy.
+
 ## Project structure
 
 ```text
 omdn/
 |-- docs/
-|   |-- adr/
-|   |-- firstDraft.md
-|   |-- frameworkPackageMatrix.md
 |   |-- implementationPlan.md
 |   |-- juniorDeveloperGuide.md
 |   |-- diagrams/
@@ -88,9 +96,6 @@ omdn/
 |   |       |-- application.svg
 |   |       |-- routes.svg
 |   |       `-- feature-flow SVGs
-|   |-- pingPong.md
-|   |-- runtimeInventory.md
-|   |-- stepByStepImplementation.md
 |-- scripts/
 |   `-- dev/generate-logic-map.js
 |-- public/favicon.svg
