@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	createRecipeStructuredData,
 	deriveRecipePlainText,
+	migrateRecipeArticleSourceV1,
 	parseRecipeArticleSource,
 	restoreRecipeArticleSource,
 	serializeRecipeArticleSource,
@@ -12,11 +13,12 @@ import {
 const recipe = {
 	cookMinutes: 12,
 	description: 'Simple biscuits for Christmas.',
+	difficulty: 'easy',
 	ingredients: [{ id: 'flour', name: 'flour', quantity: '200', unit: 'g' }],
 	instructions: [{ id: 'mix', text: 'Combine all ingredients.', title: 'Mix' }],
 	kind: 'recipe',
 	prepMinutes: 20,
-	schemaVersion: 1,
+	schemaVersion: 2,
 	title: 'Christmas biscuits',
 	yield: { quantity: 16, unit: 'biscuits' },
 };
@@ -29,7 +31,8 @@ describe('recipe article source', () => {
 	});
 
 	it('rejects unsupported schema versions and duplicate item identifiers', () => {
-		expect(() => parseRecipeArticleSource({ ...recipe, schemaVersion: 2 })).toThrow();
+		expect(() => parseRecipeArticleSource({ ...recipe, schemaVersion: 3 })).toThrow();
+		expect(() => parseRecipeArticleSource({ ...recipe, difficulty: undefined })).toThrow();
 		expect(() => parseRecipeArticleSource({ ...recipe, rawHtml: '<script>alert(1)</script>' })).toThrow();
 		expect(() =>
 			parseRecipeArticleSource({
@@ -37,6 +40,19 @@ describe('recipe article source', () => {
 				ingredients: [recipe.ingredients[0], { ...recipe.ingredients[0], name: 'butter' }],
 			}),
 		).toThrow('ingredients must use unique identifiers');
+	});
+
+	it('restores version 1 and requires an explicit difficulty when migrating it to version 2', () => {
+		const versionOneRecipe = { ...recipe, schemaVersion: 1 };
+		delete versionOneRecipe.difficulty;
+
+		expect(restoreRecipeArticleSource(JSON.stringify(versionOneRecipe))).toEqual(versionOneRecipe);
+		expect(migrateRecipeArticleSourceV1(versionOneRecipe, 'medium')).toEqual({
+			...versionOneRecipe,
+			difficulty: 'medium',
+			schemaVersion: 2,
+		});
+		expect(() => migrateRecipeArticleSourceV1(versionOneRecipe, 'unknown')).toThrow();
 	});
 
 	it('derives searchable text and schema.org Recipe data from the same source', () => {

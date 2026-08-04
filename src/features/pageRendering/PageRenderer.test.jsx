@@ -17,11 +17,12 @@ describe('PageRenderer', () => {
 					content: {
 						cookMinutes: 5,
 						description: 'Quick test biscuits.',
+						difficulty: 'easy',
 						ingredients: [{ id: 'flour', name: 'flour', quantity: '200', unit: 'g' }],
 						instructions: [{ id: 'mix', text: 'Combine the ingredients.', title: 'Mix' }],
 						kind: 'recipe',
 						prepMinutes: 10,
-						schemaVersion: 1,
+						schemaVersion: 2,
 						title: 'Biscuits',
 						yield: { quantity: 12, unit: 'biscuits' },
 					},

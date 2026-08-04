@@ -30,6 +30,7 @@ export const pagePresentationExamples = Object.freeze({
 			cookMinutes: 15,
 			description: 'Buttery biscuits with a simple Christmas shape.',
 			descriptionHtml: '<p>These <strong>buttery biscuits</strong> are simple to prepare and easy to shape with the family.</p>',
+			difficulty: 'easy',
 			ingredients: [
 				{ id: 'flour', name: 'plain flour', quantity: '200', unit: 'g' },
 				{ id: 'butter', name: 'butter', note: 'softened', quantity: '100', unit: 'g' },
@@ -42,7 +43,7 @@ export const pagePresentationExamples = Object.freeze({
 			],
 			kind: 'recipe',
 			prepMinutes: 20,
-			schemaVersion: 1,
+			schemaVersion: 2,
 			title: 'Christmas biscuits',
 			yield: { quantity: 16, unit: 'biscuits' },
 		},

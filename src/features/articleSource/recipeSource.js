@@ -10,6 +10,7 @@ const shortText = z.string().trim().min(1).max(200);
 const optionalShortText = shortText.optional();
 const longText = z.string().trim().min(1).max(5000);
 const richText = z.string().trim().min(1).max(20000).optional();
+export const recipeDifficultySchema = z.enum(['easy', 'medium', 'hard']);
 
 const ingredientSchema = z
 	.object({
@@ -29,41 +30,68 @@ const instructionSchema = z
 	})
 	.strict();
 
-export const recipeArticleSourceSchema = z
+const recipeFields = {
+	cookMinutes: z.number().int().nonnegative(),
+	description: longText,
+	descriptionHtml: richText,
+	ingredients: z.array(ingredientSchema).min(1).max(100),
+	instructions: z.array(instructionSchema).min(1).max(100),
+	kind: z.literal('recipe'),
+	prepMinutes: z.number().int().nonnegative(),
+	title: shortText,
+	yield: z
+		.object({
+			quantity: z.number().positive(),
+			unit: shortText,
+		})
+		.strict(),
+};
+
+function validateStableItemIdentifiers(source, context) {
+	for (const field of ['ingredients', 'instructions']) {
+		const identifiers = source[field].map(({ id }) => id);
+
+		if (new Set(identifiers).size !== identifiers.length) {
+			context.addIssue({
+				code: 'custom',
+				message: `${field} must use unique identifiers`,
+				path: [field],
+			});
+		}
+	}
+}
+
+export const recipeArticleSourceV1Schema = z
 	.object({
-		cookMinutes: z.number().int().nonnegative(),
-		description: longText,
-		descriptionHtml: richText,
-		ingredients: z.array(ingredientSchema).min(1).max(100),
-		instructions: z.array(instructionSchema).min(1).max(100),
-		kind: z.literal('recipe'),
-		prepMinutes: z.number().int().nonnegative(),
+		...recipeFields,
 		schemaVersion: z.literal(1),
-		title: shortText,
-		yield: z
-			.object({
-				quantity: z.number().positive(),
-				unit: shortText,
-			})
-			.strict(),
 	})
 	.strict()
-	.superRefine((source, context) => {
-		for (const field of ['ingredients', 'instructions']) {
-			const identifiers = source[field].map(({ id }) => id);
+	.superRefine(validateStableItemIdentifiers);
 
-			if (new Set(identifiers).size !== identifiers.length) {
-				context.addIssue({
-					code: 'custom',
-					message: `${field} must use unique identifiers`,
-					path: [field],
-				});
-			}
-		}
-	});
+export const recipeArticleSourceSchema = z
+	.object({
+		...recipeFields,
+		difficulty: recipeDifficultySchema,
+		schemaVersion: z.literal(2),
+	})
+	.strict()
+	.superRefine(validateStableItemIdentifiers);
+
+const supportedRecipeArticleSourceSchema = z.discriminatedUnion('schemaVersion', [recipeArticleSourceV1Schema, recipeArticleSourceSchema]);
 
 export function parseRecipeArticleSource(source) {
-	return recipeArticleSourceSchema.parse(source);
+	return supportedRecipeArticleSourceSchema.parse(source);
+}
+
+export function migrateRecipeArticleSourceV1(source, difficulty) {
+	const legacyRecipe = recipeArticleSourceV1Schema.parse(source);
+
+	return recipeArticleSourceSchema.parse({
+		...legacyRecipe,
+		difficulty: recipeDifficultySchema.parse(difficulty),
+		schemaVersion: 2,
+	});
 }
 
 export function serializeRecipeArticleSource(source) {
@@ -84,6 +112,7 @@ export function deriveRecipePlainText(source) {
 	return [
 		recipe.title,
 		recipe.description,
+		recipe.difficulty,
 		...recipe.ingredients.map(formatIngredient),
 		...recipe.instructions.flatMap((instruction) => [instruction.title, instruction.text].filter(Boolean)),
 	].join('\n');

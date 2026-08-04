@@ -560,11 +560,12 @@ instruction text. This enables validation, reordering, accessible rendering,
 search extraction, and correct schema.org `Recipe` JSON-LD without parsing
 arbitrary editor markup.
 
-The current recipe proof is schema version 1 and already stores exact prep/cook
-minutes, structured yield, ingredients, instructions, and description. Before
-the first database migration persists recipes, define version 2 to add the
-approved `difficulty` field and a tested version-1-to-version-2 restoration path.
-Do not silently add a field while continuing to label the data schema version 1.
+Recipe source schema version 2 is implemented. It adds required `difficulty`
+with the constrained values `easy`, `medium`, and `hard` while retaining the
+exact prep/cook minutes, structured yield, ingredients, instructions, and
+description. Version 1 remains readable for compatibility. Its migration
+function requires an explicit difficulty, because the missing value cannot be
+inferred honestly from old content. New recipes and examples write version 2.
 
 Create tables in dependency order: authors/categories/tags, posts, revisions,
 revision heads, taxonomy joins, slugs, schedules, domain outbox, then content
@@ -762,9 +763,10 @@ The proof of concept must cover:
 
 The first narrow source-format slice is complete for recipes. It uses a
 versioned, application-owned JSON schema rather than editor-specific state. The
-schema validates recipe identity, timings, yield, ingredients, and ordered
-instructions; rejects unknown fields and duplicate stable item identifiers;
-round-trips immutable revision JSON; renders without a browser; and derives
+current version validates recipe identity, difficulty, timings, yield,
+ingredients, and ordered instructions; rejects unknown fields and duplicate
+stable item identifiers; reads version 1 and explicitly upgrades it to version
+2; round-trips immutable revision JSON; renders without a browser; and derives
 plain search text plus schema.org `Recipe` data from the same source. The
 development example at `/dev/page-examples/recipe` exercises this source inside
 the existing configurable presentation system.

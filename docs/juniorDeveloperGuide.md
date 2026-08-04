@@ -566,14 +566,15 @@ page configuration
 `src/features/pageRendering/PageRenderer.jsx` performs that composition. The layout controls the available structural regions, while the template renders the content fields. This allows the same recipe template to use different layouts and headers without duplicating the recipe implementation. The trusted registries translate identifiers into components; stored page data must never contain executable JSX, JavaScript, or arbitrary import paths.
 
 The recipe example now also proves a small article-source boundary.
-`src/features/articleSource/recipeSource.js` owns schema version 1 for recipe
-JSON. It validates and restores revision data, derives plain text for future
+`src/features/articleSource/recipeSource.js` owns the versioned recipe JSON.
+Version 2 is the current write format and includes difficulty; version 1 remains
+readable. It validates and restores revision data, derives plain text for future
 search indexing, formats ingredients, and creates schema.org `Recipe` data for
-SEO. `RecipeTemplate` accepts only data that passes that schema. Stable IDs on
-ingredients and instructions let future editors reorder items without using
-their visible text as identity. This is intentionally a recipe-only decision;
-it does not yet define how arbitrary rich articles will store galleries,
-tables, embeds, or other editor content.
+SEO. `RecipeTemplate` accepts only data that passes a supported schema. Stable
+IDs on ingredients and instructions let future editors reorder items without
+using their visible text as identity. This is intentionally a recipe-only
+decision; it does not yet define how arbitrary rich articles will store
+galleries, tables, embeds, or other editor content.
 
 `/dev/recipe-editor` adds a self-hosted TinyMCE Community editor only for the
 optional recipe description. TinyMCE loads in the browser from locally bundled
@@ -751,10 +752,11 @@ versioned.
   presentation fields on the revision. They are not recipe source and cannot
   contain executable component paths.
 
-The current recipe proof uses source-schema version 1. Difficulty is a genuine
-missing requirement, so the persisted format will introduce version 2 and a
-tested restoration path. Changing a versioned schema without changing its
-version would make old stored documents ambiguous.
+The current recipe proof writes source-schema version 2. Difficulty is required
+and limited to `easy`, `medium`, or `hard`. Version 1 can still be restored, but
+upgrading it requires a caller to select difficulty explicitly because old data
+contains no truthful value to infer. Changing the old schema silently would make
+stored documents ambiguous, so the new shape received a new version instead.
 
 References that describe historical actors, such as “created by,” become null
 if that user is permanently purged; the recipe history remains. The ownership
@@ -866,6 +868,11 @@ Seeds are different from migrations. Migrations define or evolve structure;
 seeds create required reference data such as initial roles and permissions.
 Seeds must be idempotent so rerunning them reaches the same result without
 duplicates.
+
+Playwright also rebuilds its isolated database through dbmate before applying
+the seed. This is valuable because browser tests now exercise the real migration
+files rather than maintaining a second ad hoc SQL-file runner that could behave
+differently from deployment.
 
 ## 17. Testing strategy
 

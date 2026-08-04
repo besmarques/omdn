@@ -17,6 +17,12 @@ export default function RecipeTemplate({ content }) {
 					<dt>Cooking time</dt>
 					<dd>{recipe.cookMinutes} minutes</dd>
 				</div>
+				{recipe.difficulty && (
+					<div>
+						<dt>Difficulty</dt>
+						<dd>{recipe.difficulty}</dd>
+					</div>
+				)}
 				<div>
 					<dt>Yield</dt>
 					<dd>

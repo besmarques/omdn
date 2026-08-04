@@ -1,16 +1,12 @@
+import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { promisify } from 'node:util';
 
 import mysql from 'mysql2/promise';
 
-const migrationFiles = [
-	'server/database/migrations/001_create_auth_tables.sql',
-	'server/database/migrations/002_create_rate_limit_counters.sql',
-	'server/database/migrations/003_create_auth_event_outbox.sql',
-	'server/database/migrations/004_simplify_sessions.sql',
-	'server/database/migrations/005_add_deleted_user_retention_index.sql',
-	'server/database/seeds/001_seed_roles_permissions.sql',
-];
+const executeFile = promisify(execFile);
+const seedFiles = ['server/database/seeds/001_seed_roles_permissions.sql'];
 
 function requiredEnvironmentValue(name) {
 	const value = process.env[name]?.trim();
@@ -56,19 +52,24 @@ export async function rebuildTestDatabase() {
 		await adminConnection.end();
 	}
 
-	const migrationConnection = await mysql.createConnection({
+	await executeFile(process.execPath, ['scripts/database/run-dbmate.js', 'migrate'], {
+		cwd: process.cwd(),
+		env: process.env,
+	});
+
+	const seedConnection = await mysql.createConnection({
 		...connectionOptions(),
 		multipleStatements: true,
 	});
 
 	try {
-		for (const relativeFile of migrationFiles) {
+		for (const relativeFile of seedFiles) {
 			const sql = await fs.readFile(path.resolve(relativeFile), 'utf8');
 
-			await migrationConnection.query(sql);
+			await seedConnection.query(sql);
 		}
 	} finally {
-		await migrationConnection.end();
+		await seedConnection.end();
 	}
 }
 

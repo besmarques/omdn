@@ -293,6 +293,8 @@ Playwright rebuilds and uses a separate database named by appending
 `_playwright` to `DB_NAME`. The configured database user must be allowed to
 create and drop that isolated database. Install its local browser once with
 `npx playwright install chromium`; CI installs Chromium automatically.
+The rebuild applies schema migrations through the same dbmate wrapper used by
+development and deployment, then runs the reference-data seed separately.
 The test backend and frontend default to ports `3100` and `5174` so they can run
 beside normal development servers. `PLAYWRIGHT_BACKEND_PORT` and
 `PLAYWRIGHT_FRONTEND_PORT` may override those test-only ports.
