@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useFetcher } from 'react-router';
 
-import RecipeDescriptionEditor from '@/features/articleEditing/RecipeDescriptionEditor';
-import { parseRecipeArticleSource, serializeRecipeArticleSource } from '@/features/articleSource/recipeSource';
-import PageRenderer from '@/features/pageRendering/PageRenderer';
+import RecipeDescriptionEditor from '@/content/recipes/RecipeDescriptionEditor';
+import { parseRecipeArticleSource, serializeRecipeArticleSource } from '@/content/recipes/recipeSchema';
+import PageRenderer from '@/presentation/PageRenderer';
 
 export default function RecipeEditorProofPage({ page }) {
 	const fetcher = useFetcher();

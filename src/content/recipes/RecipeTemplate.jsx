@@ -1,4 +1,4 @@
-import { formatIngredient, parseRecipeArticleSource, serializeRecipeStructuredData } from '../../articleSource/recipeSource';
+import { formatIngredient, parseRecipeArticleSource, serializeRecipeStructuredData } from './recipeSchema';
 
 export default function RecipeTemplate({ content }) {
 	const recipe = parseRecipeArticleSource(content);

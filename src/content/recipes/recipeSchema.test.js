@@ -7,7 +7,7 @@ import {
 	restoreRecipeArticleSource,
 	serializeRecipeArticleSource,
 	serializeRecipeStructuredData,
-} from './recipeSource';
+} from './recipeSchema';
 
 const recipe = {
 	cookMinutes: 12,

@@ -234,7 +234,7 @@ Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files
 ### Structure conventions
 
 - `src/` contains the browser application.
-- `src/features/pageRendering/` contains the safe registries, layouts, content templates, and region blocks used to compose data-driven public pages.
+- `src/presentation/` contains the safe registries, layouts, and region blocks used to compose data-driven public pages; content-owned templates live under `src/content/`.
 - `src/framework/contexts.js` defines shared request-context keys used by the outer Express adapter and server route loaders.
 - `server/modules/` contains feature-owned composition, routes, controllers, services, schemas, repositories, middleware, and colocated tests.
 - Each `*Module.js` file wires its feature dependencies and returns a router.

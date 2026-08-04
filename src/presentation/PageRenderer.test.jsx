@@ -9,7 +9,7 @@ const sharedPresentation = {
 	header: { type: 'minimal' },
 };
 
-describe('PageRenderer', () => {
+describe('page presentation renderer', () => {
 	it('combines the recipe template with the sidebar layout and its blocks', () => {
 		const html = renderToStaticMarkup(
 			<PageRenderer

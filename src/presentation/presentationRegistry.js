@@ -3,8 +3,8 @@ import FullWidthLayout from './layouts/FullWidthLayout';
 import SidebarLayout from './layouts/SidebarLayout';
 import StandardFooter from './regions/Footer';
 import { HeroHeader, MinimalHeader } from './regions/Headers';
-import GiftIdeasTemplate from './templates/GiftIdeasTemplate';
-import RecipeTemplate from './templates/RecipeTemplate';
+import GiftIdeasTemplate from '../content/gifts/GiftIdeasTemplate';
+import RecipeTemplate from '../content/recipes/RecipeTemplate';
 
 export const presentationRegistry = Object.freeze({
 	blocks: Object.freeze({

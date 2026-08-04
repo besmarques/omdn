@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import PageRenderer from '@/features/pageRendering/PageRenderer';
+import PageRenderer from '@/presentation/PageRenderer';
 
 export default function PagePresentationExamplesPage({ page }) {
 	return (

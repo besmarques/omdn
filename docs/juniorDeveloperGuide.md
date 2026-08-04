@@ -563,10 +563,10 @@ page configuration
   -> allowlisted blocks assigned to regions such as the sidebar
 ```
 
-`src/features/pageRendering/PageRenderer.jsx` performs that composition. The layout controls the available structural regions, while the template renders the content fields. This allows the same recipe template to use different layouts and headers without duplicating the recipe implementation. The trusted registries translate identifiers into components; stored page data must never contain executable JSX, JavaScript, or arbitrary import paths.
+`src/presentation/PageRenderer.jsx` performs that composition. The layout controls the available structural regions, while the template renders the content fields. This allows the same recipe template to use different layouts and headers without duplicating the recipe implementation. The trusted registries translate identifiers into components; stored page data must never contain executable JSX, JavaScript, or arbitrary import paths.
 
 The recipe example now also proves a small article-source boundary.
-`src/features/articleSource/recipeSource.js` owns the initial recipe JSON schema.
+`src/content/recipes/recipeSchema.js` owns the initial recipe JSON schema.
 Version 1 includes difficulty and validates and restores revision data, derives plain text for future
 search indexing, formats ingredients, and creates schema.org `Recipe` data for
 SEO. `RecipeTemplate` accepts only data that passes a supported schema. Stable

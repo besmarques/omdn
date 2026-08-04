@@ -1,7 +1,7 @@
 import { data } from 'react-router';
 
-import { sanitizeRecipeDescriptionHtml } from '@/features/articleSource/recipeDescriptionSanitizer.server';
-import { parseRecipeArticleSource, restoreRecipeArticleSource, serializeRecipeArticleSource } from '@/features/articleSource/recipeSource';
+import { sanitizeRecipeDescriptionHtml } from '@/content/recipes/recipeDescriptionSanitizer.server';
+import { parseRecipeArticleSource, restoreRecipeArticleSource, serializeRecipeArticleSource } from '@/content/recipes/recipeSchema';
 import RecipeEditorProofPage from '@/pages/dev/RecipeEditorProofPage';
 import { pagePresentationExamples } from '@/pages/dev/pagePresentationExamples';
 

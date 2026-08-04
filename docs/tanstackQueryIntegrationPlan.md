@@ -122,7 +122,7 @@ As content features appear, place feature-specific query definitions with the
 feature instead of creating one large global query file:
 
 ```text
-src/features/recipes/queries/
+src/content/recipes/queries/
 ├── recipeQuery.js
 └── recipeListQuery.js
 ```
