@@ -155,6 +155,12 @@ Exit criteria:
 
 ### Step 1.2 — Install Framework development dependencies
 
+Status: completed on 2026-08-04. `@react-router/dev@8.3.0` is installed as an
+exact development dependency, `react-router` is pinned to the matching exact
+version, and a clean install plus the existing tests, lint, formatting, and
+production build all pass. Optional RSC, Cloudflare, TypeScript, and default
+server peers were not installed.
+
 - Add the verified React Router Framework packages.
 - Keep existing runtime dependencies until the migration is complete.
 - Do not add TanStack Query, an editor, TypeScript migration, or media packages in this step.
