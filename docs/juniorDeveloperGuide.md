@@ -370,6 +370,163 @@ For a production page request, the current frontend works like this:
 - JavaScript loads and hydrates the existing HTML, attaching React behavior without rebuilding a different page.
 - Pages call the Express API when they need server data.
 
+### Three kinds of frontend state
+
+“State” simply means information that can change while the application runs.
+Not all state has the same owner, so putting all of it in one global store would
+make the application harder to reason about.
+
+| Kind of state  | Examples                                                                | Current owner                                   |
+| -------------- | ----------------------------------------------------------------------- | ----------------------------------------------- |
+| Server state   | Current account, permissions, recipes, paginated posts                  | Backend, with a TanStack Query browser snapshot |
+| URL state      | Current page, search text, filters, sorting                             | React Router path and search parameters         |
+| Local UI state | Input text, open dialog, submitting flag, temporary TOTP challenge form | React component state                           |
+
+Server state is data the browser does not own. It can become outdated because
+another request, browser tab, administrator, or background worker changed the
+backend. TanStack Query is designed for this problem. It remembers responses,
+shares them between components, tracks whether a request is running or failed,
+and gives us explicit ways to refresh or discard data.
+
+Local UI state usually belongs close to the component that uses it. For
+example, the characters currently typed into the login password field should
+not enter a global cache. URL state belongs in the URL when users should be able
+to bookmark, share, refresh, or navigate back to the same view. A recipe-list
+page number and filter are good URL state; whether its help popover is open is
+not.
+
+This is why adding TanStack Query does not mean every `useState` should be
+removed. It also does not mean Zustand is required. Zustand solves shared
+client-owned state. We will add it only if a real client-only workflow becomes
+too awkward with React state and context.
+
+### What the QueryClient and provider do
+
+`QueryClient` is the object that owns the query cache. A query cache is roughly
+a map from a query key to its latest result and status. The
+`QueryClientProvider` makes that client available to descendant components
+through React context, so those components do not need the client passed through
+every intermediate component as a prop.
+
+OMDN creates it in `src/query/ServerStateProvider.jsx`. The lifetime rules are
+important:
+
+- A browser keeps one client while the React application is running. Creating a
+  new one on every render would erase the cache and cause repeated requests.
+- Every SSR render creates a new client. A module-level singleton on the server
+  could let one user's private cached account appear in another user's request.
+- Public routes do not load the current-account query just to personalize the
+  header. This preserves account-independent, cacheable public HTML.
+
+The factory in `src/query/createQueryClient.js` also records shared defaults.
+Queries do not retry automatically, do not refetch merely because the browser
+window regained focus, and are considered fresh for 30 seconds unless a query
+chooses a different policy. Mutations do not retry automatically because
+repeating a state-changing request can be unsafe unless that operation was
+specifically designed to be idempotent.
+
+### Query keys are cache addresses
+
+Every query needs a stable key. The current account uses:
+
+```js
+['account', 'current'];
+```
+
+Think of this as the address of that result inside the cache. Components using
+the same key share the same data and in-flight request. If two components ask
+for the current account at nearly the same time, TanStack Query can reuse one
+request instead of sending two `/me` calls. This is request deduplication.
+
+Values that change a response must be represented in its key. A future recipe
+list might use:
+
+```js
+['recipes', 'list', { page: 2, search: 'cake', status: 'published' }];
+```
+
+Page 1 and page 2 are different cache entries. Never place passwords, cookies,
+session IDs, TOTP secrets, recovery codes, or other secret material in a query
+key. Query keys can appear in developer tools and logs.
+
+### How the current-account query works
+
+`src/query/currentAccountQuery.js` gathers one concern in one place:
+
+1. It defines the stable query key.
+2. Its query function calls `getCurrentAccount()` from the HTTP API adapter.
+3. It converts a successful response into one predictable frontend shape.
+4. It converts `401` into `{ authenticated: false }`.
+5. It exposes `useCurrentAccount()` for components.
+
+Normalizing the response means components do not each interpret backend fields
+differently. They receive `authenticated`, `user`, `roles`, and `permissions` in
+the same shape. The cache deliberately excludes session internals and secret
+authentication material.
+
+`useCurrentAccount()` is a React hook. It subscribes the component to that cache
+entry, so the component rerenders when the entry changes. `fetchQuery()` is the
+imperative equivalent used after login: it loads or reuses the entry and returns
+the value so the login code can immediately choose a destination.
+
+### Loaders and TanStack Query have different jobs
+
+It may look redundant that a React Router loader and a query both know the
+current account. They serve different moments and different trust levels:
+
+```text
+request for /admin
+  -> private loader checks the server-side principal
+  -> guest is redirected before the private page renders
+  -> authenticated principal seeds the browser query cache
+  -> header and page subscribe to the shared cached snapshot
+```
+
+The loader is a navigation guard. It decides whether a route may render and
+works during SSR. TanStack Query distributes the resulting snapshot among
+interactive browser components after that decision. Removing the loader would
+make protected navigation depend on a later browser request and weaken SSR.
+Removing the query would make components pass account data through props or
+issue their own duplicate requests.
+
+The account query uses `staleTime: Infinity`. “Stale” does not mean deleted; it
+means eligible for an automatic refetch. Infinity tells TanStack Query not to
+automatically refetch this snapshot after the private loader or completed login
+has just supplied it. Account-changing events must therefore update, invalidate,
+or remove it explicitly.
+
+### Updating and clearing cached state
+
+These operations have different meanings:
+
+- `setQueryData` immediately replaces a cached value without making a request.
+- `invalidateQueries` marks matching data stale so an active consumer can
+  refetch it.
+- `removeQueries` deletes matching cache entries entirely.
+- `fetchQuery` returns fresh cached data or performs and shares the request.
+
+After logout, OMDN removes queries marked as private and writes the guest account
+value before navigating to `/login`. Public content need not be discarded just
+because the user logged out. The API adapter also publishes an authentication-
+loss event for a `401`; the root cache controller performs the same cleanup and
+redirect. This prevents old private presentation data from remaining visible
+after the backend has rejected the session.
+
+This cleanup improves user experience, but it is not authorization. Browser
+memory is controlled by the user and cached permissions can be old. Every
+protected API endpoint must still resolve the session and enforce permissions
+in Express.
+
+### What to use for future content
+
+TanStack Query becomes especially useful for interactive administration lists,
+load-more feeds, background refresh, and mutations that affect several visible
+views. React Router loaders remain a good fit for route-critical public article
+HTML and SEO metadata. Do not copy query results into `useState`; that creates a
+second snapshot that can disagree with the cache. Keep pagination and filters in
+the URL, include their normalized values in the query key, and invalidate only
+the affected list/detail keys after a mutation.
+
 SSR is enabled for the Framework application. Public, authentication, and
 private route layouts now own cache policy and account-loading boundaries.
 Private and authentication document/data requests load the MariaDB session;
@@ -578,25 +735,33 @@ Never rely on a hidden frontend button as authorization. Never store a plain pas
 
 ## 22. Glossary
 
-| Term                 | Plain-language meaning                                                           |
-| -------------------- | -------------------------------------------------------------------------------- |
-| API                  | The HTTP interface used by the frontend to ask the backend for work              |
-| Middleware           | A function that inspects or changes a request before the final handler           |
-| Session              | Server-side data that remembers a browser across requests                        |
-| Cookie               | A small browser value automatically sent with matching requests                  |
-| Authentication       | Proving who a user is                                                            |
-| Authorization        | Deciding what that user may do                                                   |
-| CSRF                 | A cross-site attempt to make a logged-in browser perform an unwanted action      |
-| TOTP                 | A short-lived authenticator-app code based on a shared secret and current time   |
-| Hash                 | A one-way representation used for comparison without storing the original secret |
-| Encryption           | Reversible protection using a secret key                                         |
-| Transaction          | A group of database operations that commit or roll back together                 |
-| Repository           | Code responsible for persistence and SQL                                         |
-| Dependency injection | Passing dependencies into code instead of creating hidden globals                |
-| Outbox               | A durable queue table used to deliver events reliably                            |
-| Worker               | Background code that repeatedly processes queued or scheduled work               |
-| SPA                  | A browser application that changes pages using JavaScript without full reloads   |
-| SSR                  | Rendering page HTML on the server before sending it to the browser               |
+| Term                 | Plain-language meaning                                                             |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| API                  | The HTTP interface used by the frontend to ask the backend for work                |
+| Middleware           | A function that inspects or changes a request before the final handler             |
+| Session              | Server-side data that remembers a browser across requests                          |
+| Cookie               | A small browser value automatically sent with matching requests                    |
+| Authentication       | Proving who a user is                                                              |
+| Authorization        | Deciding what that user may do                                                     |
+| CSRF                 | A cross-site attempt to make a logged-in browser perform an unwanted action        |
+| TOTP                 | A short-lived authenticator-app code based on a shared secret and current time     |
+| Hash                 | A one-way representation used for comparison without storing the original secret   |
+| Encryption           | Reversible protection using a secret key                                           |
+| Transaction          | A group of database operations that commit or roll back together                   |
+| Repository           | Code responsible for persistence and SQL                                           |
+| Dependency injection | Passing dependencies into code instead of creating hidden globals                  |
+| Outbox               | A durable queue table used to deliver events reliably                              |
+| Worker               | Background code that repeatedly processes queued or scheduled work                 |
+| SPA                  | A browser application that changes pages using JavaScript without full reloads     |
+| SSR                  | Rendering page HTML on the server before sending it to the browser                 |
+| Hydration            | React attaching behavior to HTML that the server already rendered                  |
+| Server state         | Backend-owned data temporarily represented in the browser                          |
+| Query cache          | Stored server-state responses indexed by query keys                                |
+| Query key            | A stable, serializable address identifying one cached response                     |
+| Stale                | Cached data that is eligible to be fetched again                                   |
+| Invalidation         | Marking cached data stale because it may no longer match the backend               |
+| Deduplication        | Sharing one in-flight request between consumers asking for the same data           |
+| React context        | A way for descendants to access a shared value without passing every prop manually |
 
 ## 23. Recommended learning order
 
@@ -610,9 +775,12 @@ Do not try to understand every file at once. Use this order:
 6. Login route, controller, and service
 7. `csrfMiddleware.js`
 8. Account `/me` and admin permission checks
-9. TOTP services
-10. Rate-limit storage and authentication-event outbox
-11. Deleted-account cleanup and graceful shutdown
+9. `src/query/createQueryClient.js` and `ServerStateProvider.jsx`
+10. `src/query/currentAccountQuery.js` beside its tests
+11. The private layout, `LoginPage`, and `SiteHeader` cache interactions
+12. TOTP services
+13. Rate-limit storage and authentication-event outbox
+14. Deleted-account cleanup and graceful shutdown
 
 Read the relevant test beside each feature. Tests often provide the clearest examples of what inputs are accepted and what result is expected.
 
