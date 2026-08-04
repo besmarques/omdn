@@ -1,4 +1,4 @@
--- Active: 1785708046351@@127.0.0.1@3306@omdn
+-- migrate:up transaction:false
 
 CREATE TABLE users (
 	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -299,3 +299,7 @@ CREATE TABLE auth_events (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+
+-- migrate:down transaction:false
+SIGNAL SQLSTATE '45000'
+	SET MESSAGE_TEXT = 'Migration 001 is irreversible; restore a backup instead';

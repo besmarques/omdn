@@ -825,7 +825,47 @@ The cleanup worker runs immediately at startup and then daily. It permanently re
 | `auth_event_outbox`              | Audit events waiting for delivery      |
 | `auth_events`                    | Delivered authentication audit history |
 
-Migrations must be applied in numeric order. Seeds then create the initial roles and permissions. There is currently no automated migration command.
+### Why dbmate is useful
+
+MariaDB can execute every migration file without dbmate. The missing feature is
+memory: MariaDB does not automatically know which files in this Git repository
+were already applied. Dbmate creates a small `schema_migrations` table containing
+completed version numbers and applies only pending files in order.
+
+Without tracking, a deployment script might try to create `users` again or a
+developer might forget migration 004 and run 005 first. Dbmate makes those
+mistakes visible and repeatable across development, testing, staging, and
+production. It does not generate application queries, replace repositories, or
+act as an ORM.
+
+Use:
+
+```bash
+npm run db:migrate:status
+npm run db:migrate
+npm run db:migrate:new -- describe_the_change
+```
+
+An existing database created before dbmate needs one explicit
+`npm run db:migrate:baseline`. The command checks evidence for migrations
+001–005 and then records the verified prefix; it does not alter the application
+tables. A new empty database skips baseline and runs `db:migrate` directly.
+
+Migration execution is a deployment job, not part of web-server startup. If
+three web instances started simultaneously and all changed the schema, startup
+could race or leave incompatible application versions. Run one migration process
+first, then deploy compatible application instances.
+
+MariaDB may commit DDL such as `CREATE TABLE` automatically. A failed migration
+can therefore require a forward repair or backup restore rather than a magical
+transaction rollback. That is why production migrations need backups, staging
+rehearsal, and explicit expand-and-contract sequencing even though a tool tracks
+their versions.
+
+Seeds are different from migrations. Migrations define or evolve structure;
+seeds create required reference data such as initial roles and permissions.
+Seeds must be idempotent so rerunning them reaches the same result without
+duplicates.
 
 ## 17. Testing strategy
 

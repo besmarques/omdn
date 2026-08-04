@@ -1,4 +1,4 @@
--- Active: 1785708046351@@127.0.0.1@3306@omdn
+-- migrate:up transaction:false
 CREATE TABLE rate_limit_counters (
 	namespace VARCHAR(64)
 		CHARACTER SET ascii
@@ -16,3 +16,6 @@ CREATE TABLE rate_limit_counters (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+
+-- migrate:down transaction:false
+DROP TABLE rate_limit_counters;

@@ -61,6 +61,7 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | `@react-router/dev`           | `8.3.0`       | React Router Framework Vite plugin and CLI                 |
 | `@types/react`                | `^19.2.17`    | React editor/tooling types                                 |
 | `@types/react-dom`            | `^19.2.3`     | React DOM editor/tooling types                             |
+| `dbmate`                      | `^2.34.1`     | Plain-SQL MariaDB migration tracking and execution         |
 | `dependency-cruiser`          | `^18.1.0`     | Source dependency analysis and DOT generation              |
 | `eslint`                      | `^10.6.0`     | JavaScript and JSX linting                                 |
 | `eslint-plugin-react-hooks`   | `^7.1.1`      | React Hooks lint rules                                     |
@@ -265,24 +266,28 @@ Vite handles frontend HMR itself. Generated Vite dependency-cache files under
 
 ## Available scripts
 
-| Command                    | Description                                                     |
-| -------------------------- | --------------------------------------------------------------- |
-| `npm test`                 | Runs Vitest once                                                |
-| `npm run test:watch`       | Runs Vitest in watch mode                                       |
-| `npm run test:e2e`         | Runs Playwright auth characterization tests                     |
-| `npm run test:e2e:headed`  | Runs Playwright with a visible Chromium browser                 |
-| `npm run test:ssr`         | Builds production SSR and tests HTTP output and hydration       |
-| `npm run dev`              | Starts Express, Vite middleware, SSR, and the API in watch mode |
-| `npm run build`            | Builds Framework client and server bundles                      |
-| `npm start`                | Builds the frontend through `prestart`, then starts Express     |
-| `npm run lint`             | Runs ESLint                                                     |
-| `npm run diagram`          | Generates dependency SVGs under `docs/diagrams/dependency/`     |
-| `npm run diagram:validate` | Checks dependency rules without generating diagrams             |
-| `npm run logic-map`        | Generates runtime SVGs under `docs/diagrams/runtime/`           |
-| `npm run maps`             | Regenerates dependency and logic maps                           |
-| `npm run diagram:all`      | Alias for regenerating both map sets                            |
-| `npm run format`           | Formats the repository with Prettier                            |
-| `npm run format:check`     | Checks formatting without writing files                         |
+| Command                          | Description                                                     |
+| -------------------------------- | --------------------------------------------------------------- |
+| `npm test`                       | Runs Vitest once                                                |
+| `npm run test:watch`             | Runs Vitest in watch mode                                       |
+| `npm run test:e2e`               | Runs Playwright auth characterization tests                     |
+| `npm run test:e2e:headed`        | Runs Playwright with a visible Chromium browser                 |
+| `npm run test:ssr`               | Builds production SSR and tests HTTP output and hydration       |
+| `npm run dev`                    | Starts Express, Vite middleware, SSR, and the API in watch mode |
+| `npm run build`                  | Builds Framework client and server bundles                      |
+| `npm start`                      | Builds the frontend through `prestart`, then starts Express     |
+| `npm run lint`                   | Runs ESLint                                                     |
+| `npm run diagram`                | Generates dependency SVGs under `docs/diagrams/dependency/`     |
+| `npm run diagram:validate`       | Checks dependency rules without generating diagrams             |
+| `npm run logic-map`              | Generates runtime SVGs under `docs/diagrams/runtime/`           |
+| `npm run maps`                   | Regenerates dependency and logic maps                           |
+| `npm run diagram:all`            | Alias for regenerating both map sets                            |
+| `npm run format`                 | Formats the repository with Prettier                            |
+| `npm run format:check`           | Checks formatting without writing files                         |
+| `npm run db:migrate:baseline`    | Records verified migrations on a legacy OMDN database           |
+| `npm run db:migrate:status`      | Shows applied and pending database migrations                   |
+| `npm run db:migrate`             | Applies pending migrations to the configured database           |
+| `npm run db:migrate:new -- name` | Creates a timestamped plain-SQL migration                       |
 
 Playwright rebuilds and uses a separate database named by appending
 `_playwright` to `DB_NAME`. The configured database user must be allowed to
@@ -361,16 +366,47 @@ for local testing.
 
 ## Database
 
-Apply these SQL files in order:
+Dbmate applies these SQL files in numeric order and records completed versions
+in MariaDB's `schema_migrations` table:
 
 1. `server/database/migrations/001_create_auth_tables.sql`
 2. `server/database/migrations/002_create_rate_limit_counters.sql`
 3. `server/database/migrations/003_create_auth_event_outbox.sql`
 4. `server/database/migrations/004_simplify_sessions.sql`
 5. `server/database/migrations/005_add_deleted_user_retention_index.sql`
-6. `server/database/seeds/001_seed_roles_permissions.sql`
 
-They create and evolve the authentication, authorization, session, token, TOTP, recovery-code, audit, shared rate-limit, and authentication-event outbox schema, then seed the initial roles and permissions. There is no npm migration command.
+The role/permission seed remains a separate explicit step:
+
+- `server/database/seeds/001_seed_roles_permissions.sql`
+
+They create and evolve the authentication, authorization, session, token, TOTP,
+recovery-code, audit, shared rate-limit, and authentication-event outbox schema.
+
+For a new empty database:
+
+```bash
+npm run db:migrate
+```
+
+For an existing OMDN database that received migrations 001–005 manually, run
+this once before the first managed migration:
+
+```bash
+npm run db:migrate:baseline
+npm run db:migrate:status
+```
+
+The baseline command verifies the existing tables, columns, and retention index
+before recording a completed prefix. It does not execute schema changes. The
+normal migration command refuses to run against an untracked legacy database,
+preventing dbmate from trying to recreate existing tables. Database settings
+continue to come from `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and
+`DB_PASSWORD`; the wrapper constructs dbmate's MySQL URL without printing it.
+
+Do not run migrations automatically during web-server startup. Deployment runs
+one migration process before starting or replacing application instances. Back
+up and rehearse production migrations; some historical DDL migrations are
+intentionally irreversible and tell the operator to restore a backup instead.
 
 For Hostinger Cloud Startup, run the Node.js application and MySQL database in the same hosting environment with `DB_HOST=localhost`. The website's Hostinger SSL certificate protects public HTTPS traffic; it is separate from MySQL transport configuration. This project does not expose unused MySQL TLS variables. If the database later moves to another server, add provider-supported MySQL TLS configuration as a separate, tested change.
 

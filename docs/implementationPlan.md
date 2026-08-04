@@ -1046,22 +1046,29 @@ Drafts, previews, authentication, account, administration, and arbitrary filter 
 
 ## 16. Migration tooling
 
-The project currently uses manually managed numbered SQL files. Production requires a coordinated migration runner, but the tool has not been selected.
+Dbmate 2.34.1 is selected as the migration runner. It preserves plain reviewable
+SQL, records applied versions in `schema_migrations`, supports MariaDB through
+its MySQL driver, and remains independent of the application persistence layer.
+It is a development dependency and does not introduce an ORM.
 
-Create a separate decision comparing:
+The wrapper in `scripts/database/run-dbmate.js` converts the existing split
+`DB_*` configuration into dbmate's URL without logging credentials, pins the
+migration directory, rejects out-of-order pending versions itself, and disables
+automatic schema dumps until the production `mysqldump` version/process is
+approved. Dbmate 2.34.1 does not expose the newer upstream `--strict` option, so
+the wrapper performs that check explicitly.
 
-- dbmate
-- A small Node-based migration runner
-- Another SQL-first tool with MariaDB support
+Legacy SQL files 001–005 now contain dbmate up/down markers. Existing databases
+must run the one-time verified baseline command; empty databases run migrations
+normally. Migration execution refuses an untracked database containing the
+legacy `users` table. New migrations use timestamp versions to reduce branch
+collisions.
 
-Requirements:
-
-- Plain reviewable SQL
-- Version tracking
-- One migration process per deployment
-- Production-like rehearsal
-- Expand-and-contract support
-- Checked-in schema representation
+MariaDB DDL can implicitly commit, so migration files declare
+`transaction:false`. Each migration must be designed for rehearsal, backup, and
+forward recovery rather than assuming a wrapping transaction makes DDL atomic.
+Destructive historical rollbacks fail explicitly when lost data cannot be
+reconstructed.
 
 Do not run migrations automatically from every web replica.
 
@@ -1149,7 +1156,7 @@ Required security tests:
 | React Testing Library                | Evaluate when interaction tests need capabilities beyond current Vitest tests |
 | Playwright                           | Installed; keep browser and production SSR characterization coverage          |
 | Nodemailer                           | Installed for provider-neutral SMTP account-verification delivery             |
-| dbmate or alternative                | Separate migration-tool decision                                              |
+| dbmate                               | Installed at 2.34.1 for tracked plain-SQL MariaDB migrations                  |
 | Redis                                | Deferred until measured contention or queue requirements justify it           |
 | External search engine               | Deferred until MariaDB search is demonstrably insufficient                    |
 
@@ -1218,7 +1225,7 @@ responses remove private query data.
 1. [ ] Complete the editor/source-format proof of concept (recipe slice complete; general rich content remains).
 2. [x] Approve the publication lifecycle and permissions (2026-08-04).
 3. [x] Finalize corrected post/revision/category/slug schema (2026-08-04).
-4. Select migration tooling.
+4. [x] Select and integrate dbmate 2.34.1 (2026-08-04).
 5. Apply content migrations with real MariaDB integration tests.
 
 ### Phase 5: public publishing and SEO

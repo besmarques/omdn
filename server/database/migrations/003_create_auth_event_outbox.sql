@@ -1,4 +1,4 @@
--- Active: 1785708046351@@127.0.0.1@3306@omdn
+-- migrate:up transaction:false
 CREATE TABLE auth_event_outbox (
 	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 	payload JSON NOT NULL,
@@ -29,3 +29,10 @@ CREATE TABLE auth_event_outbox (
 ALTER TABLE auth_events
 	ADD COLUMN outbox_id BIGINT UNSIGNED NULL AFTER id,
 	ADD UNIQUE KEY uq_auth_events_outbox (outbox_id);
+
+-- migrate:down transaction:false
+ALTER TABLE auth_events
+	DROP INDEX uq_auth_events_outbox,
+	DROP COLUMN outbox_id;
+
+DROP TABLE auth_event_outbox;
