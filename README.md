@@ -79,6 +79,8 @@ The ranges above mirror `package.json`. `package-lock.json` is the authoritative
 - [`implementationPlan.md`](docs/implementationPlan.md) is the authoritative
   architecture decision, runtime/deployment contract, phase status, and future
   roadmap.
+- [`tanstackQueryIntegrationPlan.md`](docs/tanstackQueryIntegrationPlan.md)
+  defines the incremental server-state and authentication-cache migration.
 
 Generated SVGs under `docs/diagrams/` visualize the code but are not additional
 sources of architecture policy.

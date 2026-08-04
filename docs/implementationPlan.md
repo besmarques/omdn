@@ -9,6 +9,10 @@ explanation of the current code lives in `juniorDeveloperGuide.md`.
 
 It deliberately separates immediate work from later production improvements. Optional technologies are not treated as decisions until their costs and migration paths have been reviewed.
 
+The approved incremental TanStack Query work is detailed in
+`tanstackQueryIntegrationPlan.md`; this document remains authoritative for the
+overall architecture and phase order.
+
 Implementation checkpoint (2026-08-04): Phases 0 through 2 are complete and
 Phase 3 authentication hardening is complete,
 including React Router Framework SSR, the combined Express/Vite development
