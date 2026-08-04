@@ -72,12 +72,12 @@ This is test setup, not part of the public registration endpoint. The frontend m
 
 ## Proposed frontend routes
 
-| Frontend route  | Purpose                                                                     | Access behavior                                                          |
-| --------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `/register`     | Submit `displayName`, `email`, and `password`                               | If already authenticated, offer navigation to `/admin` or logout         |
-| `/verify-email` | Submit the `token` query parameter                                          | On success, link or navigate to `/login`                                 |
-| `/login`        | Submit `email` and `password`                                               | On success, load `/api/account/me` and navigate according to permissions |
-| `/admin`        | Call `/api/account/me`, require `users.manage`, then call `/api/admin/test` | Redirect `401` to `/login`; render a plain forbidden message for `403`   |
+| Frontend route  | Purpose                                                 | Access behavior                                                                      |
+| --------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `/register`     | Submit `displayName`, `email`, and `password`           | If already authenticated, offer navigation to `/admin` or logout                     |
+| `/verify-email` | Submit the `token` query parameter                      | On success, link or navigate to `/login`                                             |
+| `/login`        | Submit `email` and `password`                           | On success, load `/api/account/me` and navigate according to permissions             |
+| `/admin`        | Resolve the session principal in private server loaders | Redirect guests to `/login`; render a plain forbidden message without `users.manage` |
 
 The existing `/` and development-only routes remain unchanged. This document
 originally preceded the Framework migration; the file layout below reflects the
@@ -96,9 +96,12 @@ src/
     VerifyEmailPage.jsx
     LoginPage.jsx
     AdminPage.jsx
+  framework/
+    contexts.js
   routes.js                  # maps URLs to route modules
   routes/
     admin.jsx
+    private-layout.jsx
     login.jsx
     register.jsx
     verify-email.jsx
@@ -110,10 +113,9 @@ src/
 - `verifyEmail(token)`
 - `login(input)`
 - `getCurrentAccount()`
-- `testAdminAccess()`
 - `logout()`
 
-No global state library or authentication context is required for the first pass. The session cookie is authoritative, and `/api/account/me` supplies current roles and permissions whenever a protected page loads.
+No global state library is required for the first pass. The session cookie is authoritative. Login uses `/api/account/me` once for navigation, while protected document requests receive an immutable principal through the per-request Framework context.
 
 ## Page behavior
 
@@ -145,10 +147,10 @@ No global state library or authentication context is required for the first pass
 
 ### Admin page
 
-- Request `/api/account/me` on entry.
-- Redirect to `/login` when it returns `401`.
+- The private parent loader redirects guests to `/login` before rendering.
+- The admin loader reads permissions from the immutable request principal.
 - Render "Forbidden" when authenticated without `users.manage`.
-- Only after the permission check, request `/api/admin/test` and render its message.
+- Never cache the document or its loader data publicly.
 - Include a logout button. After successful logout, navigate to `/login`.
 
 The server remains the final authorization boundary. The frontend permission check improves navigation but does not replace `requirePermission('users.manage')` on the API route.

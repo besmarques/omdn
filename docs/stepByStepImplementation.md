@@ -389,11 +389,13 @@ Exit criteria:
 
 ### Step 2.5 — Establish public/private route layouts
 
-Initial presentation examples added on 2026-08-04: development-only recipe and
-gift-ideas pages now prove that content templates can be combined independently
-with full-width/sidebar layouts, header variants, footers, and region blocks.
-These examples establish the composition vocabulary; the public/private React
-Router boundaries and cache policies in this step are not complete yet.
+Status: completed on 2026-08-04. Public, authentication, and private Framework
+layouts now own their cache policies. Public pages remain outside MariaDB
+session middleware; authentication and private pages use `private, no-store`;
+and the private loader redirects guests after Express resolves the session and
+principal. Development now runs Vite in Express middleware mode so the same
+loader contract works in both environments. The earlier recipe and gift-ideas
+examples remain the separate presentation-layout layer.
 
 Create separate route layouts:
 
@@ -412,14 +414,14 @@ private layout
 
 Exit criteria:
 
-- Public response bodies are identical across anonymous sessions.
-- Private responses cannot be cached publicly.
+- [x] Public response bodies are identical across anonymous sessions, except for the required per-response CSP nonce.
+- [x] Private responses cannot be cached publicly.
 
 Release gate:
 
-- Express serves API and Framework SSR together.
-- One public SSR route is production-safe.
-- Existing authentication remains functional.
+- [x] Express serves API and Framework SSR together.
+- [x] One public SSR route is production-safe.
+- [x] Existing authentication remains functional.
 
 ## 5. Phase 3 — Harden authentication for SSR and production
 

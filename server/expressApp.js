@@ -14,7 +14,7 @@ import createApiRoutes from '#server/routes/apiRoutes';
 
 export default function createApp(db, config, services, { frontend: providedFrontend } = {}) {
 	const app = express();
-	const { authenticated, authEventService, createRateLimitStore, session } = services;
+	const { authenticated, authEventService, createRateLimitStore, resolvePrincipal, session } = services;
 	const frontend =
 		providedFrontend ??
 		createFrontendHandlers(config, {
@@ -30,6 +30,9 @@ export default function createApp(db, config, services, { frontend: providedFron
 
 	if (frontend.assets) {
 		app.use('/assets', frontend.assets);
+	}
+
+	if (frontend.publicFiles) {
 		app.use(frontend.publicFiles);
 	}
 
@@ -49,6 +52,15 @@ export default function createApp(db, config, services, { frontend: providedFron
 	app.use('/api', createApiRoutes(db));
 
 	if (frontend.requestHandler) {
+		app.use(
+			['/admin', '/admin.data'],
+			(_req, res, next) => {
+				res.set('Cache-Control', 'private, no-store');
+				return next();
+			},
+			session.middleware,
+			resolvePrincipal,
+		);
 		app.all('/{*splat}', frontend.requestHandler);
 	}
 

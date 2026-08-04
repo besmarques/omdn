@@ -43,9 +43,9 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
 
 ### Development
 
-- Frontend command: `npm run dev` starts React Router Framework development mode, powered by Vite.
-- Backend command: `npm run dev:server` starts `server/server.js` with
-  `.env.development` and Node watch mode.
+- Development command: `npm run dev` starts `server/developmentServer.js` with
+  `.env.development` and Node watch mode. Express owns the listener and Vite
+  runs in middleware mode for SSR, assets, and HMR.
 - `server/application/createApplication.js` constructs shared services and the
   Express application without opening a listener; only `server/server.js`
   starts listening and owns process signals.
@@ -53,8 +53,9 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
   Router context for each page request using public React Router 8.3 APIs. The
   official Express adapter passes it to loaders and actions through
   `getLoadContext`.
-- Vite proxies `/api` to `http://127.0.0.1:3000`.
-- Express listens on port `3000` unless `PORT` overrides it.
+- Page, asset, and `/api` requests share the Express origin. No development API
+  proxy or second server is required.
+- Express listens on `PORT` (normally `3000`).
 - The development database is MariaDB at `127.0.0.1:3306`, database `omdn`.
 
 ### Production
@@ -139,8 +140,8 @@ of application and worker processes.
 
 | Concern           | Development                    | Production                                 |
 | ----------------- | ------------------------------ | ------------------------------------------ |
-| Frontend serving  | Separate Framework/Vite server | Express serves built `build/client` assets |
-| API routing       | Vite proxies `/api`            | Same-origin Express `/api`                 |
+| Frontend serving  | Vite middleware inside Express | Express serves built `build/client` assets |
+| API routing       | Same-origin Express `/api`     | Same-origin Express `/api`                 |
 | Source reload     | Node watch and Vite HMR        | Disabled                                   |
 | Cookie security   | `Secure=false`                 | `Secure=true`                              |
 | Proxy trust       | Disabled                       | Exactly one proxy hop trusted              |

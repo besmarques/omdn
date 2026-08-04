@@ -28,7 +28,7 @@ export default defineConfig([
 				'error',
 				{
 					allowConstantExport: true,
-					allowExportNames: ['buttonVariants', 'links', 'loader', 'meta'],
+					allowExportNames: ['buttonVariants', 'headers', 'links', 'loader', 'meta'],
 				},
 			],
 		},

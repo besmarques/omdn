@@ -4,7 +4,6 @@ import { config as loadEnvironment } from 'dotenv';
 loadEnvironment({ path: '.env.development', quiet: true });
 
 const sourceDatabaseName = process.env.DB_NAME?.trim();
-const backendPort = Number(process.env.PLAYWRIGHT_BACKEND_PORT ?? 3100);
 const frontendPort = Number(process.env.PLAYWRIGHT_FRONTEND_PORT ?? 5174);
 
 if (!sourceDatabaseName) {
@@ -17,17 +16,13 @@ if (!/^[a-zA-Z0-9_]+_playwright$/.test(testDatabaseName)) {
 	throw new Error(`Unsafe Playwright database name: ${testDatabaseName}`);
 }
 
-if (!Number.isInteger(backendPort) || backendPort < 1 || backendPort > 65_535) {
-	throw new Error(`Invalid Playwright backend port: ${backendPort}`);
-}
-
 if (!Number.isInteger(frontendPort) || frontendPort < 1 || frontendPort > 65_535) {
 	throw new Error(`Invalid Playwright frontend port: ${frontendPort}`);
 }
 
 process.env.APP_ENV = 'development';
 process.env.DB_NAME = testDatabaseName;
-process.env.PORT = String(backendPort);
+process.env.PORT = String(frontendPort);
 
 export default defineConfig({
 	testDir: './tests/e2e',
@@ -48,20 +43,11 @@ export default defineConfig({
 			use: { ...devices['Desktop Chrome'] },
 		},
 	],
-	webServer: [
-		{
-			command: 'node tests/e2e/startBackend.js',
-			url: `http://127.0.0.1:${backendPort}/api/`,
-			reuseExistingServer: false,
-			timeout: 30_000,
-			env: { ...process.env },
-		},
-		{
-			command: `npm run dev -- --host 127.0.0.1 --port ${frontendPort}`,
-			url: `http://127.0.0.1:${frontendPort}`,
-			reuseExistingServer: false,
-			timeout: 30_000,
-			env: { ...process.env },
-		},
-	],
+	webServer: {
+		command: 'node tests/e2e/startDevelopment.js',
+		url: `http://127.0.0.1:${frontendPort}/api/`,
+		reuseExistingServer: false,
+		timeout: 30_000,
+		env: { ...process.env },
+	},
 });

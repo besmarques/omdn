@@ -1,6 +1,6 @@
 import { RouterContextProvider } from 'react-router';
 
-import { applicationServicesContext, clockContext, principalContext, requestIdContext } from '#server/framework/contexts';
+import { applicationServicesContext, clockContext, principalContext, requestIdContext } from '#framework/contexts';
 
 const guestPrincipal = Object.freeze({ authenticated: false });
 

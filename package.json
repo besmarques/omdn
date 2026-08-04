@@ -4,6 +4,7 @@
 	"version": "0.0.0",
 	"type": "module",
 	"imports": {
+		"#framework/*": "./src/framework/*.js",
 		"#server/*": "./server/*.js"
 	},
 	"scripts": {
@@ -12,8 +13,7 @@
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
 		"test:ssr": "npm run build && playwright test --config playwright.ssr.config.js",
-		"dev": "react-router dev",
-		"dev:server": "node --env-file=.env.development --watch server/server.js",
+		"dev": "node --env-file=.env.development --watch server/developmentServer.js",
 		"build": "react-router build",
 		"prestart": "npm run build",
 		"start": "node server/server.js",

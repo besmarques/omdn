@@ -6,6 +6,7 @@ import createAuthEventOutboxWorker from '#server/modules/auth/shared/events/auth
 import createAuthEventRepository from '#server/modules/auth/shared/events/authEventRepository';
 import createAuthEventService from '#server/modules/auth/shared/events/authEventService';
 import requireAuth from '#server/modules/auth/shared/middleware/requireAuth';
+import resolvePrincipal from '#server/modules/auth/shared/middleware/resolvePrincipal';
 import createMySqlRateLimitStore from '#server/modules/auth/shared/middleware/mySqlRateLimitStore';
 
 export default function createApplicationServices(db, config) {
@@ -27,6 +28,7 @@ export default function createApplicationServices(db, config) {
 		authEventService,
 		createRateLimitStore: (namespace) => createMySqlRateLimitStore(db, namespace),
 		framework: Object.freeze({}),
+		resolvePrincipal: resolvePrincipal(db),
 		session,
 		workers: Object.freeze([authEventOutboxWorker, deletedAccountCleanupWorker]),
 	});

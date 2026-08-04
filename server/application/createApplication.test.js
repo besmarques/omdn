@@ -28,4 +28,24 @@ describe('application construction', () => {
 		expect(application).toEqual({ app, db, services, workerLifecycle });
 		expect(app.listen).not.toHaveBeenCalled();
 	});
+
+	it('allows development to supply a Framework frontend after services exist', () => {
+		const config = { database: {} };
+		const db = {};
+		const services = { workers: [] };
+		const frontend = {};
+		const createFrontend = vi.fn(() => frontend);
+		const createExpressApplication = vi.fn(() => ({}));
+
+		createApplication(config, {
+			createDatabase: () => db,
+			createExpressApplication,
+			createFrontend,
+			createServices: () => services,
+			createWorkers: () => ({}),
+		});
+
+		expect(createFrontend).toHaveBeenCalledWith({ config, services });
+		expect(createExpressApplication).toHaveBeenCalledWith(db, config, services, { frontend });
+	});
 });

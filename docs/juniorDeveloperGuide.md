@@ -10,10 +10,9 @@ OMDN is one application with three main parts:
 2. An Express backend receives API requests, applies security rules, and runs application logic.
 3. MariaDB permanently stores users, sessions, permissions, security tokens, rate limits, and audit events.
 
-During development, two processes run:
-
-- Vite serves the React application on port `5173` and forwards `/api` requests to Express.
-- Express serves the API on port `3000`.
+During development, `npm run dev` starts one Express process. Vite runs inside
+it as development middleware, so page loaders, `/api` requests, HMR, and SSR
+all share the same origin and request context.
 
 In production, `npm start` first builds React Router's SPA output into `build/client`. Express then serves both the built frontend and the API from one process.
 
@@ -322,12 +321,14 @@ The frontend and backend deliberately do not import one another. Browser pages c
 
 `GET /api/account/me` returns the current user, roles, and permissions from the authoritative backend.
 
-The current mockup uses it in two places:
+The current mockup uses it after login:
 
 - Login calls `/me` after success to decide whether to navigate to `/admin`.
-- Admin calls `/me` again when mounted to protect direct navigation or page refresh.
 
-React development `StrictMode` may mount effects twice, and browser caching can turn repeated successful GETs into `304` responses. That explains why development tools can show multiple `/me` calls. This mockup behavior was accepted temporarily. A future application-level auth provider or React Router loader can load identity once and share it while the backend remains the security authority.
+The `/admin` route no longer calls `/me` in a browser effect. Its private parent
+loader receives the principal from Express request context, redirects guests,
+and passes authenticated presentation data to the admin page. API middleware
+still performs authorization independently for protected API operations.
 
 ## 12. Frontend flow
 
@@ -340,7 +341,9 @@ For a production page request, the current frontend works like this:
 - JavaScript loads and hydrates the existing HTML, attaching React behavior without rebuilding a different page.
 - Pages call the Express API when they need server data.
 
-SSR is enabled for the Framework application, and the homepage is the first public route covered by raw-HTTP and hydration tests. This does not yet mean private routes load account data on the server: the current login/admin mockup still calls the API in the browser. Public/private layouts and private loader authentication are later steps.
+SSR is enabled for the Framework application. Public, authentication, and
+private route layouts now own cache policy and account-loading boundaries. Only
+private document/data requests load the MariaDB session; public pages do not.
 
 In production, the security middleware creates a new Content Security Policy nonce for every response. It replaces any client-supplied internal nonce header, and the server entry applies that trusted value to React Router's inline scripts. This lets the browser run the generated scripts without allowing arbitrary inline scripts.
 
@@ -349,7 +352,7 @@ In production, the security middleware creates a new Content Security Policy non
 - `/register` manages form state and displays server validation errors.
 - `/verify-email?token=...` submits the verification token once.
 - `/login` logs in, calls `/me`, and navigates administrators to `/admin`.
-- `/admin` verifies the session and permission, calls the protected admin endpoint, and supports logout.
+- `/admin` resolves the session and permission in server loaders and supports logout.
 - `/dev/design-system` exists only in development.
 - `/dev/page-examples/recipe` and `/dev/page-examples/gift-ideas` demonstrate how a template can use independently selected layouts, headers, footers, and region blocks. These are in-memory examples rather than database content.
 
@@ -437,7 +440,7 @@ The project has several test levels because each catches different failures.
 | ---------------------------- | ------------------ | -------------------------------------------------------------------------------------- |
 | Unit/service                 | Vitest             | Business decisions work with controlled dependencies                                   |
 | Route/middleware integration | Vitest + Supertest | HTTP status, middleware, sessions, and response shapes work                            |
-| Browser end-to-end           | Playwright         | React, Vite proxying, cookies, CSRF, and Express work together                         |
+| Browser end-to-end           | Playwright         | React, Vite middleware, cookies, CSRF, and Express work together                       |
 | Real authentication smoke    | Custom Node script | The complete authentication system works with real MariaDB tables and survives restart |
 
 Useful commands:
@@ -489,8 +492,8 @@ Never rely on a hidden frontend button as authorization. Never store a plain pas
 
 | Development                                    | Production                                                         |
 | ---------------------------------------------- | ------------------------------------------------------------------ |
-| Vite and Express run separately                | Express serves the built frontend and API                          |
-| Vite proxies `/api`                            | Requests reach Express directly or through the hosting proxy       |
+| Vite runs as middleware inside Express         | Express serves the built frontend and API                          |
+| `/api` uses the same Express origin            | Requests reach Express directly or through the hosting proxy       |
 | Verification/reset tokens print to the console | Tokens must be delivered through a real email provider             |
 | Session cookies may use HTTP                   | Session cookies require HTTPS                                      |
 | React StrictMode helps expose unsafe effects   | Production does not perform StrictMode's development remount check |

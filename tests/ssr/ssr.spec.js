@@ -7,6 +7,8 @@ test('server-renders the public homepage with metadata and a nonce CSP', async (
 	const nonce = contentSecurityPolicy?.match(/'nonce-([^']+)'/u)?.[1];
 
 	expect(response.status()).toBe(200);
+	expect(response.headers()['cache-control']).toBe('public, max-age=0, must-revalidate');
+	expect(response.headers()['set-cookie']).toBeUndefined();
 	expect(html).toContain('<h1');
 	expect(html).toContain('O Melhor do Natal');
 	expect(html).toContain('<title>O Melhor do Natal</title>');
@@ -14,6 +16,30 @@ test('server-renders the public homepage with metadata and a nonce CSP', async (
 	expect(html).toContain('conteúdo e inspiração para celebrar o Natal');
 	expect(nonce).toBeTruthy();
 	expect(html).toContain(`nonce="${nonce}"`);
+});
+
+test('keeps public output account-independent and authentication/private routes uncacheable', async ({ request }) => {
+	const firstPublicResponse = await request.get('/', {
+		headers: { cookie: 'omdn_session=first-untrusted-session' },
+	});
+	const secondPublicResponse = await request.get('/', {
+		headers: { cookie: 'omdn_session=second-untrusted-session' },
+	});
+	const firstPublicHtml = await firstPublicResponse.text();
+	const secondPublicHtml = await secondPublicResponse.text();
+	const firstNonce = firstPublicResponse.headers()['content-security-policy']?.match(/'nonce-([^']+)'/u)?.[1];
+	const secondNonce = secondPublicResponse.headers()['content-security-policy']?.match(/'nonce-([^']+)'/u)?.[1];
+	const loginResponse = await request.get('/login');
+	const privateResponse = await request.get('/admin', { maxRedirects: 0 });
+
+	expect(firstNonce).toBeTruthy();
+	expect(secondNonce).toBeTruthy();
+	expect(firstPublicHtml.replaceAll(firstNonce, '<nonce>')).toBe(secondPublicHtml.replaceAll(secondNonce, '<nonce>'));
+	expect(loginResponse.headers()['cache-control']).toBe('private, no-store');
+	expect(loginResponse.headers()['set-cookie']).toBeUndefined();
+	expect(privateResponse.status()).toBe(302);
+	expect(privateResponse.headers().location).toBe('/login');
+	expect(privateResponse.headers()['cache-control']).toBe('private, no-store');
 });
 
 test('hydrates the server-rendered homepage without browser problems', async ({ page }) => {

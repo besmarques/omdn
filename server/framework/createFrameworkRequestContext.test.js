@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { applicationServicesContext, clockContext, principalContext, requestIdContext } from '#server/framework/contexts';
+import { applicationServicesContext, clockContext, principalContext, requestIdContext } from '#framework/contexts';
 import createFrameworkRequestContext from '#server/framework/createFrameworkRequestContext';
 
 describe('Framework request context', () => {

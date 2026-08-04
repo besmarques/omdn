@@ -112,7 +112,6 @@ omdn/
 |   |   `-- withConnection.js
 |   |-- frontend/createFrontendHandlers.js
 |   |-- framework/
-|   |   |-- contexts.js
 |   |   `-- createFrameworkRequestContext.js
 |   |-- middleware/
 |   |   |-- apiErrorMiddleware.js
@@ -223,6 +222,7 @@ Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files
 
 - `src/` contains the browser application.
 - `src/features/pageRendering/` contains the safe registries, layouts, content templates, and region blocks used to compose data-driven public pages.
+- `src/framework/contexts.js` defines shared request-context keys used by the outer Express adapter and server route loaders.
 - `server/modules/` contains feature-owned composition, routes, controllers, services, schemas, repositories, middleware, and colocated tests.
 - Each `*Module.js` file wires its feature dependencies and returns a router.
 - Auth is divided into credentials, registration, email-verification, password-recovery, and TOTP submodules. Each capability owns its persistence repository; only cross-capability session persistence, schemas, events, and middleware live under `auth/shared/`.
@@ -230,7 +230,7 @@ Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files
 - `server/routes/` contains shared/cross-feature routers; `server/middleware/` contains shared middleware.
 - `server/application/` constructs process-level services and owns worker lifecycle without opening a listener.
 - `server/frontend/` serves production assets and mounts the official React Router Express request handler.
-- `server/framework/` defines React Router request-context keys and creates one isolated `RouterContextProvider` per page request. It exposes only approved route services, an immutable principal snapshot, the request ID, and a clock—not the database pool.
+- `server/framework/` creates one isolated `RouterContextProvider` per page request. It exposes only approved route services, an immutable principal snapshot, the request ID, and a clock—not the database pool.
 - `server/expressApp.js` composes only the HTTP application; `server/server.js` starts the listener and registers shutdown signals.
 - Frontend imports use `@/*`; backend imports use `#server/*`.
 - Development generators live under `scripts/dev/`; generated maps live under `docs/`.
@@ -241,34 +241,32 @@ Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files
 npm install
 ```
 
-Copy `.env.example` to `.env.development`, provide local values, then run the frontend and backend in separate terminals:
+Copy `.env.example` to `.env.development`, provide local values, then start the combined Express and Vite development server:
 
 ```bash
 npm run dev
-npm run dev:server
 ```
 
 ## Available scripts
 
-| Command                    | Description                                                 |
-| -------------------------- | ----------------------------------------------------------- |
-| `npm test`                 | Runs Vitest once                                            |
-| `npm run test:watch`       | Runs Vitest in watch mode                                   |
-| `npm run test:e2e`         | Runs Playwright auth characterization tests                 |
-| `npm run test:e2e:headed`  | Runs Playwright with a visible Chromium browser             |
-| `npm run test:ssr`         | Builds production SSR and tests HTTP output and hydration   |
-| `npm run dev`              | Starts React Router Framework development mode              |
-| `npm run dev:server`       | Loads `.env.development` and starts Express in watch mode   |
-| `npm run build`            | Builds Framework client and server bundles                  |
-| `npm start`                | Builds the frontend through `prestart`, then starts Express |
-| `npm run lint`             | Runs ESLint                                                 |
-| `npm run diagram`          | Generates dependency SVGs under `docs/diagrams/dependency/` |
-| `npm run diagram:validate` | Checks dependency rules without generating diagrams         |
-| `npm run logic-map`        | Generates runtime SVGs under `docs/diagrams/runtime/`       |
-| `npm run maps`             | Regenerates dependency and logic maps                       |
-| `npm run diagram:all`      | Alias for regenerating both map sets                        |
-| `npm run format`           | Formats the repository with Prettier                        |
-| `npm run format:check`     | Checks formatting without writing files                     |
+| Command                    | Description                                                     |
+| -------------------------- | --------------------------------------------------------------- |
+| `npm test`                 | Runs Vitest once                                                |
+| `npm run test:watch`       | Runs Vitest in watch mode                                       |
+| `npm run test:e2e`         | Runs Playwright auth characterization tests                     |
+| `npm run test:e2e:headed`  | Runs Playwright with a visible Chromium browser                 |
+| `npm run test:ssr`         | Builds production SSR and tests HTTP output and hydration       |
+| `npm run dev`              | Starts Express, Vite middleware, SSR, and the API in watch mode |
+| `npm run build`            | Builds Framework client and server bundles                      |
+| `npm start`                | Builds the frontend through `prestart`, then starts Express     |
+| `npm run lint`             | Runs ESLint                                                     |
+| `npm run diagram`          | Generates dependency SVGs under `docs/diagrams/dependency/`     |
+| `npm run diagram:validate` | Checks dependency rules without generating diagrams             |
+| `npm run logic-map`        | Generates runtime SVGs under `docs/diagrams/runtime/`           |
+| `npm run maps`             | Regenerates dependency and logic maps                           |
+| `npm run diagram:all`      | Alias for regenerating both map sets                            |
+| `npm run format`           | Formats the repository with Prettier                            |
+| `npm run format:check`     | Checks formatting without writing files                         |
 
 Playwright rebuilds and uses a separate database named by appending
 `_playwright` to `DB_NAME`. The configured database user must be allowed to
@@ -393,7 +391,7 @@ Account deletion is initially a soft delete. A background retention worker runs 
 
 The generic `/api` router and JSON 404 handler are mounted last within the API pipeline. Express assigns every request a correlation ID and applies baseline security headers globally, while JSON parsing, MariaDB sessions, and CSRF checks are scoped to `/api`. With `APP_ENV=production`, Express serves immutable assets from `build/client` and delegates document requests to the official React Router handler backed by `build/server`. Static and page requests never open an API session. The frontend boundary creates a fresh React Router context for every page request. Production responses use a per-request Content Security Policy nonce, which the security middleware overwrites on an internal request header before the server entry applies it to Framework scripts.
 
-The frontend now builds with React Router Framework SSR. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, Framework scripts, and a safe root error boundary. `src/entry.server.jsx` streams the server document. Every current URL maps to an explicit module in `src/routes/`, including the development-only design-system route and the HTTP `404` fallback. The homepage is the first production-verified public SSR route; private route loading remains a later step.
+The frontend now builds with React Router Framework SSR. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, Framework scripts, and a safe root error boundary. `src/entry.server.jsx` streams the server document. Public, authentication, and private route layouts define session and cache boundaries. Public pages never open a MariaDB session; `/admin` resolves its principal in a private server loader and always uses `private, no-store`. Every current URL maps to an explicit module in `src/routes/`, including the development-only design-system route and the HTTP `404` fallback.
 
 ## Design system
 

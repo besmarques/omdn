@@ -24,6 +24,7 @@ describe('Express application construction', () => {
 			authenticated: (_req, _res, next) => next(),
 			authEventService: { record: vi.fn() },
 			createRateLimitStore,
+			resolvePrincipal: (_req, _res, next) => next(),
 			session: {
 				middleware: (_req, _res, next) => next(),
 				store: {},
@@ -50,6 +51,7 @@ describe('Express application construction', () => {
 			authenticated: (_req, _res, next) => next(),
 			authEventService: { record: vi.fn() },
 			createRateLimitStore,
+			resolvePrincipal: (_req, _res, next) => next(),
 			session: { middleware: sessionMiddleware, store: {} },
 			workers: [],
 		};
@@ -79,6 +81,7 @@ describe('Express application construction', () => {
 			authenticated: (_req, _res, next) => next(),
 			authEventService: { record: vi.fn() },
 			createRateLimitStore,
+			resolvePrincipal: (_req, _res, next) => next(),
 			session: { middleware: (_req, _res, next) => next(), store: {} },
 			workers: [],
 		};
@@ -102,6 +105,7 @@ describe('Express application construction', () => {
 			authenticated: (_req, _res, next) => next(),
 			authEventService: { record: vi.fn() },
 			createRateLimitStore,
+			resolvePrincipal: (_req, _res, next) => next(),
 			session: { middleware: sessionMiddleware, store: {} },
 			workers: [],
 		};
@@ -123,6 +127,7 @@ describe('Express application construction', () => {
 			authEventService: { record: vi.fn() },
 			createRateLimitStore,
 			framework: Object.freeze({}),
+			resolvePrincipal: (_req, _res, next) => next(),
 			session: { middleware: (_req, _res, next) => next(), store: {} },
 			workers: [],
 		};
@@ -137,5 +142,33 @@ describe('Express application construction', () => {
 		await request(app).get('/second').set('x-correlation-id', 'second');
 
 		expect(frontend.requestHandler).toHaveBeenCalledTimes(2);
+	});
+
+	it('resolves sessions only for private document and data requests', async () => {
+		const sessionMiddleware = vi.fn((req, _res, next) => {
+			req.session = { userId: 1 };
+			next();
+		});
+		const resolvePrincipal = vi.fn((_req, _res, next) => next());
+		const services = {
+			authenticated: (_req, _res, next) => next(),
+			authEventService: { record: vi.fn() },
+			createRateLimitStore,
+			framework: Object.freeze({}),
+			resolvePrincipal,
+			session: { middleware: sessionMiddleware, store: {} },
+			workers: [],
+		};
+		const frontend = {
+			requestHandler: (_req, res) => res.sendStatus(204),
+		};
+		const app = createApp({}, { appEnvironment: 'test', totpEncryptionKey: Buffer.alloc(32) }, services, { frontend });
+
+		await request(app).get('/');
+		await request(app).get('/admin');
+		await request(app).get('/admin.data');
+
+		expect(sessionMiddleware).toHaveBeenCalledTimes(2);
+		expect(resolvePrincipal).toHaveBeenCalledTimes(2);
 	});
 });

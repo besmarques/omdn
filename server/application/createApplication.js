@@ -8,13 +8,18 @@ export default function createApplication(
 	{
 		createDatabase = createPool,
 		createExpressApplication = createApp,
+		createFrontend,
 		createServices = createApplicationServices,
 		createWorkers = createWorkerLifecycle,
 	} = {},
 ) {
 	const db = createDatabase(config.database);
 	const services = createServices(db, config);
-	const app = createExpressApplication(db, config, services);
+	const app = createFrontend
+		? createExpressApplication(db, config, services, {
+				frontend: createFrontend({ config, services }),
+			})
+		: createExpressApplication(db, config, services);
 	const workerLifecycle = createWorkers(services.workers);
 
 	return Object.freeze({ app, db, services, workerLifecycle });

@@ -98,10 +98,6 @@ export function getCurrentAccount() {
 	return requestApi('/api/account/me');
 }
 
-export function testAdminAccess() {
-	return requestApi('/api/admin/test');
-}
-
 export async function logout() {
 	const result = await requestApi('/api/auth/logout', {
 		method: 'POST',

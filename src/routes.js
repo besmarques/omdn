@@ -1,4 +1,4 @@
-import { index, route } from '@react-router/dev/routes';
+import { index, layout, route } from '@react-router/dev/routes';
 
 const developmentRoutes =
 	process.env.NODE_ENV === 'production'
@@ -9,11 +9,11 @@ const developmentRoutes =
 			];
 
 export default [
-	index('routes/home.jsx'),
-	route('login', 'routes/login.jsx'),
-	route('register', 'routes/register.jsx'),
-	route('verify-email', 'routes/verify-email.jsx'),
-	route('admin', 'routes/admin.jsx'),
-	...developmentRoutes,
-	route('*', 'routes/not-found.jsx'),
+	layout('routes/public-layout.jsx', [index('routes/home.jsx'), ...developmentRoutes, route('*', 'routes/not-found.jsx')]),
+	layout('routes/auth-layout.jsx', [
+		route('login', 'routes/login.jsx'),
+		route('register', 'routes/register.jsx'),
+		route('verify-email', 'routes/verify-email.jsx'),
+	]),
+	layout('routes/private-layout.jsx', [route('admin', 'routes/admin.jsx')]),
 ];
