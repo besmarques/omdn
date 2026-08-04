@@ -1,14 +1,16 @@
 import path from 'node:path';
+import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+
+const apiPort = process.env.PORT ?? '3000';
 
 // https://vite.dev/config/
 export default defineConfig({
-	plugins: [react(), tailwindcss()],
+	plugins: [reactRouter(), tailwindcss()],
 	server: {
 		proxy: {
-			'/api': 'http://127.0.0.1:3000',
+			'/api': `http://127.0.0.1:${apiPort}`,
 		},
 	},
 	resolve: {

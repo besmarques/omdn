@@ -4,6 +4,7 @@ import { config as loadEnvironment } from 'dotenv';
 loadEnvironment({ path: '.env.development', quiet: true });
 
 const sourceDatabaseName = process.env.DB_NAME?.trim();
+const backendPort = Number(process.env.PLAYWRIGHT_BACKEND_PORT ?? 3100);
 
 if (!sourceDatabaseName) {
 	throw new Error('DB_NAME is required in .env.development');
@@ -15,9 +16,13 @@ if (!/^[a-zA-Z0-9_]+_playwright$/.test(testDatabaseName)) {
 	throw new Error(`Unsafe Playwright database name: ${testDatabaseName}`);
 }
 
+if (!Number.isInteger(backendPort) || backendPort < 1 || backendPort > 65_535) {
+	throw new Error(`Invalid Playwright backend port: ${backendPort}`);
+}
+
 process.env.APP_ENV = 'development';
 process.env.DB_NAME = testDatabaseName;
-process.env.PORT = '3000';
+process.env.PORT = String(backendPort);
 
 export default defineConfig({
 	testDir: './tests/e2e',
@@ -41,7 +46,7 @@ export default defineConfig({
 	webServer: [
 		{
 			command: 'node tests/e2e/startBackend.js',
-			url: 'http://127.0.0.1:3000/api/',
+			url: `http://127.0.0.1:${backendPort}/api/`,
 			reuseExistingServer: false,
 			timeout: 30_000,
 			env: { ...process.env },

@@ -33,13 +33,14 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | `express-mysql-session`    | `^3.0.3`      | MySQL/MariaDB-backed Express session store                 |
 | `express-rate-limit`       | `^8.6.1`      | Throttling for sensitive authentication routes             |
 | `express-session`          | `^1.19.0`     | Server-side session management                             |
+| `isbot`                    | `^5`          | User-agent detection required by Framework tooling         |
 | `lucide-react`             | `^1.27.0`     | React icon components                                      |
 | `mysql2`                   | `^3.23.2`     | Promise-based MySQL/MariaDB connection pool and driver     |
 | `otplib`                   | `^13.4.1`     | TOTP and one-time-password support                         |
 | `qrcode`                   | `^1.5.4`      | Authenticator QR-code generation                           |
 | `react`                    | `^19.2.7`     | Browser UI library                                         |
 | `react-dom`                | `^19.2.7`     | React DOM renderer                                         |
-| `react-router`             | `^8.3.0`      | Client-side routing                                        |
+| `react-router`             | `8.3.0`       | Framework and client-side routing                          |
 | `shadcn`                   | `^4.16.0`     | UI component tooling                                       |
 | `tailwind-merge`           | `^3.6.0`      | Tailwind class conflict resolution                         |
 | `tailwindcss`              | `^4.3.3`      | Utility-first CSS framework                                |
@@ -51,9 +52,9 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | Package                       | Version range | Purpose                                                    |
 | ----------------------------- | ------------- | ---------------------------------------------------------- |
 | `@eslint/js`                  | `^10.0.1`     | ESLint's recommended JavaScript rules                      |
+| `@react-router/dev`           | `8.3.0`       | React Router Framework Vite plugin and CLI                 |
 | `@types/react`                | `^19.2.17`    | React editor/tooling types                                 |
 | `@types/react-dom`            | `^19.2.3`     | React DOM editor/tooling types                             |
-| `@vitejs/plugin-react`        | `^6.0.3`      | React support for Vite                                     |
 | `dependency-cruiser`          | `^18.1.0`     | Source dependency analysis and DOT generation              |
 | `eslint`                      | `^10.6.0`     | JavaScript and JSX linting                                 |
 | `eslint-plugin-react-hooks`   | `^7.1.1`      | React Hooks lint rules                                     |
@@ -183,7 +184,10 @@ omdn/
 |   |-- App.css
 |   |-- App.jsx
 |   |-- index.css
-|   `-- main.jsx
+|   |-- main.jsx
+|   |-- root.jsx
+|   |-- routes.js
+|   `-- routes/legacy.jsx
 |-- .dependency-cruiser.cjs
 |-- .env.example
 |-- .gitignore
@@ -195,11 +199,12 @@ omdn/
 |-- jsconfig.json
 |-- package-lock.json
 |-- package.json
+|-- react-router.config.js
 |-- README.md
 `-- vite.config.js
 ```
 
-Generated `node_modules/`, `dist/`, and local environment files are omitted.
+Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files are omitted.
 
 ### Structure conventions
 
@@ -234,9 +239,9 @@ npm run dev:server
 | `npm run test:watch`       | Runs Vitest in watch mode                                   |
 | `npm run test:e2e`         | Runs Playwright auth characterization tests                 |
 | `npm run test:e2e:headed`  | Runs Playwright with a visible Chromium browser             |
-| `npm run dev`              | Starts Vite                                                 |
+| `npm run dev`              | Starts React Router Framework development mode              |
 | `npm run dev:server`       | Loads `.env.development` and starts Express in watch mode   |
-| `npm run build`            | Builds the frontend into `dist/`                            |
+| `npm run build`            | Builds the Framework SPA into `build/client`                |
 | `npm start`                | Builds the frontend through `prestart`, then starts Express |
 | `npm run lint`             | Runs ESLint                                                 |
 | `npm run preview`          | Previews the production frontend build                      |
@@ -252,6 +257,8 @@ Playwright rebuilds and uses a separate database named by appending
 `_playwright` to `DB_NAME`. The configured database user must be allowed to
 create and drop that isolated database. Install its local browser once with
 `npx playwright install chromium`; CI installs Chromium automatically.
+The test backend defaults to port `3100` so it can run beside the normal
+development backend; `PLAYWRIGHT_BACKEND_PORT` may override that test-only port.
 
 ## Architecture maps
 
@@ -351,7 +358,9 @@ Account deletion is initially a soft delete. A background retention worker runs 
 | `POST /api/account/password/change`             | Authenticated             | Changes the password, revokes other sessions, and regenerates the current session |
 | `GET /api/admin/test`                           | `users.manage` permission | Tests protected admin access                                                      |
 
-The generic `/api` router and JSON 404 handler are mounted last. With `APP_ENV=production`, Express serves `dist/` and provides the SPA fallback.
+The generic `/api` router and JSON 404 handler are mounted last. With `APP_ENV=production`, Express serves immutable assets and the SPA fallback from `build/client`.
+
+The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` owns the Framework document shell. During incremental conversion, one Framework catch-all route delegates to the existing `AppRoutes` tree; individual pages move to dedicated route modules in Step 1.5. `index.html` and `src/main.jsx` remain temporarily as the previous bootstrap reference and are no longer Framework build entry points.
 
 ## Design system
 

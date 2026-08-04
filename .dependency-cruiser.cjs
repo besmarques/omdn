@@ -28,6 +28,7 @@ module.exports = {
 					'[.]d[.]ts$', // TypeScript declaration files
 					'(^|/)tsconfig[.]json$', // TypeScript config
 					'(^|/)(?:babel|webpack)[.]config[.](?:js|cjs|mjs|ts|cts|mts|json)$', // other configs
+					'^src/routes[.]js$', // React Router loads this convention dynamically
 				],
 			},
 			to: {},
@@ -154,7 +155,7 @@ module.exports = {
 				'from.pathNot re of the not-to-dev-dep rule in the dependency-cruiser configuration',
 			from: {
 				path: '^(src)',
-				pathNot: '[.](?:spec|test)[.](?:js|mjs|cjs|jsx|ts|mts|cts|tsx)$',
+				pathNot: ['[.](?:spec|test)[.](?:js|mjs|cjs|jsx|ts|mts|cts|tsx)$', '^src/routes[.]js$'],
 			},
 			to: {
 				dependencyTypes: ['npm-dev'],

@@ -43,7 +43,7 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
 
 ### Development
 
-- Frontend command: `npm run dev` starts Vite.
+- Frontend command: `npm run dev` starts React Router Framework development mode, powered by Vite.
 - Backend command: `npm run dev:server` starts `server/server.js` with
   `.env.development` and Node watch mode.
 - Vite proxies `/api` to `http://127.0.0.1:3000`.
@@ -54,7 +54,7 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
 
 - Repository start command: `npm start`.
 - `prestart` runs `npm run build`; `start` then runs `node server/server.js`.
-- With `APP_ENV=production`, Express serves the Vite `dist/` directory and the
+- With `APP_ENV=production`, Express serves the Framework `build/client` directory and the
   SPA fallback in addition to `/api`.
 - The intended platform is Hostinger Cloud Startup with the Node application
   and MariaDB in the same hosting environment.
@@ -125,16 +125,16 @@ of application and worker processes.
 
 ## Development and production differences
 
-| Concern           | Development             | Production                                |
-| ----------------- | ----------------------- | ----------------------------------------- |
-| Frontend serving  | Separate Vite server    | Express serves built `dist/` assets       |
-| API routing       | Vite proxies `/api`     | Same-origin Express `/api`                |
-| Source reload     | Node watch and Vite HMR | Disabled                                  |
-| Cookie security   | `Secure=false`          | `Secure=true`                             |
-| Proxy trust       | Disabled                | Exactly one proxy hop trusted             |
-| TLS               | Local HTTP              | Expected Hostinger HTTPS termination      |
-| Database location | Local loopback          | Expected same-host MariaDB                |
-| Runtime values    | Verified above          | Hosting values still require verification |
+| Concern           | Development                    | Production                                 |
+| ----------------- | ------------------------------ | ------------------------------------------ |
+| Frontend serving  | Separate Framework/Vite server | Express serves built `build/client` assets |
+| API routing       | Vite proxies `/api`            | Same-origin Express `/api`                 |
+| Source reload     | Node watch and Vite HMR        | Disabled                                   |
+| Cookie security   | `Secure=false`                 | `Secure=true`                              |
+| Proxy trust       | Disabled                       | Exactly one proxy hop trusted              |
+| TLS               | Local HTTP                     | Expected Hostinger HTTPS termination       |
+| Database location | Local loopback                 | Expected same-host MariaDB                 |
+| Runtime values    | Verified above                 | Hosting values still require verification  |
 
 ## Production verification checklist
 

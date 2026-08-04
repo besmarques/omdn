@@ -75,12 +75,19 @@ export default function createApp(db, config) {
 
 		const __dirname = path.dirname(__filename);
 
-		const distPath = path.resolve(__dirname, '../dist');
+		const clientBuildPath = path.resolve(__dirname, '../build/client');
 
-		app.use(express.static(distPath));
+		app.use(
+			'/assets',
+			express.static(path.join(clientBuildPath, 'assets'), {
+				immutable: true,
+				maxAge: '1y',
+			}),
+		);
+		app.use(express.static(clientBuildPath));
 
 		app.get('/{*splat}', (req, res) => {
-			res.sendFile(path.join(distPath, 'index.html'));
+			res.sendFile(path.join(clientBuildPath, 'index.html'));
 		});
 	}
 

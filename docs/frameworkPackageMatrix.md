@@ -1,6 +1,6 @@
 # React Router Framework Package Matrix
 
-Status: verified for Step 1.1 on 2026-08-04. No dependencies were changed during this step.
+Status: Step 1.1 was verified and the Step 1.3 configuration was implemented on 2026-08-04.
 
 ## 1. Decision
 
@@ -17,16 +17,17 @@ All first-party React Router packages must use the same exact `8.3.0` version. T
 
 These values come from the current workspace and lockfile:
 
-| Component              | Installed version |
-| ---------------------- | ----------------- |
-| Node.js                | `24.18.1`         |
-| npm                    | `11.16.0`         |
-| React                  | `19.2.8`          |
-| React DOM              | `19.2.8`          |
-| React Router           | `8.3.0`           |
-| Vite                   | `8.1.5`           |
-| `@vitejs/plugin-react` | `6.0.4`           |
-| Express                | `5.2.1`           |
+| Component           | Installed version |
+| ------------------- | ----------------- |
+| Node.js             | `24.18.1`         |
+| npm                 | `11.16.0`         |
+| React               | `19.2.8`          |
+| React DOM           | `19.2.8`          |
+| React Router        | `8.3.0`           |
+| Vite                | `8.1.5`           |
+| `@react-router/dev` | `8.3.0`           |
+| `isbot`             | `5.2.1`           |
+| Express             | `5.2.1`           |
 
 ## 3. Compatibility result
 
@@ -38,11 +39,11 @@ Registry metadata for the exact package versions gives this matrix:
 | `react-router@8.3.0`          | React and React DOM `>=19.2.7` | `19.2.8`   | Compatible |
 | `@react-router/dev@8.3.0`     | Node `>=22.22.0`               | `24.18.1`  | Compatible |
 | `@react-router/dev@8.3.0`     | `react-router ^8.3.0`          | `8.3.0`    | Compatible |
-| `@react-router/dev@8.3.0`     | Vite `^7.0.0                   |            | ^8.0.0`    | `8.1.5`   | Compatible |
+| `@react-router/dev@8.3.0`     | Vite 7 or 8                    | `8.1.5`    | Compatible |
 | `@react-router/express@8.3.0` | Node `>=22.22.0`               | `24.18.1`  | Compatible |
-| `@react-router/express@8.3.0` | Express `^4.22.2               |            | ^5`        | `5.2.1`   | Compatible |
+| `@react-router/express@8.3.0` | Express 4.22.2 or 5            | `5.2.1`    | Compatible |
 | `@react-router/express@8.3.0` | Exactly `react-router 8.3.0`   | `8.3.0`    | Compatible |
-| `vite@8.1.5`                  | Node `^20.19.0                 |            | >=22.12.0` | `24.18.1` | Compatible |
+| `vite@8.1.5`                  | Node 20.19+ or 22.12+          | `24.18.1`  | Compatible |
 
 React Router officially supports Node 24 while it is Active LTS. The package metadata has the stricter machine-checkable minimum, and the installed runtime satisfies both statements.
 
@@ -62,7 +63,7 @@ Existing packages retained:
 - `vite@8.1.5`
 - `@tailwindcss/vite`
 
-`@vitejs/plugin-react` is replaced by the `reactRouter()` Vite plugin during Step 1.3, after the required Framework files exist. It should not be removed in Step 1.2 because the current application must continue building between steps.
+`@vitejs/plugin-react` was replaced by the `reactRouter()` Vite plugin during Step 1.3, after the required Framework files were added.
 
 The React Router plugin supplies the Framework compilation, route-module transforms, React Refresh, code splitting, and CLI integration. Keeping both React transformation plugins is unnecessary for the standard non-RSC Framework setup.
 
@@ -135,7 +136,7 @@ react-router build
 react-router routes
 ```
 
-The generated `.react-router/` directory must be ignored by Git.
+The generated `.react-router/` directory is ignored by Git.
 
 ## 7. Build-output consequence
 
@@ -146,7 +147,9 @@ With `ssr: false`, OMDN still needs Express production fallback behavior for the
 - adopt React Router's default `build/client` path and update Express static/fallback paths, or
 - configure a deliberate build directory and still account for the `client` subdirectory.
 
-The recommended choice is the documented default `build/client`. It reduces custom Framework configuration and makes the later Phase 2 server output predictable. The production fallback must serve `build/client/index.html`, and immutable generated assets should be served before the fallback.
+OMDN uses the documented default `build/client`. Express serves `build/client/index.html` as the production fallback and serves generated `/assets` with immutable one-year caching before the fallback.
+
+The React Router CLI also added `isbot@5` as a runtime dependency required by its build/runtime conventions. The installed version is recorded in the lockfile.
 
 This path change belongs to the Framework configuration slice and must be covered by the production build and browser tests.
 

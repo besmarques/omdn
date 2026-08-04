@@ -15,7 +15,7 @@ During development, two processes run:
 - Vite serves the React application on port `5173` and forwards `/api` requests to Express.
 - Express serves the API on port `3000`.
 
-In production, `npm start` first builds React into `dist/`. Express then serves both the built frontend and the API from one process.
+In production, `npm start` first builds React Router's SPA output into `build/client`. Express then serves both the built frontend and the API from one process.
 
 ```mermaid
 flowchart LR
@@ -46,7 +46,7 @@ Not yet implemented as a complete user interface:
 - TOTP screens
 - Password recovery and account management screens
 - The blog/post system
-- React Router Framework Mode and server-side rendering (SSR)
+- Dedicated Framework route modules and server-side rendering (SSR)
 - The final design system
 
 The files under `src/components/ui/` are an offline shadcn reference library. They are not the final UI architecture and do not need to influence current backend work.
@@ -294,7 +294,7 @@ React development `StrictMode` may mount effects twice, and browser caching can 
 
 ## 12. Frontend flow
 
-`src/main.jsx` mounts React and wraps the application in `BrowserRouter`. `AppRoutes.jsx` maps browser URLs to page components.
+`src/root.jsx` now owns the HTML document in React Router Framework SPA Mode. A temporary Framework catch-all route renders the existing `AppRoutes.jsx` tree, which still maps browser URLs to page components. The previous `index.html` and `src/main.jsx` bootstrap files remain only until the migration cleanup step.
 
 The current frontend is a client-rendered single-page application:
 
@@ -303,7 +303,7 @@ The current frontend is a client-rendered single-page application:
 - React selects and renders the page.
 - Pages call the Express API when they need server data.
 
-It is not yet SSR and does not yet use React Router Framework Mode. The architecture decision records under `docs/adr/` describe the planned direction. When that migration happens, public SEO-sensitive pages can be rendered on the server while Express remains the outer HTTP server.
+It now uses React Router Framework tooling with `ssr: false`, but its individual pages have not yet been converted to Framework route modules. It is not SSR. Later phases will render public SEO-sensitive pages on the server while Express remains the outer HTTP server.
 
 ### Current page behavior
 
