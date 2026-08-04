@@ -294,7 +294,7 @@ React development `StrictMode` may mount effects twice, and browser caching can 
 
 ## 12. Frontend flow
 
-`src/root.jsx` is the sole HTML document shell in React Router Framework SPA Mode. It owns global CSS, metadata, the favicon, scroll restoration, and Framework scripts. React Router's default client entry performs hydration and supplies development `StrictMode`. The Framework index adapter renders the homepage directly; a temporary catch-all still sends the remaining URLs through `AppRoutes.jsx` until those pages become dedicated route modules.
+`src/root.jsx` is the sole HTML document shell in React Router Framework SPA Mode. It owns global CSS, metadata, the favicon, scroll restoration, and Framework scripts. React Router's default client entry performs hydration and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old `AppRoutes.jsx` tree is no longer used and is retained only until the Step 1.6 cleanup.
 
 The current frontend is a client-rendered single-page application:
 
@@ -303,7 +303,7 @@ The current frontend is a client-rendered single-page application:
 - React selects and renders the page.
 - Pages call the Express API when they need server data.
 
-It now uses React Router Framework tooling with `ssr: false`, but its individual pages have not yet been converted to Framework route modules. It is not SSR. Later phases will render public SEO-sensitive pages on the server while Express remains the outer HTTP server.
+It now uses React Router Framework tooling with `ssr: false`, and every current page has a Framework route module. It is not SSR. Later phases will render public SEO-sensitive pages on the server while Express remains the outer HTTP server.
 
 ### Current page behavior
 

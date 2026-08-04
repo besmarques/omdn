@@ -1,5 +1,13 @@
 import { index, route } from '@react-router/dev/routes';
 
-// This catch-all route keeps the existing AppRoutes tree working while each
-// page moves to a dedicated Framework route module in Step 1.5.
-export default [index('routes/home.jsx'), route('*', 'routes/legacy.jsx')];
+const developmentRoutes = process.env.NODE_ENV === 'production' ? [] : [route('dev/design-system', 'routes/design-system.jsx')];
+
+export default [
+	index('routes/home.jsx'),
+	route('login', 'routes/login.jsx'),
+	route('register', 'routes/register.jsx'),
+	route('verify-email', 'routes/verify-email.jsx'),
+	route('admin', 'routes/admin.jsx'),
+	...developmentRoutes,
+	route('*', 'routes/not-found.jsx'),
+];

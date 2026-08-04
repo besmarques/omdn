@@ -76,7 +76,7 @@ async function loginThroughPage(page) {
 	await page.getByRole('button', { name: 'Login' }).click();
 }
 
-test('hydrates a direct Framework route with the document metadata', async ({ page }) => {
+test('loads Framework route modules directly and through client navigation', async ({ page }) => {
 	const browserErrors = [];
 
 	page.on('console', (message) => {
@@ -99,10 +99,20 @@ test('hydrates a direct Framework route with the document metadata', async ({ pa
 
 	expect(faviconResponse.status()).toBe(200);
 	expect(faviconResponse.headers()['content-type']).toContain('image/svg+xml');
+
+	await page.getByRole('link', { name: 'Go to login' }).click();
+	await expect(page).toHaveURL(/\/login$/u);
+	await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
+
+	await page.goto('/dev/design-system');
+	await expect(page.getByRole('heading', { name: 'Design System' })).toBeVisible();
+
+	await page.goto('/route-that-does-not-exist');
+	await expect(page.getByText('Page not found')).toBeVisible();
 	expect(browserErrors).toEqual([]);
 });
 
-test('renders the homepage through the temporary Framework index adapter', async ({ page }) => {
+test('renders the homepage through its Framework route module', async ({ page }) => {
 	const browserProblems = [];
 
 	page.on('console', (message) => {

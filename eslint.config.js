@@ -42,6 +42,13 @@ export default defineConfig([
 	},
 
 	{
+		files: ['src/routes.js'],
+		languageOptions: {
+			globals: globals.node,
+		},
+	},
+
+	{
 		files: ['**/*.test.{js,jsx}'],
 		languageOptions: {
 			globals: globals.vitest,

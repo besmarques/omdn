@@ -224,6 +224,13 @@ Exit criteria:
 
 ### Step 1.5 — Convert routes incrementally
 
+Completed on 2026-08-04. Every current URL now has an explicit Framework route
+module: not-found, home, the development-only design-system preview, login,
+registration, email verification, and admin. The existing page components were
+preserved, and browser coverage verifies direct loads and client navigation.
+The old compatibility router files remain only for the cleanup in Step 1.6 and
+are not part of the live Framework route configuration.
+
 Convert in this order:
 
 1. Not-found route
@@ -243,8 +250,8 @@ For each route:
 
 Exit criteria:
 
-- All current frontend routes are Framework route modules.
-- Existing proof-of-concept behavior remains unchanged.
+- [x] All current frontend routes are Framework route modules.
+- [x] Existing proof-of-concept behavior remains unchanged.
 
 ### Step 1.6 — Remove the old SPA router bootstrap
 

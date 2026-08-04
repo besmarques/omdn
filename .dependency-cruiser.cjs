@@ -29,6 +29,7 @@ module.exports = {
 					'(^|/)tsconfig[.]json$', // TypeScript config
 					'(^|/)(?:babel|webpack)[.]config[.](?:js|cjs|mjs|ts|cts|mts|json)$', // other configs
 					'^src/routes[.]js$', // React Router loads this convention dynamically
+					'^src/routes/not-found[.]jsx$', // React Router loads this leaf route dynamically
 				],
 			},
 			to: {},
