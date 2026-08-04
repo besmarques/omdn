@@ -233,14 +233,17 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 
 		await test.step('require and verify a TOTP login', async () => {
 			await loginThroughPage(page);
-			await expect(page.getByText('Two-factor authentication is required')).toBeVisible();
+			await expect(page.getByLabel('Authenticator or recovery code')).toBeVisible();
 
-			const verifyResponse = await postWithCsrf(page.request, '/api/auth/totp/login/verify', {
-				code: generateTotp(totpSecret),
+			const privateResponse = await page.request.get('/admin', {
+				maxRedirects: 0,
 			});
+			expect(privateResponse.status()).toBe(302);
+			expect(privateResponse.headers().location).toBe('/login');
 
-			await expectApiResponse(verifyResponse, 200);
-			await page.goto('/admin');
+			await page.getByLabel('Authenticator or recovery code').fill(generateTotp(totpSecret));
+			await page.getByRole('button', { name: 'Verify and login' }).click();
+			await expect(page).toHaveURL(/\/admin$/u);
 			await expect(page.getByText('You have access to this admin route')).toBeVisible();
 
 			await page.getByRole('button', { name: 'Logout' }).click();
@@ -248,17 +251,9 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 
 		await test.step('complete login with a recovery code and log out', async () => {
 			await loginThroughPage(page);
-			await expect(page.getByText('Two-factor authentication is required')).toBeVisible();
-
-			const recoveryResponse = await postWithCsrf(page.request, '/api/auth/totp/login/verify', {
-				code: recoveryCode,
-			});
-
-			const recoveryBody = await expectApiResponse(recoveryResponse, 200);
-
-			expect(recoveryBody.data.recoveryCodeUsed).toBe(true);
-
-			await page.goto('/admin');
+			await page.getByLabel('Authenticator or recovery code').fill(recoveryCode);
+			await page.getByRole('button', { name: 'Verify and login' }).click();
+			await expect(page).toHaveURL(/\/admin$/u);
 			await expect(page.getByText('You have access to this admin route')).toBeVisible();
 			await page.getByRole('button', { name: 'Logout' }).click();
 			await expect(page).toHaveURL(/\/login$/u);

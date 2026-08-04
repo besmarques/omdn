@@ -174,6 +174,9 @@ describe('POST /api/auth/totp/login/verify', () => {
 		expect(response.body).toMatchObject({
 			status: true,
 			message: 'Login successful',
+			data: {
+				authenticationState: 'authenticated',
+			},
 		});
 
 		expect(verify).toHaveBeenCalledWith(
@@ -300,6 +303,11 @@ describe('POST /api/auth/totp/login/verify', () => {
 		});
 
 		expect(response.status).toBe(401);
+		expect(response.body.data).toMatchObject({
+			authenticationState: 'totp_required',
+			remainingAttempts: 4,
+		});
+		expect(new Date(response.body.data.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
 		expect(session.userId).toBeUndefined();
 

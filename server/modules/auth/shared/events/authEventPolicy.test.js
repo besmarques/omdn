@@ -81,8 +81,11 @@ describe('authentication event policy', () => {
 		app.post('/login', (req, res) => {
 			req.session.pendingTwoFactorUserId = 42;
 
-			return res.status(202).json({
+			return res.status(200).json({
 				status: true,
+				data: {
+					authenticationState: 'totp_required',
+				},
 			});
 		});
 
@@ -91,7 +94,7 @@ describe('authentication event policy', () => {
 			password: 'not-recorded',
 		});
 
-		expect(response.status).toBe(202);
+		expect(response.status).toBe(200);
 
 		await setImmediate();
 

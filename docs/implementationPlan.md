@@ -9,7 +9,8 @@ explanation of the current code lives in `juniorDeveloperGuide.md`.
 
 It deliberately separates immediate work from later production improvements. Optional technologies are not treated as decisions until their costs and migration paths have been reviewed.
 
-Implementation checkpoint (2026-08-04): Phases 0 through 2 are complete,
+Implementation checkpoint (2026-08-04): Phases 0 through 2 are complete and
+Phase 3 authentication hardening is complete,
 including React Router Framework SSR, the combined Express/Vite development
 server, public/authentication/private layouts, and principal resolution for the
 entire `/admin` document and `.data` route family. Detailed completion evidence
@@ -239,7 +240,7 @@ The current authentication implementation is a strong foundation and should be e
 
 ### TOTP response contract
 
-The current password login returns `202` when TOTP is required. A cleaner final contract is `200` with an explicit authentication state because password processing is already complete:
+Password login returns `200` with an explicit authentication state when TOTP is required because password processing is already complete:
 
 ```json
 {
@@ -252,7 +253,9 @@ The current password login returns `202` when TOTP is required. A cleaner final 
 }
 ```
 
-This is a breaking API migration. Update the controller, audit policy, frontend, unit tests, and smoke tests together in one dedicated change.
+This contract is implemented across the controller, audit policy, frontend,
+unit tests, browser tests, and real-database smoke tests. A pending challenge is
+never treated as an authenticated principal by private loaders.
 
 ### Session cookie changes
 
@@ -753,14 +756,15 @@ public routes avoid MariaDB sessions.
 
 ### Phase 3: authentication hardening
 
-Status: in progress. Session-bound CSRF tokens, origin/fetch-metadata checks,
-and frontend token refresh are implemented and tested.
+Status: complete. Session-bound CSRF tokens, origin/fetch-metadata checks,
+frontend token refresh, session lifetime/revocation rules, loader-owned account
+presentation, and the complete TOTP login challenge are implemented and tested.
 
 1. [x] Implement CSRF and strict origin policy.
 2. [x] Implement session idle/absolute expiry and targeted session revocation.
 3. [x] Move private account presentation into server loaders.
-4. [ ] Enforce pending-TOTP state in private route loaders.
-5. [ ] Migrate the TOTP-required login response contract if approved.
+4. [x] Enforce pending-TOTP state in private route loaders.
+5. [x] Migrate the TOTP-required login response contract.
 
 ### Phase 4: content decisions and schema
 
@@ -822,9 +826,8 @@ and frontend token refresh are implemented and tested.
 
 ## 23. Next decision
 
-The next implementation task is enforcing pending-TOTP authentication state in
-private loaders and finalizing the TOTP-required login response contract. After authentication hardening, the next domain
-decision is the editor/article-source proof of concept because it determines the
+Authentication hardening is complete. The next domain decision is the
+editor/article-source proof of concept because it determines the
 revision schema, renderer, sanitizer, media references, and editorial interface.
 
 ## 24. Verified runtime and deployment contract

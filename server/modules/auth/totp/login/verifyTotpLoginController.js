@@ -36,10 +36,15 @@ function clearPendingChallenge(session) {
 	delete session.pendingTwoFactorRememberMe;
 }
 
-function invalidCodeResponse(res) {
+function invalidCodeResponse(res, { expiresAt = null, remainingAttempts = 0 } = {}) {
 	return res.status(401).json({
 		status: false,
 		message: 'Invalid or expired authentication code',
+		data: {
+			authenticationState: remainingAttempts > 0 ? 'totp_required' : 'unauthenticated',
+			expiresAt: remainingAttempts > 0 && expiresAt ? new Date(expiresAt).toISOString() : null,
+			remainingAttempts,
+		},
 	});
 }
 
@@ -76,6 +81,7 @@ export default function createVerifyTotpLoginController(verifyTotpLoginService) 
 
 			if (!result.verified) {
 				const attempts = Number(req.session.pendingTwoFactorAttempts) + 1;
+				const remainingAttempts = Math.max(0, maximumAttempts - attempts);
 
 				req.session.pendingTwoFactorAttempts = attempts;
 
@@ -85,7 +91,7 @@ export default function createVerifyTotpLoginController(verifyTotpLoginService) 
 
 				await saveSession(req);
 
-				return invalidCodeResponse(res);
+				return invalidCodeResponse(res, { expiresAt, remainingAttempts });
 			}
 
 			const rememberMe = req.session.pendingTwoFactorRememberMe === true;
@@ -105,6 +111,7 @@ export default function createVerifyTotpLoginController(verifyTotpLoginService) 
 				status: true,
 				message: 'Login successful',
 				data: {
+					authenticationState: 'authenticated',
 					id: result.user.id,
 					email: result.user.email,
 					displayName: result.user.display_name,

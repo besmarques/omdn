@@ -2,6 +2,7 @@ import { loginSchema } from '#server/modules/auth/shared/authSchemas';
 import { establishAuthenticatedSession } from '#server/modules/auth/shared/sessionPolicy';
 
 const twoFactorChallengeDuration = 5 * 60 * 1000;
+const maximumTwoFactorAttempts = 5;
 
 function regenerateSession(req) {
 	return new Promise((resolve, reject) => {
@@ -71,20 +72,24 @@ export default function createLoginController(loginService) {
 			await regenerateSession(req);
 
 			if (requiresTwoFactor) {
+				const expiresAt = Date.now() + twoFactorChallengeDuration;
+
 				req.session.pendingTwoFactorUserId = user.id;
 				req.session.pendingTwoFactorRememberMe = rememberMe;
 
-				req.session.pendingTwoFactorExpiresAt = Date.now() + twoFactorChallengeDuration;
+				req.session.pendingTwoFactorExpiresAt = expiresAt;
 
 				req.session.pendingTwoFactorAttempts = 0;
 
 				await saveSession(req);
 
-				return res.status(202).json({
+				return res.json({
 					status: true,
 					message: 'Two-factor authentication required',
 					data: {
-						requiresTwoFactor: true,
+						authenticationState: 'totp_required',
+						expiresAt: new Date(expiresAt).toISOString(),
+						remainingAttempts: maximumTwoFactorAttempts,
 					},
 				});
 			}
@@ -102,10 +107,10 @@ export default function createLoginController(loginService) {
 				status: true,
 				message: 'Login successful',
 				data: {
+					authenticationState: 'authenticated',
 					id: user.id,
 					email: user.email,
 					displayName: user.display_name,
-					requiresTwoFactor: false,
 				},
 			});
 		} catch (error) {

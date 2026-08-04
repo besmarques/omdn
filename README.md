@@ -357,6 +357,11 @@ devices.
 
 TOTP setup uses `otplib` and `qrcode`. Secrets are encrypted with AES-256-GCM and user-bound additional authenticated data; recovery codes are supported for second-factor login.
 
+Password login returns an explicit `authenticationState`. For TOTP-enabled
+accounts, `totp_required` keeps the session unauthenticated and the login page
+shows an authenticator-or-recovery-code challenge. Private loaders reject that
+pending state until `/api/auth/totp/login/verify` succeeds.
+
 Sensitive authentication routes use account/IP-aware rate limits backed by MySQL so counters survive restarts and are shared across server instances. Counter keys are SHA-256 hashed before storage, expired rows are cleaned incrementally, and requests fail closed if the store is unavailable. Registration counts all attempts; password-change limits count failures and exclude successful changes. Authentication outcomes are written to a MySQL outbox before the response is finalized, then delivered to `auth_events` by a shared background worker. Delivery uses transactional row claims, a unique outbox ID for duplicate prevention, stale-claim recovery after five minutes, and exponential retry capped at five minutes. Processed outbox payloads are cleared to avoid retaining duplicate session, IP, user-agent, and metadata values.
 
 Unexpected API failures return a stable JSON response with an `x-correlation-id` response header and matching `correlationId` body field. Valid caller-supplied correlation IDs are preserved; unsafe values are replaced. Internal error details are logged server-side and are not exposed to clients.

@@ -1037,23 +1037,23 @@ async function run() {
 			'Logout after TOTP setup',
 		);
 
-		expectStatus(
-			await requestApi({
-				method: 'POST',
-				path: '/api/auth/login',
-				cookies: session5,
+		const totpPasswordStep = await requestApi({
+			method: 'POST',
+			path: '/api/auth/login',
+			cookies: session5,
 
-				body: {
-					email,
+			body: {
+				email,
 
-					password: resetPassword,
-				},
-			}),
+				password: resetPassword,
+			},
+		});
 
-			202,
+		expectStatus(totpPasswordStep, 200, 'TOTP login password step');
 
-			'TOTP login password step',
-		);
+		if (getResponseValue(totpPasswordStep.body, [['data', 'authenticationState']]) !== 'totp_required') {
+			throw new Error('TOTP login password step did not return authenticationState=totp_required');
+		}
 
 		await waitForFreshTotp();
 
@@ -1098,23 +1098,23 @@ async function run() {
 			'Logout after TOTP login',
 		);
 
-		expectStatus(
-			await requestApi({
-				method: 'POST',
-				path: '/api/auth/login',
-				cookies: session6,
+		const recoveryPasswordStep = await requestApi({
+			method: 'POST',
+			path: '/api/auth/login',
+			cookies: session6,
 
-				body: {
-					email,
+			body: {
+				email,
 
-					password: resetPassword,
-				},
-			}),
+				password: resetPassword,
+			},
+		});
 
-			202,
+		expectStatus(recoveryPasswordStep, 200, 'Recovery-code password step');
 
-			'Recovery-code password step',
-		);
+		if (getResponseValue(recoveryPasswordStep.body, [['data', 'authenticationState']]) !== 'totp_required') {
+			throw new Error('Recovery-code password step did not return authenticationState=totp_required');
+		}
 
 		expectStatus(
 			await requestApi({

@@ -4,13 +4,13 @@ function outcomeEvent(successEventType, failureEventType) {
 	return ({ statusCode }) => (statusCode < 400 ? successEventType : failureEventType);
 }
 
-function loginEvent({ statusCode }) {
-	if (statusCode === 200) {
-		return 'login_succeeded';
+function loginEvent({ req, statusCode }) {
+	if (statusCode === 200 && req.session?.pendingTwoFactorUserId) {
+		return 'login_two_factor_required';
 	}
 
-	if (statusCode === 202) {
-		return 'login_two_factor_required';
+	if (statusCode === 200) {
+		return 'login_succeeded';
 	}
 
 	return 'login_failed';

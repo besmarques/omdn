@@ -29,6 +29,39 @@ describe('auth routes', () => {
 		expect(response.body).toEqual({
 			status: true,
 			authenticated: false,
+			authenticationState: 'unauthenticated',
+		});
+	});
+
+	it('reports a pending two-factor challenge without authenticating it', async () => {
+		const app = createTestApp({
+			pendingTwoFactorUserId: 1,
+			pendingTwoFactorExpiresAt: Date.now() + 300000,
+			pendingTwoFactorAttempts: 0,
+		});
+
+		const response = await request(app).get('/api/auth/status');
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			status: true,
+			authenticated: false,
+			authenticationState: 'totp_required',
+		});
+	});
+
+	it('does not report an expired two-factor challenge as active', async () => {
+		const app = createTestApp({
+			pendingTwoFactorUserId: 1,
+			pendingTwoFactorExpiresAt: Date.now() - 1,
+			pendingTwoFactorAttempts: 0,
+		});
+
+		const response = await request(app).get('/api/auth/status');
+
+		expect(response.body).toMatchObject({
+			authenticated: false,
+			authenticationState: 'unauthenticated',
 		});
 	});
 

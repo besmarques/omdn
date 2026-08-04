@@ -33,7 +33,7 @@ Currently implemented:
 - Server-side sessions stored in MariaDB
 - Roles and permissions
 - Password recovery and password changes on the backend
-- TOTP setup, QR-code generation, login verification, recovery codes, and disabling TOTP on the backend
+- TOTP setup, QR-code generation, login verification, recovery codes, and disabling TOTP
 - CSRF protection
 - Persistent rate limiting
 - Authentication audit events and an outbox worker
@@ -42,7 +42,7 @@ Currently implemented:
 
 Not yet implemented as a complete user interface:
 
-- TOTP screens
+- TOTP setup and account-management screens
 - Password recovery and account management screens
 - The blog/post system
 - Server-side rendering (SSR)
@@ -283,11 +283,11 @@ own idle and absolute deadlines.
 
 ### Login with TOTP
 
-After a correct password, an account with TOTP enabled is not fully authenticated. The server stores temporary pending-login state in the session and returns `202`.
+After a correct password, an account with TOTP enabled is not fully authenticated. The server stores temporary pending-login state in the session and returns `200` with `authenticationState: "totp_required"`, the challenge expiry, and the number of remaining attempts. The pending state is deliberately not an authenticated principal, so private loaders continue to redirect it to `/login`.
 
 The client must then submit a six-digit TOTP or recovery code to `/api/auth/totp/login/verify`. A valid second factor completes the session. TOTP time steps are recorded so the same time-based code cannot be replayed. Recovery codes are hashed in the database and are single-use.
 
-The backend flow exists, but the dedicated frontend TOTP screen is still pending.
+The login page detects that explicit state and replaces the password form with a basic authenticator-or-recovery-code form. Successful verification creates the authenticated session, loads `/api/account/me`, and navigates administrators to `/admin`. Invalid codes keep the challenge visible while attempts remain; an expired or exhausted challenge returns the page to the password form.
 
 ### TOTP setup
 

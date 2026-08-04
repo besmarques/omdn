@@ -9,9 +9,21 @@ export default function createAuthRoutes() {
 	router.get('/csrf', issueCsrfToken);
 
 	router.get('/status', (req, res) => {
+		const authenticated = Boolean(req.session?.userId);
+		const pendingExpiresAt = Number(req.session?.pendingTwoFactorExpiresAt);
+		const pendingAttempts = Number(req.session?.pendingTwoFactorAttempts);
+		const pendingTwoFactor =
+			!authenticated &&
+			Boolean(req.session?.pendingTwoFactorUserId) &&
+			Number.isFinite(pendingExpiresAt) &&
+			pendingExpiresAt > Date.now() &&
+			Number.isFinite(pendingAttempts) &&
+			pendingAttempts < 5;
+
 		return res.json({
 			status: true,
-			authenticated: Boolean(req.session?.userId),
+			authenticated,
+			authenticationState: authenticated ? 'authenticated' : pendingTwoFactor ? 'totp_required' : 'unauthenticated',
 		});
 	});
 

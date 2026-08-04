@@ -80,6 +80,19 @@ export async function login(credentials) {
 	return result;
 }
 
+export async function verifyTotpLogin(code) {
+	const result = await requestApi('/api/auth/totp/login/verify', {
+		method: 'POST',
+		body: JSON.stringify({ code }),
+	});
+
+	if (result.ok) {
+		csrfToken = undefined;
+	}
+
+	return result;
+}
+
 export function registerAccount(account) {
 	return requestApi('/api/auth/register', {
 		method: 'POST',

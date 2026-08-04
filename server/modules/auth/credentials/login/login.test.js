@@ -328,7 +328,12 @@ describe('POST /api/auth/login', () => {
 			rememberMe: true,
 		});
 
-		expect(response.status).toBe(202);
+		expect(response.status).toBe(200);
+		expect(response.body.data).toMatchObject({
+			authenticationState: 'totp_required',
+			remainingAttempts: 5,
+		});
+		expect(new Date(response.body.data.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
 		expect(session.pendingTwoFactorUserId).toBe(42);
 		expect(session.pendingTwoFactorRememberMe).toBe(true);
