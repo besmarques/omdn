@@ -306,6 +306,14 @@ Exit criteria:
 
 ### Step 2.2 — Establish middleware order
 
+Completed on 2026-08-04. Express now configures proxy trust first, attaches API
+correlation IDs, applies baseline security headers, serves production assets,
+and only then enters the `/api` parser/session/CSRF pipeline. API feature routes
+remain ahead of the generic API 404, the frontend boundary follows the API, and
+the API error handler is registered last. Tests prove immutable caching, session
+bypass for assets and non-API pages, scoped JSON parsing, security headers, and
+correlation-ID preservation on failures.
+
 Implement and test the final ordering contract:
 
 1. Trust-proxy configuration
@@ -324,8 +332,13 @@ Avoid opening sessions for immutable static assets.
 
 Exit criteria:
 
-- Static asset requests do not touch the session store.
-- API errors preserve the correlation-ID contract.
+- [x] Static asset requests do not touch the session store.
+- [x] API errors preserve the correlation-ID contract.
+
+The baseline headers intentionally omit Content Security Policy for now. The
+Framework SPA document contains generated inline scripts; Step 2.4 must add a
+nonce-aware CSP alongside the server request handler instead of weakening the
+policy with a permanent `unsafe-inline` allowance.
 
 ### Step 2.3 — Create request-scoped Framework context
 

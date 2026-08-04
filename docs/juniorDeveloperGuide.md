@@ -106,17 +106,28 @@ An eight-second deadline prevents a broken dependency from keeping the process a
 
 Middleware is code that runs before or after a route handler. Its order matters. `server/expressApp.js` installs the main pipeline in this order:
 
-1. Add a correlation ID to `/api` requests.
-2. Parse JSON request bodies.
-3. Configure proxy trust in production.
-4. Load the session from MariaDB.
-5. Require CSRF protection for unsafe `/api` methods.
-6. Mount authentication routes.
-7. Mount account routes behind authentication.
-8. Mount admin routes behind authentication and permission checks.
+1. Configure proxy trust in production.
+2. Add a correlation ID to `/api` requests.
+3. Add baseline browser security headers to every response.
+4. In production, serve static files and fingerprinted assets.
+5. Parse JSON only for `/api` requests.
+6. Load MariaDB sessions only for `/api` requests.
+7. Require CSRF protection for unsafe `/api` methods.
+8. Mount authentication, account, and admin feature routes.
 9. Mount generic API routes and the API 404 response.
-10. Handle unexpected API errors.
-11. In production, serve the built React application.
+10. Hand non-API page requests to the frontend boundary.
+11. Handle unexpected API errors last.
+
+The placement of static files is important: requesting JavaScript, CSS, an
+image, or the favicon does not need user identity and must not query the session
+table. The JSON parser is also API-only, so an unusual body on a page request
+cannot produce an API parsing error.
+
+The active headers prevent MIME sniffing and framing, restrict browser features,
+and define a safe referrer policy. Production also enables HSTS. Content
+Security Policy comes with SSR because React Router's generated inline scripts
+need a fresh nonce for each response; permanently allowing arbitrary inline
+scripts would weaken the protection.
 
 A request can stop at any layer. For example, an admin request with no session returns `401` before it reaches the admin controller.
 

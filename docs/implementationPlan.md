@@ -111,6 +111,13 @@ Production request order should become:
 11. Final Express error handler
 ```
 
+The Step 2.2 ordering work is complete for SPA Mode. Static files are ahead of
+body parsing and sessions; JSON parsing, sessions, and CSRF protection are
+scoped to `/api`; and API errors retain correlation IDs. Baseline response
+headers are active. Content Security Policy remains a deliberate Step 2.4 task
+so the React Router handler can issue per-response nonces for its inline
+Framework scripts.
+
 The exact adapter API must be verified against the installed React Router version before implementation.
 
 ### Stage 4: enable SSR incrementally

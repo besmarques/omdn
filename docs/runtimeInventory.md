@@ -59,6 +59,9 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
 - `prestart` runs `npm run build`; `start` then runs `node server/server.js`.
 - With `APP_ENV=production`, Express serves the Framework `build/client` directory and the
   SPA fallback in addition to `/api`.
+- Fingerprinted `/assets` responses are served before the `/api` session pipeline
+  with immutable one-year caching. JSON parsing, MariaDB sessions, and CSRF
+  checks do not run for static or page requests.
 - The intended platform is Hostinger Cloud Startup with the Node application
   and MariaDB in the same hosting environment.
 - The actual Hostinger start command, Node version, MariaDB version, environment
