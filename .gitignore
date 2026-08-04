@@ -33,8 +33,10 @@ test-results
 !/docs/.gitkeep
 !/docs/adr/
 !/docs/adr/**
-
-
-
-pingPong.md
-firstDraft.md
+!/docs/firstDraft.md
+!/docs/frameworkPackageMatrix.md
+!/docs/implementationPlan.md
+!/docs/juniorDeveloperGuide.md
+!/docs/pingPong.md
+!/docs/runtimeInventory.md
+!/docs/stepByStepImplementation.md

@@ -71,6 +71,11 @@ The ranges above mirror `package.json`. `package-lock.json` is the authoritative
 ```text
 omdn/
 |-- docs/
+|   |-- adr/
+|   |-- firstDraft.md
+|   |-- frameworkPackageMatrix.md
+|   |-- implementationPlan.md
+|   |-- juniorDeveloperGuide.md
 |   |-- logic/
 |   |   |-- account.mmd
 |   |   |-- admin.mmd
@@ -78,6 +83,9 @@ omdn/
 |   |   |-- application.mmd
 |   |   |-- auth.mmd
 |   |   `-- routes.mmd
+|   |-- pingPong.md
+|   |-- runtimeInventory.md
+|   |-- stepByStepImplementation.md
 |   |-- dependency-graph.dot
 |   `-- dependency-graph.svg
 |-- scripts/
