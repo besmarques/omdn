@@ -54,6 +54,10 @@ Exit criteria:
 
 ### Step 0.2 — Record the exact runtime inventory
 
+Status: completed on 2026-08-04. Local and repository-backed values are recorded
+in `runtimeInventory.md`; production-only values are explicitly tracked there as
+deployment verification items.
+
 Record in a short architecture/runtime document:
 
 ```bash
