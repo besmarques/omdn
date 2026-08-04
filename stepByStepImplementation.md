@@ -31,6 +31,9 @@ npm run smoke:auth
 
 ## 2. Phase 0 — Preserve and characterize the baseline
 
+Status: completed on 2026-08-04 after Steps 0.1 through 0.4 passed their exit
+criteria.
+
 ### Step 0.1 — Separate the current work into a reviewable baseline
 
 Status: completed on 2026-08-04.
@@ -112,6 +115,9 @@ Exit criteria:
 - Tests can run locally and in CI without manual tokens.
 
 ### Step 0.4 — Add architecture decisions
+
+Status: completed on 2026-08-04. ADRs 0001 through 0005 are accepted and indexed
+under `docs/adr/`.
 
 Create concise ADRs for:
 
