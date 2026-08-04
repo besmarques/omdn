@@ -83,6 +83,7 @@ omdn/
 |   |   |-- api.mmd
 |   |   |-- application.mmd
 |   |   |-- auth.mmd
+|   |   |-- runtime.mmd
 |   |   `-- routes.mmd
 |   |-- pingPong.md
 |   |-- runtimeInventory.md
@@ -294,7 +295,7 @@ Each SVG has a matching DOT source. Use `npm run diagram:validate` for circular,
 orphan, resolution, and dependency-policy checks; those checks intentionally scan
 the complete source tree independently from the presentation-focused diagrams.
 
-`npm run logic-map` recreates `docs/logic/` with Mermaid diagrams for application, routing, API, auth, account, and admin flows.
+`npm run logic-map` recreates `docs/logic/` with Mermaid diagrams for application, routing, API, auth, account, and admin flows. The tracked [`docs/logic/runtime.mmd`](docs/logic/runtime.mmd) diagram explicitly shows the boundary that import graphs cannot infer: React calls `src/api/authApi.js`, which sends HTTP requests to Express `/api/*`, while document requests use the separate React Router SSR path.
 
 ## Environment variables
 

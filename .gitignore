@@ -43,3 +43,6 @@ test-results
 !/docs/register-login-admin-integration-path.md
 !/docs/runtimeInventory.md
 !/docs/stepByStepImplementation.md
+!/docs/logic/
+/docs/logic/*
+!/docs/logic/runtime.mmd

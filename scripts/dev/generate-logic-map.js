@@ -532,6 +532,57 @@ function createApplicationDiagram(mounts) {
 	return lines.join('\n');
 }
 
+function createRuntimeDiagram() {
+	return [
+		generatedHeader,
+		mermaidInit,
+		'flowchart LR',
+		'\tsubgraph browser_runtime["Browser"]',
+		'\t\tdirection TB',
+		'\t\tpage["React route/page"]:::frontend',
+		'\t\tauth_api["src/api/authApi.js"]:::frontend',
+		'\t\thydration["React hydration"]:::frontend',
+		'\t\tpage -->|API operation| auth_api',
+		'\tend',
+		'\tsubgraph node_runtime["Node / Express process"]',
+		'\t\tdirection TB',
+		'\t\texpress["Express application"]:::module',
+		'\t\tboundary{"Request path"}:::boundary',
+		'\t\tassets["Static assets from build/client"]:::ssr',
+		'\t\tapi_pipeline["JSON + MariaDB session + CSRF"]:::middleware',
+		'\t\tapi_routes["/api routes"]:::route',
+		'\t\tmodules["Auth / Account / Admin modules"]:::module',
+		'\t\tservices["Controllers and services"]:::service',
+		'\t\trepositories["Repositories"]:::repository',
+		'\t\tssr_handler["React Router Express handler"]:::ssr',
+		'\t\trequest_context["Per-request Framework context"]:::ssr',
+		'\t\tserver_bundle["Route loaders + build/server"]:::ssr',
+		'\t\texpress --> boundary',
+		'\t\tboundary -->|/assets/*| assets',
+		'\t\tboundary -->|/api/*| api_pipeline --> api_routes --> modules --> services --> repositories',
+		'\t\tboundary -->|Document URL| ssr_handler --> request_context --> server_bundle',
+		'\tend',
+		'\tdatabase[("MariaDB")]:::database',
+		'\tpage -->|GET document| express',
+		'\tauth_api -->|fetch /api/* with cookie + CSRF token| express',
+		'\tassets -->|JavaScript and CSS| hydration',
+		'\tserver_bundle -->|Streamed HTML + metadata| hydration',
+		'\trepositories -->|Application data| database',
+		'\tapi_pipeline -->|Session records| database',
+		'\tapi_routes -->|JSON response| auth_api',
+		'',
+		'\tclassDef frontend fill:#3A8BC1,stroke:#216182,color:#fff;',
+		'\tclassDef middleware fill:#CCA300,stroke:#A28100,color:#204E4A;',
+		'\tclassDef route fill:#C43A47,stroke:#843145,color:#fff;',
+		'\tclassDef service fill:#843145,stroke:#843145,color:#fff;',
+		'\tclassDef repository fill:#3E6C67,stroke:#204E4A,color:#fff;',
+		'\tclassDef module fill:#204E4A,stroke:#204E4A,color:#fff;',
+		'\tclassDef ssr fill:#765898,stroke:#513C69,color:#fff;',
+		'\tclassDef database fill:#E2DDD5,stroke:#204E4A,color:#204E4A;',
+		'\tclassDef boundary fill:#fff,stroke:#204E4A,color:#204E4A;',
+	].join('\n');
+}
+
 function createRoutesIndex(features) {
 	const lines = [generatedHeader, mermaidInit, 'flowchart LR'];
 
@@ -635,6 +686,7 @@ async function main() {
 	const mounts = readExpressMounts(expressAppSource);
 
 	await saveDiagram('application.mmd', createApplicationDiagram(mounts));
+	await saveDiagram('runtime.mmd', createRuntimeDiagram());
 
 	const moduleEntries = (
 		await fs.readdir(modulesDirectory, {
