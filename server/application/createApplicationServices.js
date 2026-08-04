@@ -8,6 +8,7 @@ import createAuthEventService from '#server/modules/auth/shared/events/authEvent
 import requireAuth from '#server/modules/auth/shared/middleware/requireAuth';
 import resolvePrincipal from '#server/modules/auth/shared/middleware/resolvePrincipal';
 import createMySqlRateLimitStore from '#server/modules/auth/shared/middleware/mySqlRateLimitStore';
+import createMailService from '#server/mail/createMailService';
 
 export default function createApplicationServices(db, config) {
 	const session = createSessionMiddleware(db, config.session);
@@ -22,12 +23,14 @@ export default function createApplicationServices(db, config) {
 	const deletedAccountCleanupWorker = createDeletedAccountCleanupWorker({
 		repository: deletedAccountCleanupRepository,
 	});
+	const mail = createMailService(config);
 
 	return Object.freeze({
 		authenticated: requireAuth(db),
 		authEventService,
 		createRateLimitStore: (namespace) => createMySqlRateLimitStore(db, namespace),
 		framework: Object.freeze({}),
+		mail,
 		resolvePrincipal: resolvePrincipal(db),
 		session,
 		workers: Object.freeze([authEventOutboxWorker, deletedAccountCleanupWorker]),

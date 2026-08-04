@@ -261,9 +261,17 @@ Registration:
 5. A random verification token is created.
 6. Only the token's SHA-256 hash is stored.
 7. In one transaction, a pending user is created, the subscriber role is assigned, and the verification record is stored.
-8. The API returns a deliberately generic `202` response so account existence is harder to discover.
+8. After the transaction commits, the mail service sends the raw token in a verification link through SMTP.
+9. The API returns a deliberately generic `202` response so account existence is harder to discover.
 
-The raw verification token is currently printed only in development because email delivery has not been connected.
+The raw token exists only long enough to construct the message; the database
+stores its hash. Resending invalidates the previous unused token and delivers a
+new one. SMTP is configured with `PUBLIC_BASE_URL` and the `SMTP_*` environment
+variables. When SMTP is disabled in development, the same mail service prints
+the verification token so the real smoke test and manual testing still work.
+Mail is sent after the database commit, so a temporary SMTP failure does not
+undo the pending account. The user can use resend; a future durable mail outbox
+will provide automatic retries.
 
 Verification hashes the submitted token, locks and checks the database record, activates the user, marks verification tokens used, and commits everything together.
 
@@ -527,14 +535,14 @@ Never rely on a hidden frontend button as authorization. Never store a plain pas
 
 ## 20. Development and production differences
 
-| Development                                    | Production                                                         |
-| ---------------------------------------------- | ------------------------------------------------------------------ |
-| Vite runs as middleware inside Express         | Express serves the built frontend and API                          |
-| `/api` uses the same Express origin            | Requests reach Express directly or through the hosting proxy       |
-| Verification/reset tokens print to the console | Tokens must be delivered through a real email provider             |
-| Session cookies may use HTTP                   | Session cookies require HTTPS                                      |
-| React StrictMode helps expose unsafe effects   | Production does not perform StrictMode's development remount check |
-| Design-system reference route is available     | Development-only route is excluded                                 |
+| Development                                                               | Production                                                                    |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Vite runs as middleware inside Express                                    | Express serves the built frontend and API                                     |
+| `/api` uses the same Express origin                                       | Requests reach Express directly or through the hosting proxy                  |
+| Verification tokens print when SMTP is disabled; reset tokens still print | Verification email uses SMTP; password-reset delivery remains to be connected |
+| Session cookies may use HTTP                                              | Session cookies require HTTPS                                                 |
+| React StrictMode helps expose unsafe effects                              | Production does not perform StrictMode's development remount check            |
+| Design-system reference route is available                                | Development-only route is excluded                                            |
 
 ## 21. Important security rules to preserve
 

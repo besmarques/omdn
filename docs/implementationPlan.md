@@ -225,6 +225,7 @@ The current authentication implementation is a strong foundation and should be e
 - Single-use recovery codes
 - Session regeneration after successful password and TOTP authentication
 - Authentication audit outbox
+- SMTP delivery for registration and verification-email resend
 
 ### Implement before production
 
@@ -237,6 +238,7 @@ The current authentication implementation is a strong foundation and should be e
 7. TOTP encryption key versioning and rotation procedure.
 8. Security notifications for recovery-code use and critical account changes.
 9. Tests proving that authenticated responses cannot enter public caches.
+10. A durable transactional email outbox with retry, monitoring, and idempotent delivery.
 
 ### TOTP response contract
 
@@ -715,6 +717,7 @@ Required security tests:
 - Object-storage versioning/recovery
 - Regular restore exercises
 - Error tracking and alerts
+- SMTP delivery monitoring and a durable transactional-email retry queue
 - Worker backlog and publication-delay alerts
 - Search Console, sitemap, and structured-data monitoring
 - Capacity/load testing before selecting final production database size
@@ -732,6 +735,7 @@ Required security tests:
 | sharp                                | Add with the media worker                                                     |
 | React Testing Library                | Evaluate when interaction tests need capabilities beyond current Vitest tests |
 | Playwright                           | Installed; keep browser and production SSR characterization coverage          |
+| Nodemailer                           | Installed for provider-neutral SMTP account-verification delivery             |
 | dbmate or alternative                | Separate migration-tool decision                                              |
 | Redis                                | Deferred until measured contention or queue requirements justify it           |
 | External search engine               | Deferred until MariaDB search is demonstrably insufficient                    |
@@ -896,3 +900,10 @@ search engine, Zustand, or TypeScript without a concrete approved requirement.
 TanStack Query belongs only in independently refreshed interactive server-state
 views. Select the editor, migration tool, form library, media processor, and
 object-storage adapter during the phases that first require them.
+
+Nodemailer is the current provider-neutral SMTP adapter. Registration and
+verification resend deliver email only after their database transaction commits;
+development without SMTP retains the console-token fallback. Before horizontal
+production scaling, move transactional email into a durable database outbox so
+temporary SMTP failures are retried outside the request lifecycle. Password-reset
+email is deferred until its browser route and complete link flow exist.

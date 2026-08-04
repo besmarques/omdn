@@ -9,11 +9,11 @@ import createVerifyEmailController from '#server/modules/auth/emailVerification/
 import createResendVerificationEmailService from '#server/modules/auth/emailVerification/resend/resendVerificationEmailService';
 import createVerifyEmailService from '#server/modules/auth/emailVerification/verify/verifyEmailService';
 
-export default function createEmailVerificationModule(db, createRateLimitStore, appEnvironment = 'test') {
+export default function createEmailVerificationModule(db, createRateLimitStore, mailService) {
 	const emailVerificationRepository = createEmailVerificationRepository(db);
 	const withConnection = createWithConnection(db);
 	const dependencies = { emailVerificationRepository, withConnection };
-	const resendVerificationEmailService = createResendVerificationEmailService(dependencies, appEnvironment);
+	const resendVerificationEmailService = createResendVerificationEmailService(dependencies, mailService);
 
 	const verifyEmailService = createVerifyEmailService(dependencies);
 

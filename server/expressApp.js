@@ -14,7 +14,7 @@ import createApiRoutes from '#server/routes/apiRoutes';
 
 export default function createApp(db, config, services, { frontend: providedFrontend } = {}) {
 	const app = express();
-	const { authenticated, authEventService, createRateLimitStore, resolvePrincipal, session } = services;
+	const { authenticated, authEventService, createRateLimitStore, mail, resolvePrincipal, session } = services;
 	const frontend =
 		providedFrontend ??
 		createFrontendHandlers(config, {
@@ -41,7 +41,7 @@ export default function createApp(db, config, services, { frontend: providedFron
 	app.use('/api', session.middleware);
 	app.use('/api', requireCsrfProtection);
 
-	app.use('/api/auth', createAuthModule(db, createRateLimitStore, authEventService, config));
+	app.use('/api/auth', createAuthModule(db, createRateLimitStore, authEventService, config, mail));
 
 	app.use('/api/admin', authenticated, createAdminModule());
 

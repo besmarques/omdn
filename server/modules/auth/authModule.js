@@ -12,7 +12,7 @@ import createPasswordRecoveryModule from '#server/modules/auth/passwordRecovery/
 import createRegistrationModule from '#server/modules/auth/registration/registrationModule';
 import createTotpModule from '#server/modules/auth/totp/totpModule';
 
-export default function createAuthModule(db, createRateLimitStore, providedAuthEventService, config) {
+export default function createAuthModule(db, createRateLimitStore, providedAuthEventService, config, mailService) {
 	const router = express.Router();
 
 	const authEventRepository = createAuthEventRepository(db);
@@ -27,9 +27,9 @@ export default function createAuthModule(db, createRateLimitStore, providedAuthE
 
 	router.use(createCredentialsModule(db, createRateLimitStore, config?.appEnvironment ?? 'test'));
 
-	router.use(createRegistrationModule(db, createRateLimitStore, config?.appEnvironment ?? 'test'));
+	router.use(createRegistrationModule(db, createRateLimitStore, mailService));
 
-	router.use(createEmailVerificationModule(db, createRateLimitStore, config?.appEnvironment ?? 'test'));
+	router.use(createEmailVerificationModule(db, createRateLimitStore, mailService));
 
 	router.use(createPasswordRecoveryModule(db, createRateLimitStore, config?.appEnvironment ?? 'test'));
 

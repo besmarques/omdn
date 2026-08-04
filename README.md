@@ -37,6 +37,7 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | `isbot`                    | `^5`          | User-agent detection required by Framework tooling         |
 | `lucide-react`             | `^1.27.0`     | React icon components                                      |
 | `mysql2`                   | `^3.23.2`     | Promise-based MySQL/MariaDB connection pool and driver     |
+| `nodemailer`               | `^9.0.4`      | SMTP delivery for transactional account email              |
 | `otplib`                   | `^13.4.1`     | TOTP and one-time-password support                         |
 | `qrcode`                   | `^1.5.4`      | Authenticator QR-code generation                           |
 | `react`                    | `^19.2.7`     | Browser UI library                                         |
@@ -315,22 +316,37 @@ once with `npx playwright install chromium`.
 
 ## Environment variables
 
-| Variable              | Purpose                                                  | Default |
-| --------------------- | -------------------------------------------------------- | ------- |
-| `PORT`                | Express port                                             | `3000`  |
-| `APP_ENV`             | Runtime mode: `development`, `test`, or `production`     | None    |
-| `DB_HOST`             | MySQL host                                               | None    |
-| `DB_PORT`             | MySQL port                                               | `3306`  |
-| `DB_NAME`             | MySQL database                                           | None    |
-| `DB_USER`             | MySQL user                                               | None    |
-| `DB_PASSWORD`         | MySQL password                                           | None    |
-| `DB_CONNECTION_LIMIT` | Maximum pool connections                                 | `10`    |
-| `SESSION_SECRET`      | Session signing secret containing at least 32 characters | None    |
-| `TOTP_ENCRYPTION_KEY` | Canonical Base64 encoding of exactly 32 bytes            | None    |
+| Variable              | Purpose                                                  | Default                  |
+| --------------------- | -------------------------------------------------------- | ------------------------ |
+| `PORT`                | Express port                                             | `3000`                   |
+| `APP_ENV`             | Runtime mode: `development`, `test`, or `production`     | None                     |
+| `DB_HOST`             | MySQL host                                               | None                     |
+| `DB_PORT`             | MySQL port                                               | `3306`                   |
+| `DB_NAME`             | MySQL database                                           | None                     |
+| `DB_USER`             | MySQL user                                               | None                     |
+| `DB_PASSWORD`         | MySQL password                                           | None                     |
+| `DB_CONNECTION_LIMIT` | Maximum pool connections                                 | `10`                     |
+| `SESSION_SECRET`      | Session signing secret containing at least 32 characters | None                     |
+| `TOTP_ENCRYPTION_KEY` | Canonical Base64 encoding of exactly 32 bytes            | None                     |
+| `PUBLIC_BASE_URL`     | Public origin used to build links in email               | `http://localhost:$PORT` |
+| `SMTP_HOST`           | SMTP server hostname; enables email delivery             | Disabled                 |
+| `SMTP_PORT`           | SMTP server port                                         | `587`                    |
+| `SMTP_SECURE`         | Use implicit TLS from connection start                   | `false`                  |
+| `SMTP_USER`           | Optional SMTP username                                   | None                     |
+| `SMTP_PASSWORD`       | Optional SMTP password                                   | None                     |
+| `SMTP_FROM_EMAIL`     | Verified sender address                                  | None                     |
+| `SMTP_FROM_NAME`      | Sender display name                                      | `O Melhor do Natal`      |
 
 Never put secrets in `VITE_*` variables because Vite exposes them to the browser.
 
 The server validates and normalizes all variables once before creating the database pool or HTTP application. Invalid configuration stops startup with field-specific errors that do not include secret values. Set `APP_ENV=production` in production; no separate Node runtime-mode variable is used by the server.
+
+Production requires `PUBLIC_BASE_URL`, `SMTP_HOST`, and `SMTP_FROM_EMAIL`.
+Configure `SMTP_USER` and `SMTP_PASSWORD` together when the provider requires
+authentication. Port 587 normally uses `SMTP_SECURE=false` and upgrades with
+STARTTLS; port 465 normally uses `SMTP_SECURE=true`. In development, leaving
+`SMTP_HOST` empty keeps email disabled and prints account-verification tokens
+for local testing.
 
 ## Database
 
@@ -359,6 +375,14 @@ canonical in valid serialized session JSON. Cookies are HTTP-only, use
 devices.
 
 TOTP setup uses `otplib` and `qrcode`. Secrets are encrypted with AES-256-GCM and user-bound additional authenticated data; recovery codes are supported for second-factor login.
+
+Registration and verification-email resend create single-use tokens, store only
+their SHA-256 hashes, commit the database transaction, and then deliver the raw
+token in a link through the configured SMTP server. The public link uses
+`PUBLIC_BASE_URL`. If delivery fails, the pending account and token remain valid
+so the user can request another message. A durable email outbox is still planned
+before horizontal scaling so delivery can be retried independently of an HTTP
+request.
 
 Password login returns an explicit `authenticationState`. For TOTP-enabled
 accounts, `totp_required` keeps the session unauthenticated and the login page
@@ -436,4 +460,6 @@ does not use TinyMCE premium plugins or services.
 
 The production entry point is `server/server.js`. `npm start` builds the frontend through `prestart` and then starts Express.
 
-Configure `APP_ENV=production`, a session secret of at least 32 characters, a canonical Base64 32-byte TOTP encryption key, and all MySQL connection values in the hosting platform.
+Configure `APP_ENV=production`, `PUBLIC_BASE_URL`, SMTP sender/server values, a
+session secret of at least 32 characters, a canonical Base64 32-byte TOTP
+encryption key, and all MySQL connection values in the hosting platform.

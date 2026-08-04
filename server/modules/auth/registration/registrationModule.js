@@ -7,11 +7,11 @@ import createRegistrationRoutes from '#server/modules/auth/registration/registra
 import createRegisterController from '#server/modules/auth/registration/register/registerController';
 import createRegisterService from '#server/modules/auth/registration/register/registerService';
 
-export default function createRegistrationModule(db, createRateLimitStore, appEnvironment = 'test') {
+export default function createRegistrationModule(db, createRateLimitStore, mailService) {
 	const emailVerificationRepository = createEmailVerificationRepository(db);
 	const registrationRepository = createRegistrationRepository(db);
 	const withConnection = createWithConnection(db);
-	const registerService = createRegisterService({ emailVerificationRepository, registrationRepository, withConnection }, appEnvironment);
+	const registerService = createRegisterService({ emailVerificationRepository, registrationRepository, withConnection }, mailService);
 
 	const registerController = createRegisterController(registerService);
 

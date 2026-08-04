@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import createAuthModule from '#server/modules/auth/authModule';
 
-function createTestApp(db) {
+function createTestApp(db, mailService) {
 	const app = express();
 
 	app.use(express.json());
@@ -16,7 +16,7 @@ function createTestApp(db) {
 		next();
 	});
 
-	app.use('/api/auth', createAuthModule(db));
+	app.use('/api/auth', createAuthModule(db, undefined, undefined, undefined, mailService));
 
 	return app;
 }
@@ -78,6 +78,7 @@ describe('POST /api/auth/email/resend', () => {
 				[
 					{
 						id: 42,
+						display_name: 'Test User',
 					},
 				],
 			])
@@ -92,7 +93,8 @@ describe('POST /api/auth/email/resend', () => {
 				},
 			]);
 
-		const app = createTestApp(db);
+		const mailService = { sendAccountVerification: vi.fn().mockResolvedValue({ delivered: true }) };
+		const app = createTestApp(db, mailService);
 
 		const response = await request(app).post('/api/auth/email/resend').send({
 			email: 'TEST@EXAMPLE.COM',
@@ -111,5 +113,11 @@ describe('POST /api/auth/email/resend', () => {
 		expect(connection.execute.mock.calls[1][1]).toEqual([42]);
 
 		expect(connection.execute.mock.calls[2][1]).toEqual([42, expect.any(Buffer)]);
+		expect(mailService.sendAccountVerification).toHaveBeenCalledWith({
+			displayName: 'Test User',
+			email: 'test@example.com',
+			token: expect.stringMatching(/^[a-f0-9]{64}$/u),
+		});
+		expect(connection.release).toHaveBeenCalledBefore(mailService.sendAccountVerification);
 	});
 });

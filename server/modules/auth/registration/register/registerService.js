@@ -1,13 +1,10 @@
 import { createHash, randomBytes } from 'node:crypto';
 import argon2 from 'argon2';
 
-export default function createRegisterService(
-	{ emailVerificationRepository, registrationRepository, withConnection },
-	appEnvironment = 'test',
-) {
+export default function createRegisterService({ emailVerificationRepository, registrationRepository, withConnection }, mailService) {
 	const authRepository = { ...emailVerificationRepository, ...registrationRepository, withConnection };
 	return async function register({ displayName, email, password }) {
-		return authRepository.withConnection(async (connection) => {
+		const result = await authRepository.withConnection(async (connection) => {
 			try {
 				const existingUser = await authRepository.findExistingUserByEmail(email, connection);
 
@@ -49,12 +46,9 @@ export default function createRegisterService(
 
 				await connection.commit();
 
-				if (appEnvironment === 'development') {
-					console.log(`Verification token for ${email}: ${verificationToken}`);
-				}
-
 				return {
 					created: true,
+					verificationToken,
 					userId,
 				};
 			} catch (error) {
@@ -69,5 +63,20 @@ export default function createRegisterService(
 				throw error;
 			}
 		});
+
+		if (!result.created) {
+			return result;
+		}
+
+		await mailService?.sendAccountVerification({
+			displayName,
+			email,
+			token: result.verificationToken,
+		});
+
+		return {
+			created: true,
+			userId: result.userId,
+		};
 	};
 }

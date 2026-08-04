@@ -51,6 +51,7 @@
 		"isbot": "^5",
 		"lucide-react": "^1.27.0",
 		"mysql2": "^3.23.2",
+		"nodemailer": "^9.0.4",
 		"otplib": "^13.4.1",
 		"qrcode": "^1.5.4",
 		"react": "^19.2.7",

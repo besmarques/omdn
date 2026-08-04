@@ -8,6 +8,7 @@ function createEnvironment(overrides = {}) {
 	return {
 		APP_ENV: 'production',
 		PORT: '3000',
+		PUBLIC_BASE_URL: 'https://example.com',
 		DB_HOST: 'localhost',
 		DB_PORT: '3306',
 		DB_NAME: 'omdn',
@@ -15,6 +16,13 @@ function createEnvironment(overrides = {}) {
 		DB_PASSWORD: 'database-password',
 		DB_CONNECTION_LIMIT: '10',
 		SESSION_SECRET: 'a'.repeat(32),
+		SMTP_HOST: 'smtp.example.com',
+		SMTP_PORT: '587',
+		SMTP_SECURE: 'false',
+		SMTP_USER: 'smtp-user',
+		SMTP_PASSWORD: 'smtp-password',
+		SMTP_FROM_EMAIL: 'accounts@example.com',
+		SMTP_FROM_NAME: 'OMDN',
 		TOTP_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
 		...overrides,
 	};
@@ -38,6 +46,16 @@ describe('server configuration', () => {
 			session: {
 				secret: 'a'.repeat(32),
 				secureCookie: true,
+			},
+			publicBaseUrl: 'https://example.com',
+			smtp: {
+				enabled: true,
+				fromEmail: 'accounts@example.com',
+				fromName: 'OMDN',
+				host: 'smtp.example.com',
+				port: 587,
+				secure: false,
+				user: 'smtp-user',
 			},
 		});
 		expect(config.totpEncryptionKey).toEqual(Buffer.alloc(32, 7));
@@ -67,6 +85,40 @@ describe('server configuration', () => {
 	it('rejects weak session secrets', () => {
 		expect(() => loadServerConfig(createEnvironment({ SESSION_SECRET: 'short' }))).toThrow(
 			'SESSION_SECRET must contain at least 32 characters',
+		);
+	});
+
+	it('requires SMTP delivery configuration in production', () => {
+		expect(() =>
+			loadServerConfig(
+				createEnvironment({
+					PUBLIC_BASE_URL: undefined,
+					SMTP_FROM_EMAIL: undefined,
+					SMTP_HOST: undefined,
+				}),
+			),
+		).toThrow('PUBLIC_BASE_URL is required in production');
+	});
+
+	it('allows the token-log fallback only outside production', () => {
+		const config = loadServerConfig(
+			createEnvironment({
+				APP_ENV: 'development',
+				PUBLIC_BASE_URL: undefined,
+				SMTP_FROM_EMAIL: undefined,
+				SMTP_HOST: undefined,
+				SMTP_PASSWORD: undefined,
+				SMTP_USER: undefined,
+			}),
+		);
+
+		expect(config.publicBaseUrl).toBe('http://localhost:3000');
+		expect(config.smtp.enabled).toBe(false);
+	});
+
+	it('requires SMTP credentials to be configured as a pair', () => {
+		expect(() => loadServerConfig(createEnvironment({ SMTP_PASSWORD: undefined }))).toThrow(
+			'SMTP_USER and SMTP_PASSWORD must be configured together',
 		);
 	});
 

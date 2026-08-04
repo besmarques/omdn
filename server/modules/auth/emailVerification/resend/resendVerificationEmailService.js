@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
-export default function createResendVerificationEmailService({ emailVerificationRepository, withConnection }, appEnvironment = 'test') {
+export default function createResendVerificationEmailService({ emailVerificationRepository, withConnection }, mailService) {
 	const authRepository = { ...emailVerificationRepository, withConnection };
 	return async function resendVerificationEmail(email) {
-		return authRepository.withConnection(async (connection) => {
+		const result = await authRepository.withConnection(async (connection) => {
 			try {
 				const user = await authRepository.findPendingUnverifiedUserByEmail(email, connection);
 
@@ -24,12 +24,10 @@ export default function createResendVerificationEmailService({ emailVerification
 
 				await connection.commit();
 
-				if (appEnvironment === 'development') {
-					console.log(`New verification token for ${email}: ${verificationToken}`);
-				}
-
 				return {
+					displayName: user.display_name,
 					sent: true,
+					verificationToken,
 				};
 			} catch (error) {
 				await connection.rollback();
@@ -37,5 +35,17 @@ export default function createResendVerificationEmailService({ emailVerification
 				throw error;
 			}
 		});
+
+		if (!result.sent) {
+			return result;
+		}
+
+		await mailService?.sendAccountVerification({
+			displayName: result.displayName,
+			email,
+			token: result.verificationToken,
+		});
+
+		return { sent: true };
 	};
 }

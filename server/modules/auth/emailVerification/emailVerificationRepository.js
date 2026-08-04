@@ -2,7 +2,7 @@ export default function createEmailVerificationRepository(db) {
 	async function findPendingUnverifiedUserByEmail(email, executor = db) {
 		const [users] = await executor.execute(
 			`
-				SELECT id
+				SELECT id, display_name
 				FROM users
 				WHERE email = ?
 					AND status = 'pending'
