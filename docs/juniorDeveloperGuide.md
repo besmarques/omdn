@@ -12,7 +12,9 @@ OMDN is one application with three main parts:
 
 During development, `npm run dev` starts one Express process. Vite runs inside
 it as development middleware, so page loaders, `/api` requests, HMR, and SSR
-all share the same origin and request context.
+all share the same origin and request context. Node watches server and framework
+configuration files for backend restarts, while Vite handles frontend changes
+through HMR. The watcher deliberately excludes generated dependency caches.
 
 In production, `npm start` first builds React Router's SPA output into `build/client`. Express then serves both the built frontend and the API from one process.
 

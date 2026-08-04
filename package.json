@@ -13,7 +13,7 @@
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
 		"test:ssr": "npm run build && playwright test --config playwright.ssr.config.js",
-		"dev": "node --env-file=.env.development --watch server/developmentServer.js",
+		"dev": "node --env-file=.env.development --watch-path=server --watch-path=vite.config.js --watch-path=react-router.config.js server/developmentServer.js",
 		"build": "react-router build",
 		"prestart": "npm run build",
 		"start": "node server/server.js",

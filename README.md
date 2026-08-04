@@ -256,6 +256,10 @@ Copy `.env.example` to `.env.development`, provide local values, then start the 
 npm run dev
 ```
 
+The Node watcher is limited to server and root framework configuration files;
+Vite handles frontend HMR itself. Generated Vite dependency-cache files under
+`node_modules` must not trigger backend restarts.
+
 ## Available scripts
 
 | Command                    | Description                                                     |
