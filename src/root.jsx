@@ -1,5 +1,7 @@
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteError } from 'react-router';
 
+import ServerStateProvider from './query/ServerStateProvider';
+
 import './index.css';
 
 export function links() {
@@ -20,7 +22,9 @@ export default function Root() {
 				<Links />
 			</head>
 			<body>
-				<Outlet />
+				<ServerStateProvider>
+					<Outlet />
+				</ServerStateProvider>
 				<ScrollRestoration />
 				<Scripts />
 			</body>

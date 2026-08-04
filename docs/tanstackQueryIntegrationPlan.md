@@ -1,5 +1,10 @@
 # TanStack Query Integration Plan
 
+Implementation status (2026-08-04): phases 1–6 are complete for the
+authentication slice. Phase 7, the first recipe content queries, remains
+planned. Full query dehydration is deliberately deferred because private React
+Router loader data seeds the critical account query directly.
+
 ## 1. Objective
 
 Introduce TanStack Query as OMDN's browser-side store for backend-owned state:
@@ -29,7 +34,7 @@ a concrete, complex, client-only state requirement appears later.
 The current frontend has several valid pieces but no single browser-side
 server-state cache:
 
-- `LoginPage` calls `/api/account/me` directly to select a destination.
+- `LoginPage` needs the current account after authentication to select a destination.
 - Private React Router loaders receive an authoritative principal for SSR and
   route protection.
 - The shared header receives that principal through the private layout.
@@ -104,7 +109,7 @@ src/
 │   └── authApi.js
 ├── query/
 │   ├── createQueryClient.js
-│   ├── queryKeys.js
+│   ├── ServerStateProvider.jsx
 │   └── currentAccountQuery.js
 ├── components/
 │   └── SiteHeader.jsx

@@ -599,7 +599,8 @@ Avoid two caches owning the same route-critical data.
 | Data/workflow                          | Owner                                  |
 | -------------------------------------- | -------------------------------------- |
 | Public article/category/author/archive | React Router loader                    |
-| Initial private account presentation   | Private layout/root loader             |
+| Private navigation authorization       | Private layout loader                  |
+| Shared browser account snapshot        | TanStack Query, seeded by loader data  |
 | Route mutation tied to navigation      | React Router action                    |
 | Interactive admin table                | TanStack Query when justified          |
 | Infinite/load-more widget              | TanStack Query                         |
@@ -608,7 +609,7 @@ Avoid two caches owning the same route-critical data.
 | Search, sorting, filters, page         | URL search parameters                  |
 | General client-only global state       | Zustand only after a demonstrated need |
 
-If TanStack Query data is rendered during SSR, create a fresh query client per request and configure hydration/staleness deliberately to prevent immediate duplicate browser requests.
+The authentication slice now creates a fresh query client for every root SSR render and keeps one stable client in the hydrated browser. Private loader data seeds the current-account query with infinite staleness, preventing an immediate duplicate `/me` request. This cache is presentation state only; loaders and backend middleware remain authoritative.
 
 ## 15. SEO implementation
 
@@ -731,7 +732,7 @@ Required security tests:
 | Package/capability                   | Decision                                                                      |
 | ------------------------------------ | ----------------------------------------------------------------------------- |
 | React Router Framework Mode packages | Installed and pinned together at 8.3.0                                        |
-| TanStack Query                       | Add when the first independently refreshed admin/feed use case exists         |
+| TanStack Query                       | Installed for the shared browser account snapshot; content queries are next   |
 | Zustand                              | Do not add without a concrete client-only global-state requirement            |
 | TipTap/Lexical/Markdown editor       | Decide through an editor proof of concept                                     |
 | React Hook Form                      | Evaluate when administration forms begin                                      |
@@ -791,11 +792,12 @@ landing page while leaving pending-TOTP sessions on `/login`.
 ### Phase 3: authentication hardening
 
 Status: complete. Session-bound CSRF tokens, origin/fetch-metadata checks,
-frontend token refresh, session lifetime/revocation rules, loader-owned account
-presentation, the complete TOTP login challenge, and the basic authenticated
-TOTP account-security screen are implemented and tested. Shared root navigation
-uses that loader-owned principal for private links and logout without adding
-session work to public pages.
+frontend token refresh, session lifetime/revocation rules, loader-seeded account
+presentation through TanStack Query, the complete TOTP login challenge, and the
+basic authenticated TOTP account-security screen are implemented and tested.
+Shared root navigation consumes the cached principal for private links and
+logout without adding session work to public pages. Logout and API `401`
+responses remove private query data.
 
 1. [x] Implement CSRF and strict origin policy.
 2. [x] Implement session idle/absolute expiry and targeted session revocation.

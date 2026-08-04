@@ -1,6 +1,7 @@
 import { Outlet, redirect } from 'react-router';
 
 import SiteHeader from '../components/SiteHeader';
+import { normalizeCurrentAccount, useCurrentAccount } from '../query/currentAccountQuery';
 
 import { principalContext } from '#framework/contexts';
 
@@ -21,9 +22,13 @@ export function loader({ context }) {
 }
 
 export default function PrivateLayout({ loaderData }) {
+	const { data: account } = useCurrentAccount({
+		initialData: () => normalizeCurrentAccount(loaderData.principal),
+	});
+
 	return (
 		<>
-			<SiteHeader principal={loaderData.principal} />
+			<SiteHeader principal={account} />
 			<Outlet />
 		</>
 	);

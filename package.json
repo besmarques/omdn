@@ -35,6 +35,7 @@
 		"@react-router/express": "8.3.0",
 		"@shadcn/react": "^0.2.1",
 		"@tailwindcss/vite": "^4.3.3",
+		"@tanstack/react-query": "^5.101.4",
 		"@tinymce/tinymce-react": "^6.3.0",
 		"argon2": "^0.45.1",
 		"class-variance-authority": "^0.7.1",

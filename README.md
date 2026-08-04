@@ -24,6 +24,7 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | Package                    | Version range | Purpose                                                    |
 | -------------------------- | ------------- | ---------------------------------------------------------- |
 | `@base-ui/react`           | `^1.6.0`      | Accessible React UI primitives                             |
+| `@tanstack/react-query`    | `^5.101.4`    | Browser cache for backend-owned account and content data   |
 | `@tailwindcss/vite`        | `^4.3.3`      | Tailwind integration for Vite                              |
 | `@tinymce/tinymce-react`   | `^6.3.0`      | React integration for the self-hosted recipe editor        |
 | `argon2`                   | `^0.45.1`     | Password hashing and verification                          |

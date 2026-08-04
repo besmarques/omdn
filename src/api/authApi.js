@@ -1,5 +1,18 @@
 const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
+const authenticationLossListeners = new Set();
 let csrfToken;
+
+export function subscribeToAuthenticationLoss(listener) {
+	authenticationLossListeners.add(listener);
+
+	return () => authenticationLossListeners.delete(listener);
+}
+
+function notifyAuthenticationLoss() {
+	for (const listener of authenticationLossListeners) {
+		listener();
+	}
+}
 
 async function readResponse(response) {
 	const responseText = await response.text();
@@ -62,6 +75,10 @@ async function requestApi(path, options = {}, retryCsrf = true) {
 		csrfToken = undefined;
 
 		return requestApi(path, options, false);
+	}
+
+	if (result.status === 401) {
+		notifyAuthenticationLoss();
 	}
 
 	return result;

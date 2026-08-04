@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
 import { disableTotp, enableTotp, getTotpStatus, regenerateTotpRecoveryCodes, setupTotp } from '@/api/authApi';
+import { useCurrentAccount } from '@/query/currentAccountQuery';
 
-export default function AccountSecurityPage({ principal }) {
+export default function AccountSecurityPage() {
+	const { data: account } = useCurrentAccount();
 	const [enabled, setEnabled] = useState(null);
 	const [setup, setSetup] = useState(null);
 	const [setupCode, setSetupCode] = useState('');
@@ -13,6 +15,7 @@ export default function AccountSecurityPage({ principal }) {
 	const [recoveryCodes, setRecoveryCodes] = useState([]);
 	const [message, setMessage] = useState('Loading two-factor authentication status...');
 	const [submitting, setSubmitting] = useState(false);
+	const authenticated = Boolean(account?.authenticated);
 
 	useEffect(() => {
 		let active = true;
@@ -122,10 +125,19 @@ export default function AccountSecurityPage({ principal }) {
 		});
 	}
 
+	if (!authenticated) {
+		return (
+			<main>
+				<h1>Account security</h1>
+				<p>Authentication is ending...</p>
+			</main>
+		);
+	}
+
 	return (
 		<main>
 			<h1>Account security</h1>
-			<p>Signed in as {principal.user.email}</p>
+			<p>Signed in as {account.user.email}</p>
 			<p>Two-factor authentication: {enabled === null ? 'Loading' : enabled ? 'Enabled' : 'Disabled'}</p>
 
 			{enabled === false && !setup && (
@@ -213,7 +225,7 @@ export default function AccountSecurityPage({ principal }) {
 
 			{message && <p>{message}</p>}
 			<p>
-				<Link to={principal.permissions.includes('users.manage') ? '/admin' : '/'}>Back</Link>
+				<Link to={account.permissions.includes('users.manage') ? '/admin' : '/'}>Back</Link>
 			</p>
 		</main>
 	);

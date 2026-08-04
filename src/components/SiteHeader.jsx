@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
 
 import { logout } from '../api/authApi';
+import { currentAccountQueryKey, unauthenticatedAccount } from '../query/currentAccountQuery';
 
 export default function SiteHeader({ principal }) {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [message, setMessage] = useState('');
 	const [submitting, setSubmitting] = useState(false);
 	const authenticated = Boolean(principal?.authenticated);
@@ -21,6 +24,8 @@ export default function SiteHeader({ principal }) {
 				return;
 			}
 
+			queryClient.removeQueries({ predicate: (query) => query.meta?.private === true });
+			queryClient.setQueryData(currentAccountQueryKey, unauthenticatedAccount);
 			navigate('/login', { replace: true });
 		} catch (error) {
 			setMessage(error.message || 'Unable to contact the server');

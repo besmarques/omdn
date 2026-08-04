@@ -1,15 +1,19 @@
 import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router';
 
 import { describe, expect, it } from 'vitest';
 
 import SiteHeader from './SiteHeader';
+import createQueryClient from '../query/createQueryClient';
 
 function renderHeader(principal) {
 	return renderToStaticMarkup(
-		<MemoryRouter>
-			<SiteHeader principal={principal} />
-		</MemoryRouter>,
+		<QueryClientProvider client={createQueryClient()}>
+			<MemoryRouter>
+				<SiteHeader principal={principal} />
+			</MemoryRouter>
+		</QueryClientProvider>,
 	);
 }
 

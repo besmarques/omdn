@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
 
-import { getCurrentAccount, login, verifyTotpLogin } from '@/api/authApi';
+import { login, verifyTotpLogin } from '@/api/authApi';
+import { currentAccountQueryKey, currentAccountQueryOptions } from '@/query/currentAccountQuery';
 
 export default function LoginPage() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [rememberMe, setRememberMe] = useState(false);
@@ -14,14 +17,9 @@ export default function LoginPage() {
 	const [submitting, setSubmitting] = useState(false);
 
 	async function finishAuthenticatedLogin() {
-		const accountResult = await getCurrentAccount();
-
-		if (!accountResult.ok) {
-			setMessage(accountResult.body?.message ?? 'Unable to load the authenticated account');
-			return;
-		}
-
-		const permissions = accountResult.body?.data?.permissions ?? [];
+		queryClient.removeQueries({ queryKey: currentAccountQueryKey, exact: true });
+		const account = await queryClient.fetchQuery(currentAccountQueryOptions());
+		const permissions = account.permissions ?? [];
 
 		if (permissions.includes('users.manage')) {
 			navigate('/admin');

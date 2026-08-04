@@ -296,7 +296,7 @@ After a correct password, an account with TOTP enabled is not fully authenticate
 
 The client must then submit a six-digit TOTP or recovery code to `/api/auth/totp/login/verify`. A valid second factor completes the session. TOTP time steps are recorded so the same time-based code cannot be replayed. Recovery codes are hashed in the database and are single-use.
 
-The login page detects that explicit state and replaces the password form with a basic authenticator-or-recovery-code form. Successful verification creates the authenticated session, loads `/api/account/me`, and navigates administrators to `/admin`. Invalid codes keep the challenge visible while attempts remain; an expired or exhausted challenge returns the page to the password form.
+The login page detects that explicit state and replaces the password form with a basic authenticator-or-recovery-code form. Successful verification creates the authenticated session, asks the shared TanStack Query cache to load `/api/account/me`, and navigates administrators to `/admin`. Invalid codes keep the challenge visible while attempts remain; an expired or exhausted challenge returns the page to the password form.
 
 ### TOTP setup
 
@@ -328,7 +328,7 @@ but revoke every other device.
 
 ### Logout
 
-Logout destroys the server-side session and clears the browser cookie. The frontend also forgets its cached CSRF token.
+Logout destroys the server-side session and clears the browser cookie. The frontend also forgets its cached CSRF token and removes private TanStack Query data. Any later API `401` performs the same browser-side cleanup and redirects to `/login`; the backend remains the authority that decides whether the session is valid.
 
 ## 10. Authentication versus authorization
 
@@ -347,18 +347,21 @@ The frontend and backend deliberately do not import one another. Browser pages c
 
 `GET /api/account/me` returns the current user, roles, and permissions from the authoritative backend.
 
-The current mockup uses it after login:
+The current frontend uses it after login:
 
-- Login calls `/me` after success to decide whether to navigate to `/admin`.
+- Login loads `/me` through TanStack Query after success to decide whether to navigate to `/admin`.
 
-The `/admin` route no longer calls `/me` in a browser effect. Its private parent
-loader receives the principal from Express request context, redirects guests,
-and passes authenticated presentation data to the admin page. API middleware
-still performs authorization independently for protected API operations.
+The private parent loader receives the principal from Express request context,
+redirects guests, and seeds the same account query for authenticated browser
+components. Its infinite staleness is intentional: mounting the header and page
+does not issue duplicate `/me` calls immediately after login. Explicit login,
+logout, and authentication-loss transitions update the cache instead. API
+middleware still performs authorization independently for protected operations;
+cached permissions only control presentation.
 
 ## 12. Frontend flow
 
-`src/root.jsx` is the sole HTML document shell in React Router Framework Mode. It owns global CSS, metadata, the favicon, scroll restoration, Framework scripts, and the last-resort error document. The public, authentication, and private layouts render `SiteHeader.jsx` above their route outlet, so every normal page uses the same navigation component. The private layout passes its own loader data to show account links, the signed-in email, and logout; public pages retain guest links without opening a session or calling `/me`. `src/entry.server.jsx` streams that document on the server, while React Router's default client entry hydrates the same markup in the browser and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old declarative SPA router has been removed, so this Framework configuration is the only frontend route authority.
+`src/root.jsx` is the sole HTML document shell in React Router Framework Mode. It owns global CSS, metadata, the favicon, scroll restoration, Framework scripts, the TanStack Query provider, and the last-resort error document. Each root render creates an isolated query client, which prevents one SSR request from sharing private data with another; the hydrated browser retains its client across renders. The public, authentication, and private layouts render `SiteHeader.jsx` above their route outlet, so every normal page uses the same navigation component. The private layout seeds its loader principal into the current-account query, which supplies account links, the signed-in email, and logout; public pages retain guest links without opening a session or calling `/me`. `src/entry.server.jsx` streams that document on the server, while React Router's default client entry hydrates the same markup in the browser and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old declarative SPA router has been removed, so this Framework configuration is the only frontend route authority.
 
 For a production page request, the current frontend works like this:
 
@@ -384,7 +387,7 @@ In production, the security middleware creates a new Content Security Policy non
 
 - `/register` manages form state and displays server validation errors.
 - `/verify-email?token=...` submits the verification token once.
-- `/login` logs in, calls `/me`, and navigates administrators to `/admin` or other users to `/account/security`; its parent layout redirects users who are already authenticated.
+- `/login` logs in, fetches the shared current-account query, and navigates administrators to `/admin` or other users to `/account/security`; its parent layout redirects users who are already authenticated.
 - `/account/security` exposes the basic TOTP setup and management flow to every authenticated user.
 - `/admin` resolves the session and permission in server loaders.
 - The shared header provides public navigation everywhere and account navigation plus logout on authenticated private pages.

@@ -7,10 +7,9 @@ export function loader({ context }) {
 
 	return {
 		authorized: principal.permissions.includes('users.manage'),
-		principal,
 	};
 }
 
 export default function AdminRoute({ loaderData }) {
-	return <AdminPage authorized={loaderData.authorized} principal={loaderData.principal} />;
+	return <AdminPage authorized={loaderData.authorized} />;
 }

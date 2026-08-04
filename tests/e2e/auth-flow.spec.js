@@ -159,6 +159,20 @@ test('edits and restores a recipe description with the self-hosted TinyMCE proof
 
 test('characterizes registration, authentication, TOTP, and admin access', async ({ page }) => {
 	const database = await createTestDatabaseConnection();
+	let currentAccountRequestCount = 0;
+	const browserErrors = [];
+
+	page.on('request', (request) => {
+		if (new URL(request.url()).pathname === '/api/account/me') {
+			currentAccountRequestCount += 1;
+		}
+	});
+	page.on('console', (message) => {
+		if (message.type() === 'error') {
+			browserErrors.push(message.text());
+		}
+	});
+	page.on('pageerror', (error) => browserErrors.push(error.message));
 
 	try {
 		await test.step('register a subscriber', async () => {
@@ -188,9 +202,11 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		});
 
 		await test.step('deny a subscriber access to the admin page', async () => {
+			const accountRequestsBeforeLogin = currentAccountRequestCount;
 			await loginThroughPage(page);
 			await expect(page).toHaveURL(/\/account\/security$/u);
 			await expect(page.getByRole('heading', { name: 'Account security' })).toBeVisible();
+			expect(currentAccountRequestCount).toBe(accountRequestsBeforeLogin + 1);
 			await page.goto('/login');
 			await expect(page).toHaveURL(/\/account\/security$/u);
 
@@ -210,9 +226,11 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 				[email],
 			);
 
+			const accountRequestsBeforeLogin = currentAccountRequestCount;
 			await loginThroughPage(page);
 			await expect(page).toHaveURL(/\/admin$/u);
 			await expect(page.getByText('You have access to this admin route')).toBeVisible();
+			expect(currentAccountRequestCount).toBe(accountRequestsBeforeLogin + 1);
 			await page.goto('/login');
 			await expect(page).toHaveURL(/\/admin$/u);
 		});
@@ -251,6 +269,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		});
 
 		await test.step('require and verify a TOTP login', async () => {
+			const accountRequestsBeforeLogin = currentAccountRequestCount;
 			await loginThroughPage(page);
 			await expect(page.getByLabel('Authenticator or recovery code')).toBeVisible();
 
@@ -264,23 +283,28 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByRole('button', { name: 'Verify and login' }).click();
 			await expect(page).toHaveURL(/\/admin$/u);
 			await expect(page.getByText('You have access to this admin route')).toBeVisible();
+			expect(currentAccountRequestCount).toBe(accountRequestsBeforeLogin + 1);
 
 			await page.getByRole('button', { name: 'Logout' }).click();
 			await expect(page).toHaveURL(/\/login$/u);
 		});
 
 		await test.step('complete login with a recovery code and log out', async () => {
+			const accountRequestsBeforeLogin = currentAccountRequestCount;
 			await loginThroughPage(page);
 			await page.getByLabel('Authenticator or recovery code').fill(recoveryCode);
 			await page.getByRole('button', { name: 'Verify and login' }).click();
 			await expect(page).toHaveURL(/\/admin$/u);
 			await expect(page.getByText('You have access to this admin route')).toBeVisible();
+			expect(currentAccountRequestCount).toBe(accountRequestsBeforeLogin + 1);
 			await page.getByRole('button', { name: 'Logout' }).click();
 			await expect(page).toHaveURL(/\/login$/u);
 
 			await page.goto('/admin');
 			await expect(page).toHaveURL(/\/login$/u);
 		});
+
+		expect(browserErrors).toEqual([]);
 	} finally {
 		await database.end();
 	}
