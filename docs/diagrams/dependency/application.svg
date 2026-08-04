@@ -45,51 +45,56 @@
 <text xml:space="preserve" text-anchor="middle" x="541.75" y="-1333.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">src</text>
 </g>
 <g id="clust8" class="cluster">
+<title>cluster_src/components</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M732,-1202C732,-1202 803.75,-1202 803.75,-1202 809.75,-1202 815.75,-1208 815.75,-1214 815.75,-1214 815.75,-1245 815.75,-1245 815.75,-1251 809.75,-1257 803.75,-1257 803.75,-1257 732,-1257 732,-1257 726,-1257 720,-1251 720,-1245 720,-1245 720,-1214 720,-1214 720,-1208 726,-1202 732,-1202"/>
+<text xml:space="preserve" text-anchor="middle" x="767.88" y="-1244.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">components</text>
+</g>
+<g id="clust9" class="cluster">
 <title>cluster_src/features</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M157.5,-414C157.5,-414 858.25,-414 858.25,-414 864.25,-414 870.25,-420 870.25,-426 870.25,-426 870.25,-872 870.25,-872 870.25,-878 864.25,-884 858.25,-884 858.25,-884 157.5,-884 157.5,-884 151.5,-884 145.5,-878 145.5,-872 145.5,-872 145.5,-426 145.5,-426 145.5,-420 151.5,-414 157.5,-414"/>
 <text xml:space="preserve" text-anchor="middle" x="507.88" y="-871.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">features</text>
 </g>
-<g id="clust9" class="cluster">
+<g id="clust10" class="cluster">
 <title>cluster_src/features/articleEditing</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M165.5,-422C165.5,-422 295.75,-422 295.75,-422 301.75,-422 307.75,-428 307.75,-434 307.75,-434 307.75,-465 307.75,-465 307.75,-471 301.75,-477 295.75,-477 295.75,-477 165.5,-477 165.5,-477 159.5,-477 153.5,-471 153.5,-465 153.5,-465 153.5,-434 153.5,-434 153.5,-428 159.5,-422 165.5,-422"/>
 <text xml:space="preserve" text-anchor="middle" x="230.62" y="-464.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">articleEditing</text>
 </g>
-<g id="clust10" class="cluster">
+<g id="clust11" class="cluster">
 <title>cluster_src/features/articleSource</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M685.5,-771C685.5,-771 850.25,-771 850.25,-771 856.25,-771 862.25,-777 862.25,-783 862.25,-783 862.25,-845 862.25,-845 862.25,-851 856.25,-857 850.25,-857 850.25,-857 685.5,-857 685.5,-857 679.5,-857 673.5,-851 673.5,-845 673.5,-845 673.5,-783 673.5,-783 673.5,-777 679.5,-771 685.5,-771"/>
 <text xml:space="preserve" text-anchor="middle" x="767.88" y="-844.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">articleSource</text>
 </g>
-<g id="clust11" class="cluster">
+<g id="clust12" class="cluster">
 <title>cluster_src/features/pageRendering</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M188,-485C188,-485 629.25,-485 629.25,-485 635.25,-485 641.25,-491 641.25,-497 641.25,-497 641.25,-845 641.25,-845 641.25,-851 635.25,-857 629.25,-857 629.25,-857 188,-857 188,-857 182,-857 176,-851 176,-845 176,-845 176,-497 176,-497 176,-491 182,-485 188,-485"/>
 <text xml:space="preserve" text-anchor="middle" x="408.62" y="-844.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">pageRendering</text>
 </g>
-<g id="clust12" class="cluster">
+<g id="clust13" class="cluster">
 <title>cluster_src/features/pageRendering/blocks</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M543.88,-493C543.88,-493 595.38,-493 595.38,-493 601.38,-493 607.38,-499 607.38,-505 607.38,-505 607.38,-536 607.38,-536 607.38,-542 601.38,-548 595.38,-548 595.38,-548 543.88,-548 543.88,-548 537.88,-548 531.88,-542 531.88,-536 531.88,-536 531.88,-505 531.88,-505 531.88,-499 537.88,-493 543.88,-493"/>
 <text xml:space="preserve" text-anchor="middle" x="569.62" y="-535.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">blocks</text>
 </g>
-<g id="clust13" class="cluster">
+<g id="clust14" class="cluster">
 <title>cluster_src/features/pageRendering/layouts</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M521.75,-556C521.75,-556 617.5,-556 617.5,-556 623.5,-556 629.5,-562 629.5,-568 629.5,-568 629.5,-630 629.5,-630 629.5,-636 623.5,-642 617.5,-642 617.5,-642 521.75,-642 521.75,-642 515.75,-642 509.75,-636 509.75,-630 509.75,-630 509.75,-568 509.75,-568 509.75,-562 515.75,-556 521.75,-556"/>
 <text xml:space="preserve" text-anchor="middle" x="569.62" y="-629.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">layouts</text>
 </g>
-<g id="clust14" class="cluster">
+<g id="clust15" class="cluster">
 <title>cluster_src/features/pageRendering/regions</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M539.75,-650C539.75,-650 599.5,-650 599.5,-650 605.5,-650 611.5,-656 611.5,-662 611.5,-662 611.5,-724 611.5,-724 611.5,-730 605.5,-736 599.5,-736 599.5,-736 539.75,-736 539.75,-736 533.75,-736 527.75,-730 527.75,-724 527.75,-724 527.75,-662 527.75,-662 527.75,-656 533.75,-650 539.75,-650"/>
 <text xml:space="preserve" text-anchor="middle" x="569.62" y="-723.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">regions</text>
 </g>
-<g id="clust15" class="cluster">
+<g id="clust16" class="cluster">
 <title>cluster_src/features/pageRendering/templates</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M518,-744C518,-744 621.25,-744 621.25,-744 627.25,-744 633.25,-750 633.25,-756 633.25,-756 633.25,-818 633.25,-818 633.25,-824 627.25,-830 621.25,-830 621.25,-830 518,-830 518,-830 512,-830 506,-824 506,-818 506,-818 506,-756 506,-756 506,-750 512,-744 518,-744"/>
 <text xml:space="preserve" text-anchor="middle" x="569.62" y="-817.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">templates</text>
 </g>
-<g id="clust16" class="cluster">
-<title>cluster_src/framework</title>
-<path fill="#ffffff" stroke="black" stroke-width="2" d="M739.5,-969C739.5,-969 796.25,-969 796.25,-969 802.25,-969 808.25,-975 808.25,-981 808.25,-981 808.25,-1012 808.25,-1012 808.25,-1018 802.25,-1024 796.25,-1024 796.25,-1024 739.5,-1024 739.5,-1024 733.5,-1024 727.5,-1018 727.5,-1012 727.5,-1012 727.5,-981 727.5,-981 727.5,-975 733.5,-969 739.5,-969"/>
-<text xml:space="preserve" text-anchor="middle" x="767.88" y="-1011.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">framework</text>
-</g>
 <g id="clust17" class="cluster">
+<title>cluster_src/framework</title>
+<path fill="#ffffff" stroke="black" stroke-width="2" d="M739.5,-938C739.5,-938 796.25,-938 796.25,-938 802.25,-938 808.25,-944 808.25,-950 808.25,-950 808.25,-981 808.25,-981 808.25,-987 802.25,-993 796.25,-993 796.25,-993 739.5,-993 739.5,-993 733.5,-993 727.5,-987 727.5,-981 727.5,-981 727.5,-950 727.5,-950 727.5,-944 733.5,-938 739.5,-938"/>
+<text xml:space="preserve" text-anchor="middle" x="767.88" y="-980.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">framework</text>
+</g>
+<g id="clust18" class="cluster">
 <title>cluster_src/routes</title>
 <path fill="#ffffff" stroke="black" stroke-width="2" d="M494,-892C494,-892 645.25,-892 645.25,-892 651.25,-892 657.25,-898 657.25,-904 657.25,-904 657.25,-1307 657.25,-1307 657.25,-1313 651.25,-1319 645.25,-1319 645.25,-1319 494,-1319 494,-1319 488,-1319 482,-1313 482,-1307 482,-1307 482,-904 482,-904 482,-898 488,-892 494,-892"/>
 <text xml:space="preserve" text-anchor="middle" x="569.62" y="-1306.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">routes</text>
@@ -407,16 +412,16 @@
 <g id="node17" class="node">
 <title>src/framework/contexts.js</title>
 <g id="a_node17"><a xlink:href="../../../src/framework/contexts.js" xlink:title="contexts.js">
-<path fill="#3a8bc1" stroke="#216182" d="M793.83,-996.62C793.83,-996.62 741.92,-996.62 741.92,-996.62 738.71,-996.62 735.5,-993.42 735.5,-990.21 735.5,-990.21 735.5,-983.79 735.5,-983.79 735.5,-980.58 738.71,-977.38 741.92,-977.38 741.92,-977.38 793.83,-977.38 793.83,-977.38 797.04,-977.38 800.25,-980.58 800.25,-983.79 800.25,-983.79 800.25,-990.21 800.25,-990.21 800.25,-993.42 797.04,-996.62 793.83,-996.62"/>
-<text xml:space="preserve" text-anchor="start" x="743.5" y="-984.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">contexts.js</text>
+<path fill="#3a8bc1" stroke="#216182" d="M793.83,-965.62C793.83,-965.62 741.92,-965.62 741.92,-965.62 738.71,-965.62 735.5,-962.42 735.5,-959.21 735.5,-959.21 735.5,-952.79 735.5,-952.79 735.5,-949.58 738.71,-946.38 741.92,-946.38 741.92,-946.38 793.83,-946.38 793.83,-946.38 797.04,-946.38 800.25,-949.58 800.25,-952.79 800.25,-952.79 800.25,-959.21 800.25,-959.21 800.25,-962.42 797.04,-965.62 793.83,-965.62"/>
+<text xml:space="preserve" text-anchor="start" x="743.5" y="-953.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">contexts.js</text>
 </a>
 </g>
 </g>
 <!-- server/framework/createFrameworkRequestContext.js&#45;&gt;src/framework/contexts.js -->
 <g id="edge20" class="edge">
 <title>server/framework/createFrameworkRequestContext.js&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M579.41,-344.04C599.34,-367.55 647.65,-428.84 665.5,-490 677.02,-529.47 660.26,-821.07 673.5,-860 688.92,-905.36 726.92,-948.07 749.4,-970.54"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="754.36,-975.4 747.16,-972.76 753.25,-975.01 749.01,-970.86 749.36,-970.5 749.71,-970.15 753.95,-974.3 751.56,-968.25 754.36,-975.4"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M579.41,-344.04C599.34,-367.55 647.65,-428.84 665.5,-490 677.02,-529.47 657.62,-822.07 673.5,-860 688.04,-894.72 721.54,-923.92 744.2,-940.7"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="749.73,-944.68 742.21,-943.15 748.58,-944.47 743.76,-941 744.05,-940.59 744.34,-940.19 749.16,-943.65 745.89,-938.04 749.73,-944.68"/>
 </g>
 <!-- server/modules/admin&#45;&gt;server/modules/auth -->
 <g id="edge24" class="edge">
@@ -455,418 +460,451 @@
 <g id="node19" class="node">
 <title>src/api</title>
 <g id="a_node19"><a xlink:href="../../../src/api" xlink:title="api">
-<polygon fill="#3a8bc1" stroke="#216182" points="938,-1198.62 886.14,-1198.62 884,-1196.49 884,-1179.38 935.86,-1179.38 938,-1181.51 938,-1198.62"/>
-<polyline fill="none" stroke="#216182" points="935.86,-1196.49 884,-1196.49"/>
-<polyline fill="none" stroke="#216182" points="935.86,-1196.49 935.86,-1179.38"/>
-<polyline fill="none" stroke="#216182" points="935.86,-1196.49 938,-1198.62"/>
-<text xml:space="preserve" text-anchor="start" x="904.25" y="-1186.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">api</text>
+<polygon fill="#3a8bc1" stroke="#216182" points="938,-1151.62 886.14,-1151.62 884,-1149.49 884,-1132.38 935.86,-1132.38 938,-1134.51 938,-1151.62"/>
+<polyline fill="none" stroke="#216182" points="935.86,-1149.49 884,-1149.49"/>
+<polyline fill="none" stroke="#216182" points="935.86,-1149.49 935.86,-1132.38"/>
+<polyline fill="none" stroke="#216182" points="935.86,-1149.49 938,-1151.62"/>
+<text xml:space="preserve" text-anchor="start" x="904.25" y="-1139.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">api</text>
 </a>
 </g>
 </g>
-<!-- src/entry.server.jsx -->
+<!-- src/components/SiteHeader.jsx -->
 <g id="node20" class="node">
+<title>src/components/SiteHeader.jsx</title>
+<g id="a_node20"><a xlink:href="../../../src/components/SiteHeader.jsx" xlink:title="SiteHeader.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M801.33,-1229.62C801.33,-1229.62 734.42,-1229.62 734.42,-1229.62 731.21,-1229.62 728,-1226.42 728,-1223.21 728,-1223.21 728,-1216.79 728,-1216.79 728,-1213.58 731.21,-1210.38 734.42,-1210.38 734.42,-1210.38 801.33,-1210.38 801.33,-1210.38 804.54,-1210.38 807.75,-1213.58 807.75,-1216.79 807.75,-1216.79 807.75,-1223.21 807.75,-1223.21 807.75,-1226.42 804.54,-1229.62 801.33,-1229.62"/>
+<text xml:space="preserve" text-anchor="start" x="736" y="-1217.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">SiteHeader.jsx</text>
+</a>
+</g>
+</g>
+<!-- src/components/SiteHeader.jsx&#45;&gt;src/api -->
+<g id="edge30" class="edge">
+<title>src/components/SiteHeader.jsx&#45;&gt;src/api</title>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M808.18,-1222.21C828.2,-1221.54 852.07,-1217.81 870.25,-1206 886.78,-1195.26 897.63,-1174.98 903.75,-1160.12"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="906.09,-1153.98 906.54,-1161.64 906.18,-1155.15 904.06,-1160.7 903.6,-1160.52 903.13,-1160.34 905.25,-1154.79 900.65,-1159.4 906.09,-1153.98"/>
+</g>
+<!-- src/entry.server.jsx -->
+<g id="node21" class="node">
 <title>src/entry.server.jsx</title>
-<g id="a_node20"><a xlink:href="../../../src/entry.server.jsx" xlink:title="no&#45;orphans">
+<g id="a_node21"><a xlink:href="../../../src/entry.server.jsx" xlink:title="no&#45;orphans">
 <path fill="#3a8bc1" stroke="#216182" d="M265.96,-1083.62C265.96,-1083.62 195.29,-1083.62 195.29,-1083.62 192.08,-1083.62 188.88,-1080.42 188.88,-1077.21 188.88,-1077.21 188.88,-1070.79 188.88,-1070.79 188.88,-1067.58 192.08,-1064.38 195.29,-1064.38 195.29,-1064.38 265.96,-1064.38 265.96,-1064.38 269.17,-1064.38 272.38,-1067.58 272.38,-1070.79 272.38,-1070.79 272.38,-1077.21 272.38,-1077.21 272.38,-1080.42 269.17,-1083.62 265.96,-1083.62"/>
 <text xml:space="preserve" text-anchor="start" x="196.88" y="-1071.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">entry.server.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/articleEditing/RecipeDescriptionEditor.jsx -->
-<g id="node21" class="node">
+<g id="node22" class="node">
 <title>src/features/articleEditing/RecipeDescriptionEditor.jsx</title>
-<g id="a_node21"><a xlink:href="../../../src/features/articleEditing/RecipeDescriptionEditor.jsx" xlink:title="no&#45;orphans">
+<g id="a_node22"><a xlink:href="../../../src/features/articleEditing/RecipeDescriptionEditor.jsx" xlink:title="no&#45;orphans">
 <path fill="#3a8bc1" stroke="#216182" d="M293.33,-449.62C293.33,-449.62 167.92,-449.62 167.92,-449.62 164.71,-449.62 161.5,-446.42 161.5,-443.21 161.5,-443.21 161.5,-436.79 161.5,-436.79 161.5,-433.58 164.71,-430.38 167.92,-430.38 167.92,-430.38 293.33,-430.38 293.33,-430.38 296.54,-430.38 299.75,-433.58 299.75,-436.79 299.75,-436.79 299.75,-443.21 299.75,-443.21 299.75,-446.42 296.54,-449.62 293.33,-449.62"/>
 <text xml:space="preserve" text-anchor="start" x="169.5" y="-437.07" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">RecipeDescriptionEditor.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/articleSource/recipeDescriptionSanitizer.server.js -->
-<g id="node22" class="node">
+<g id="node23" class="node">
 <title>src/features/articleSource/recipeDescriptionSanitizer.server.js</title>
-<g id="a_node22"><a xlink:href="../../../src/features/articleSource/recipeDescriptionSanitizer.server.js" xlink:title="recipeDescriptionSanitizer.server.js">
+<g id="a_node23"><a xlink:href="../../../src/features/articleSource/recipeDescriptionSanitizer.server.js" xlink:title="recipeDescriptionSanitizer.server.js">
 <path fill="#3a8bc1" stroke="#216182" d="M847.83,-829.62C847.83,-829.62 687.92,-829.62 687.92,-829.62 684.71,-829.62 681.5,-826.42 681.5,-823.21 681.5,-823.21 681.5,-816.79 681.5,-816.79 681.5,-813.58 684.71,-810.38 687.92,-810.38 687.92,-810.38 847.83,-810.38 847.83,-810.38 851.04,-810.38 854.25,-813.58 854.25,-816.79 854.25,-816.79 854.25,-823.21 854.25,-823.21 854.25,-826.42 851.04,-829.62 847.83,-829.62"/>
 <text xml:space="preserve" text-anchor="start" x="689.5" y="-817.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">recipeDescriptionSanitizer.server.js</text>
 </a>
 </g>
 </g>
 <!-- src/features/articleSource/recipeSource.js -->
-<g id="node23" class="node">
+<g id="node24" class="node">
 <title>src/features/articleSource/recipeSource.js</title>
-<g id="a_node23"><a xlink:href="../../../src/features/articleSource/recipeSource.js" xlink:title="recipeSource.js">
+<g id="a_node24"><a xlink:href="../../../src/features/articleSource/recipeSource.js" xlink:title="recipeSource.js">
 <path fill="#3a8bc1" stroke="#216182" d="M803.96,-798.62C803.96,-798.62 731.79,-798.62 731.79,-798.62 728.58,-798.62 725.38,-795.42 725.38,-792.21 725.38,-792.21 725.38,-785.79 725.38,-785.79 725.38,-782.58 728.58,-779.38 731.79,-779.38 731.79,-779.38 803.96,-779.38 803.96,-779.38 807.17,-779.38 810.38,-782.58 810.38,-785.79 810.38,-785.79 810.38,-792.21 810.38,-792.21 810.38,-795.42 807.17,-798.62 803.96,-798.62"/>
 <text xml:space="preserve" text-anchor="start" x="733.38" y="-786.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">recipeSource.js</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/PageRenderer.jsx -->
-<g id="node24" class="node">
+<g id="node25" class="node">
 <title>src/features/pageRendering/PageRenderer.jsx</title>
-<g id="a_node24"><a xlink:href="../../../src/features/pageRendering/PageRenderer.jsx" xlink:title="PageRenderer.jsx">
+<g id="a_node25"><a xlink:href="../../../src/features/pageRendering/PageRenderer.jsx" xlink:title="PageRenderer.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M270.83,-677.62C270.83,-677.62 190.42,-677.62 190.42,-677.62 187.21,-677.62 184,-674.42 184,-671.21 184,-671.21 184,-664.79 184,-664.79 184,-661.58 187.21,-658.38 190.42,-658.38 190.42,-658.38 270.83,-658.38 270.83,-658.38 274.04,-658.38 277.25,-661.58 277.25,-664.79 277.25,-664.79 277.25,-671.21 277.25,-671.21 277.25,-674.42 274.04,-677.62 270.83,-677.62"/>
 <text xml:space="preserve" text-anchor="start" x="192" y="-665.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">PageRenderer.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/presentationRegistry.js -->
-<g id="node25" class="node">
+<g id="node26" class="node">
 <title>src/features/pageRendering/presentationRegistry.js</title>
-<g id="a_node25"><a xlink:href="../../../src/features/pageRendering/presentationRegistry.js" xlink:title="presentationRegistry.js">
+<g id="a_node26"><a xlink:href="../../../src/features/pageRendering/presentationRegistry.js" xlink:title="presentationRegistry.js">
 <path fill="#3a8bc1" stroke="#216182" d="M439.33,-677.62C439.33,-677.62 334.17,-677.62 334.17,-677.62 330.96,-677.62 327.75,-674.42 327.75,-671.21 327.75,-671.21 327.75,-664.79 327.75,-664.79 327.75,-661.58 330.96,-658.38 334.17,-658.38 334.17,-658.38 439.33,-658.38 439.33,-658.38 442.54,-658.38 445.75,-661.58 445.75,-664.79 445.75,-664.79 445.75,-671.21 445.75,-671.21 445.75,-674.42 442.54,-677.62 439.33,-677.62"/>
 <text xml:space="preserve" text-anchor="start" x="335.75" y="-665.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">presentationRegistry.js</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/PageRenderer.jsx&#45;&gt;src/features/pageRendering/presentationRegistry.js -->
-<g id="edge30" class="edge">
+<g id="edge31" class="edge">
 <title>src/features/pageRendering/PageRenderer.jsx&#45;&gt;src/features/pageRendering/presentationRegistry.js</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M277.45,-668C290.21,-668 304.35,-668 318.08,-668"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="325.06,-668 318.06,-671.15 324,-668.5 318.06,-668.5 318.06,-668 318.06,-667.5 324,-667.5 318.06,-664.85 325.06,-668"/>
 </g>
 <!-- src/features/pageRendering/blocks/Blocks.jsx -->
-<g id="node26" class="node">
+<g id="node27" class="node">
 <title>src/features/pageRendering/blocks/Blocks.jsx</title>
-<g id="a_node26"><a xlink:href="../../../src/features/pageRendering/blocks/Blocks.jsx" xlink:title="Blocks.jsx">
+<g id="a_node27"><a xlink:href="../../../src/features/pageRendering/blocks/Blocks.jsx" xlink:title="Blocks.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M592.96,-520.62C592.96,-520.62 546.29,-520.62 546.29,-520.62 543.08,-520.62 539.88,-517.42 539.88,-514.21 539.88,-514.21 539.88,-507.79 539.88,-507.79 539.88,-504.58 543.08,-501.38 546.29,-501.38 546.29,-501.38 592.96,-501.38 592.96,-501.38 596.17,-501.38 599.38,-504.58 599.38,-507.79 599.38,-507.79 599.38,-514.21 599.38,-514.21 599.38,-517.42 596.17,-520.62 592.96,-520.62"/>
 <text xml:space="preserve" text-anchor="start" x="547.88" y="-508.07" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">Blocks.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/blocks/Blocks.jsx -->
-<g id="edge31" class="edge">
+<g id="edge32" class="edge">
 <title>src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/blocks/Blocks.jsx</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M392.87,-658.03C404.5,-636.26 434.95,-583.91 473.75,-553 490.58,-539.59 512.36,-529.55 530.81,-522.66"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="537.26,-520.34 531.74,-525.67 536.43,-521.17 530.84,-523.17 530.67,-522.7 530.51,-522.23 536.1,-520.23 529.61,-519.74 537.26,-520.34"/>
 </g>
 <!-- src/features/pageRendering/layouts/FullWidthLayout.jsx -->
-<g id="node27" class="node">
+<g id="node28" class="node">
 <title>src/features/pageRendering/layouts/FullWidthLayout.jsx</title>
-<g id="a_node27"><a xlink:href="../../../src/features/pageRendering/layouts/FullWidthLayout.jsx" xlink:title="FullWidthLayout.jsx">
+<g id="a_node28"><a xlink:href="../../../src/features/pageRendering/layouts/FullWidthLayout.jsx" xlink:title="FullWidthLayout.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M615.08,-583.62C615.08,-583.62 524.17,-583.62 524.17,-583.62 520.96,-583.62 517.75,-580.42 517.75,-577.21 517.75,-577.21 517.75,-570.79 517.75,-570.79 517.75,-567.58 520.96,-564.38 524.17,-564.38 524.17,-564.38 615.08,-564.38 615.08,-564.38 618.29,-564.38 621.5,-567.58 621.5,-570.79 621.5,-570.79 621.5,-577.21 621.5,-577.21 621.5,-580.42 618.29,-583.62 615.08,-583.62"/>
 <text xml:space="preserve" text-anchor="start" x="525.75" y="-571.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">FullWidthLayout.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/layouts/FullWidthLayout.jsx -->
-<g id="edge32" class="edge">
+<g id="edge33" class="edge">
 <title>src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/layouts/FullWidthLayout.jsx</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M395.25,-658.02C408.81,-640.78 439.25,-605.66 473.75,-589 484.52,-583.8 496.7,-580.33 508.66,-578.04"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="515.33,-576.91 508.95,-581.19 514.36,-577.59 508.51,-578.57 508.43,-578.08 508.34,-577.59 514.2,-576.6 507.9,-574.98 515.33,-576.91"/>
 </g>
 <!-- src/features/pageRendering/layouts/SidebarLayout.jsx -->
-<g id="node28" class="node">
+<g id="node29" class="node">
 <title>src/features/pageRendering/layouts/SidebarLayout.jsx</title>
-<g id="a_node28"><a xlink:href="../../../src/features/pageRendering/layouts/SidebarLayout.jsx" xlink:title="SidebarLayout.jsx">
+<g id="a_node29"><a xlink:href="../../../src/features/pageRendering/layouts/SidebarLayout.jsx" xlink:title="SidebarLayout.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M611.33,-614.62C611.33,-614.62 527.92,-614.62 527.92,-614.62 524.71,-614.62 521.5,-611.42 521.5,-608.21 521.5,-608.21 521.5,-601.79 521.5,-601.79 521.5,-598.58 524.71,-595.38 527.92,-595.38 527.92,-595.38 611.33,-595.38 611.33,-595.38 614.54,-595.38 617.75,-598.58 617.75,-601.79 617.75,-601.79 617.75,-608.21 617.75,-608.21 617.75,-611.42 614.54,-614.62 611.33,-614.62"/>
 <text xml:space="preserve" text-anchor="start" x="529.5" y="-602.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">SidebarLayout.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/layouts/SidebarLayout.jsx -->
-<g id="edge33" class="edge">
+<g id="edge34" class="edge">
 <title>src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/layouts/SidebarLayout.jsx</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M416.81,-657.88C447.8,-647.09 496.98,-629.95 530.92,-618.13"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="537.34,-615.9 531.76,-621.18 536.5,-616.72 530.89,-618.67 530.72,-618.2 530.56,-617.73 536.17,-615.78 529.69,-615.23 537.34,-615.9"/>
 </g>
 <!-- src/features/pageRendering/regions/Footer.jsx -->
-<g id="node29" class="node">
+<g id="node30" class="node">
 <title>src/features/pageRendering/regions/Footer.jsx</title>
-<g id="a_node29"><a xlink:href="../../../src/features/pageRendering/regions/Footer.jsx" xlink:title="Footer.jsx">
+<g id="a_node30"><a xlink:href="../../../src/features/pageRendering/regions/Footer.jsx" xlink:title="Footer.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M592.21,-677.62C592.21,-677.62 547.04,-677.62 547.04,-677.62 543.83,-677.62 540.62,-674.42 540.62,-671.21 540.62,-671.21 540.62,-664.79 540.62,-664.79 540.62,-661.58 543.83,-658.38 547.04,-658.38 547.04,-658.38 592.21,-658.38 592.21,-658.38 595.42,-658.38 598.62,-661.58 598.62,-664.79 598.62,-664.79 598.62,-671.21 598.62,-671.21 598.62,-674.42 595.42,-677.62 592.21,-677.62"/>
 <text xml:space="preserve" text-anchor="start" x="548.62" y="-665.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">Footer.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/regions/Footer.jsx -->
-<g id="edge34" class="edge">
+<g id="edge35" class="edge">
 <title>src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/regions/Footer.jsx</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M445.98,-668C473.87,-668 506.48,-668 531.05,-668"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="537.95,-668 530.95,-671.15 536.89,-668.5 530.95,-668.5 530.95,-668 530.95,-667.5 536.89,-667.5 530.95,-664.85 537.95,-668"/>
 </g>
 <!-- src/features/pageRendering/regions/Headers.jsx -->
-<g id="node30" class="node">
+<g id="node31" class="node">
 <title>src/features/pageRendering/regions/Headers.jsx</title>
-<g id="a_node30"><a xlink:href="../../../src/features/pageRendering/regions/Headers.jsx" xlink:title="Headers.jsx">
+<g id="a_node31"><a xlink:href="../../../src/features/pageRendering/regions/Headers.jsx" xlink:title="Headers.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M597.08,-708.62C597.08,-708.62 542.17,-708.62 542.17,-708.62 538.96,-708.62 535.75,-705.42 535.75,-702.21 535.75,-702.21 535.75,-695.79 535.75,-695.79 535.75,-692.58 538.96,-689.38 542.17,-689.38 542.17,-689.38 597.08,-689.38 597.08,-689.38 600.29,-689.38 603.5,-692.58 603.5,-695.79 603.5,-695.79 603.5,-702.21 603.5,-702.21 603.5,-705.42 600.29,-708.62 597.08,-708.62"/>
 <text xml:space="preserve" text-anchor="start" x="543.75" y="-696.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">Headers.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/regions/Headers.jsx -->
-<g id="edge35" class="edge">
+<g id="edge36" class="edge">
 <title>src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/regions/Headers.jsx</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M446.19,-678.05C452.8,-679.31 459.43,-680.64 465.75,-682 469.33,-682.77 470.16,-683.27 473.75,-684 490.98,-687.51 510.12,-690.67 526.67,-693.18"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="533.16,-694.15 525.77,-696.23 532.03,-694.48 526.16,-693.61 526.23,-693.12 526.31,-692.62 532.18,-693.49 526.7,-690 533.16,-694.15"/>
 </g>
 <!-- src/features/pageRendering/templates/GiftIdeasTemplate.jsx -->
-<g id="node31" class="node">
+<g id="node32" class="node">
 <title>src/features/pageRendering/templates/GiftIdeasTemplate.jsx</title>
-<g id="a_node31"><a xlink:href="../../../src/features/pageRendering/templates/GiftIdeasTemplate.jsx" xlink:title="GiftIdeasTemplate.jsx">
+<g id="a_node32"><a xlink:href="../../../src/features/pageRendering/templates/GiftIdeasTemplate.jsx" xlink:title="GiftIdeasTemplate.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M618.83,-771.62C618.83,-771.62 520.42,-771.62 520.42,-771.62 517.21,-771.62 514,-768.42 514,-765.21 514,-765.21 514,-758.79 514,-758.79 514,-755.58 517.21,-752.38 520.42,-752.38 520.42,-752.38 618.83,-752.38 618.83,-752.38 622.04,-752.38 625.25,-755.58 625.25,-758.79 625.25,-758.79 625.25,-765.21 625.25,-765.21 625.25,-768.42 622.04,-771.62 618.83,-771.62"/>
 <text xml:space="preserve" text-anchor="start" x="522" y="-759.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">GiftIdeasTemplate.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/templates/GiftIdeasTemplate.jsx -->
-<g id="edge36" class="edge">
+<g id="edge37" class="edge">
 <title>src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/templates/GiftIdeasTemplate.jsx</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M446.01,-669.98C453.43,-672.52 460.31,-676.35 465.75,-682 483.49,-700.43 456.57,-720.04 473.75,-739 481.91,-748.01 492.95,-753.77 504.6,-757.41"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="511.25,-759.16 503.67,-760.42 510.09,-759.38 504.35,-757.86 504.48,-757.37 504.61,-756.89 510.35,-758.41 505.29,-754.33 511.25,-759.16"/>
 </g>
 <!-- src/features/pageRendering/templates/RecipeTemplate.jsx -->
-<g id="node32" class="node">
+<g id="node33" class="node">
 <title>src/features/pageRendering/templates/RecipeTemplate.jsx</title>
-<g id="a_node32"><a xlink:href="../../../src/features/pageRendering/templates/RecipeTemplate.jsx" xlink:title="RecipeTemplate.jsx">
+<g id="a_node33"><a xlink:href="../../../src/features/pageRendering/templates/RecipeTemplate.jsx" xlink:title="RecipeTemplate.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M613.96,-802.62C613.96,-802.62 525.29,-802.62 525.29,-802.62 522.08,-802.62 518.88,-799.42 518.88,-796.21 518.88,-796.21 518.88,-789.79 518.88,-789.79 518.88,-786.58 522.08,-783.38 525.29,-783.38 525.29,-783.38 613.96,-783.38 613.96,-783.38 617.17,-783.38 620.38,-786.58 620.38,-789.79 620.38,-789.79 620.38,-796.21 620.38,-796.21 620.38,-799.42 617.17,-802.62 613.96,-802.62"/>
 <text xml:space="preserve" text-anchor="start" x="526.88" y="-790.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">RecipeTemplate.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/templates/RecipeTemplate.jsx -->
-<g id="edge37" class="edge">
+<g id="edge38" class="edge">
 <title>src/features/pageRendering/presentationRegistry.js&#45;&gt;src/features/pageRendering/templates/RecipeTemplate.jsx</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M445.92,-669.58C453.44,-672.15 460.38,-676.1 465.75,-682 480.16,-697.83 459.18,-762.32 473.75,-778 482.97,-787.93 495.9,-793.06 509.25,-795.45"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="516.1,-796.37 508.74,-798.56 514.98,-796.72 509.09,-795.93 509.16,-795.44 509.23,-794.94 515.11,-795.73 509.58,-792.32 516.1,-796.37"/>
 </g>
 <!-- src/features/pageRendering/templates/RecipeTemplate.jsx&#45;&gt;src/features/articleSource/recipeSource.js -->
-<g id="edge38" class="edge">
+<g id="edge39" class="edge">
 <title>src/features/pageRendering/templates/RecipeTemplate.jsx&#45;&gt;src/features/articleSource/recipeSource.js</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M620.65,-791.98C649.76,-791.39 686.36,-790.64 715.66,-790.04"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="722.46,-789.91 715.53,-793.2 721.41,-790.43 715.47,-790.55 715.46,-790.05 715.45,-789.55 721.39,-789.43 715.4,-786.9 722.46,-789.91"/>
 </g>
 <!-- src/index.css -->
-<g id="node33" class="node">
+<g id="node34" class="node">
 <title>src/index.css</title>
-<g id="a_node33"><a xlink:href="../../../src/index.css" xlink:title="index.css">
+<g id="a_node34"><a xlink:href="../../../src/index.css" xlink:title="index.css">
 <path fill="#3a8bc1" stroke="#216182" d="M409.33,-1200.62C409.33,-1200.62 364.17,-1200.62 364.17,-1200.62 360.96,-1200.62 357.75,-1197.42 357.75,-1194.21 357.75,-1194.21 357.75,-1187.79 357.75,-1187.79 357.75,-1184.58 360.96,-1181.38 364.17,-1181.38 364.17,-1181.38 409.33,-1181.38 409.33,-1181.38 412.54,-1181.38 415.75,-1184.58 415.75,-1187.79 415.75,-1187.79 415.75,-1194.21 415.75,-1194.21 415.75,-1197.42 412.54,-1200.62 409.33,-1200.62"/>
 <text xml:space="preserve" text-anchor="start" x="365.75" y="-1188.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">index.css</text>
 </a>
 </g>
 </g>
 <!-- src/pages -->
-<g id="node34" class="node">
+<g id="node35" class="node">
 <title>src/pages</title>
-<g id="a_node34"><a xlink:href="../../../src/pages" xlink:title="pages">
-<polygon fill="#3a8bc1" stroke="#216182" points="794.88,-1198.62 743.01,-1198.62 740.88,-1196.49 740.88,-1179.38 792.74,-1179.38 794.88,-1181.51 794.88,-1198.62"/>
-<polyline fill="none" stroke="#216182" points="792.74,-1196.49 740.88,-1196.49"/>
-<polyline fill="none" stroke="#216182" points="792.74,-1196.49 792.74,-1179.38"/>
-<polyline fill="none" stroke="#216182" points="792.74,-1196.49 794.88,-1198.62"/>
-<text xml:space="preserve" text-anchor="start" x="754.38" y="-1186.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">pages</text>
+<g id="a_node35"><a xlink:href="../../../src/pages" xlink:title="pages">
+<polygon fill="#3a8bc1" stroke="#216182" points="794.88,-1074.62 743.01,-1074.62 740.88,-1072.49 740.88,-1055.38 792.74,-1055.38 794.88,-1057.51 794.88,-1074.62"/>
+<polyline fill="none" stroke="#216182" points="792.74,-1072.49 740.88,-1072.49"/>
+<polyline fill="none" stroke="#216182" points="792.74,-1072.49 792.74,-1055.38"/>
+<polyline fill="none" stroke="#216182" points="792.74,-1072.49 794.88,-1074.62"/>
+<text xml:space="preserve" text-anchor="start" x="754.38" y="-1062.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">pages</text>
 </a>
 </g>
 </g>
 <!-- src/pages&#45;&gt;src/api -->
-<g id="edge39" class="edge">
+<g id="edge40" class="edge">
 <title>src/pages&#45;&gt;src/api</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M795.09,-1189C817.47,-1189 849.85,-1189 874.54,-1189"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="881.49,-1189 874.49,-1192.15 880.43,-1189.5 874.49,-1189.5 874.49,-1189 874.49,-1188.5 880.43,-1188.5 874.49,-1185.85 881.49,-1189"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M787.32,-1075.07C811.84,-1088.44 855.3,-1112.16 883.37,-1127.47"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="889.41,-1130.76 881.75,-1130.18 888.23,-1130.69 883.02,-1127.85 883.26,-1127.41 883.5,-1126.97 888.71,-1129.82 884.77,-1124.65 889.41,-1130.76"/>
 </g>
 <!-- src/root.jsx -->
-<g id="node35" class="node">
+<g id="node36" class="node">
 <title>src/root.jsx</title>
-<g id="a_node35"><a xlink:href="../../../src/root.jsx" xlink:title="root.jsx">
+<g id="a_node36"><a xlink:href="../../../src/root.jsx" xlink:title="root.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M251.21,-1200.62C251.21,-1200.62 210.04,-1200.62 210.04,-1200.62 206.83,-1200.62 203.62,-1197.42 203.62,-1194.21 203.62,-1194.21 203.62,-1187.79 203.62,-1187.79 203.62,-1184.58 206.83,-1181.38 210.04,-1181.38 210.04,-1181.38 251.21,-1181.38 251.21,-1181.38 254.42,-1181.38 257.62,-1184.58 257.62,-1187.79 257.62,-1187.79 257.62,-1194.21 257.62,-1194.21 257.62,-1197.42 254.42,-1200.62 251.21,-1200.62"/>
 <text xml:space="preserve" text-anchor="start" x="214.12" y="-1188.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">root.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/root.jsx&#45;&gt;src/index.css -->
-<g id="edge40" class="edge">
+<g id="edge41" class="edge">
 <title>src/root.jsx&#45;&gt;src/index.css</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M258.12,-1191C282.83,-1191 319.97,-1191 347.82,-1191"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="354.81,-1191 347.81,-1194.15 353.75,-1191.5 347.81,-1191.5 347.81,-1191 347.81,-1190.5 353.75,-1190.5 347.81,-1187.85 354.81,-1191"/>
 </g>
 <!-- src/routes.js -->
-<g id="node36" class="node">
+<g id="node37" class="node">
 <title>src/routes.js</title>
-<g id="a_node36"><a xlink:href="../../../src/routes.js" xlink:title="routes.js">
+<g id="a_node37"><a xlink:href="../../../src/routes.js" xlink:title="routes.js">
 <path fill="#3a8bc1" stroke="#216182" d="M251.33,-1274.62C251.33,-1274.62 209.92,-1274.62 209.92,-1274.62 206.71,-1274.62 203.5,-1271.42 203.5,-1268.21 203.5,-1268.21 203.5,-1261.79 203.5,-1261.79 203.5,-1258.58 206.71,-1255.38 209.92,-1255.38 209.92,-1255.38 251.33,-1255.38 251.33,-1255.38 254.54,-1255.38 257.75,-1258.58 257.75,-1261.79 257.75,-1261.79 257.75,-1268.21 257.75,-1268.21 257.75,-1271.42 254.54,-1274.62 251.33,-1274.62"/>
 <text xml:space="preserve" text-anchor="start" x="211.5" y="-1262.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">routes.js</text>
 </a>
 </g>
 </g>
 <!-- src/routes/account&#45;security.jsx -->
-<g id="node37" class="node">
+<g id="node38" class="node">
 <title>src/routes/account&#45;security.jsx</title>
-<g id="a_node37"><a xlink:href="../../../src/routes/account-security.jsx" xlink:title="account&#45;security.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M615.83,-1074.62C615.83,-1074.62 523.42,-1074.62 523.42,-1074.62 520.21,-1074.62 517,-1071.42 517,-1068.21 517,-1068.21 517,-1061.79 517,-1061.79 517,-1058.58 520.21,-1055.38 523.42,-1055.38 523.42,-1055.38 615.83,-1055.38 615.83,-1055.38 619.04,-1055.38 622.25,-1058.58 622.25,-1061.79 622.25,-1061.79 622.25,-1068.21 622.25,-1068.21 622.25,-1071.42 619.04,-1074.62 615.83,-1074.62"/>
-<text xml:space="preserve" text-anchor="start" x="525" y="-1062.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">account&#45;security.jsx</text>
+<g id="a_node38"><a xlink:href="../../../src/routes/account-security.jsx" xlink:title="account&#45;security.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M615.83,-981.62C615.83,-981.62 523.42,-981.62 523.42,-981.62 520.21,-981.62 517,-978.42 517,-975.21 517,-975.21 517,-968.79 517,-968.79 517,-965.58 520.21,-962.38 523.42,-962.38 523.42,-962.38 615.83,-962.38 615.83,-962.38 619.04,-962.38 622.25,-965.58 622.25,-968.79 622.25,-968.79 622.25,-975.21 622.25,-975.21 622.25,-978.42 619.04,-981.62 615.83,-981.62"/>
+<text xml:space="preserve" text-anchor="start" x="525" y="-969.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">account&#45;security.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/account&#45;security.jsx&#45;&gt;src/framework/contexts.js -->
-<g id="edge42" class="edge">
+<g id="edge43" class="edge">
 <title>src/routes/account&#45;security.jsx&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M622.68,-1067.92C638.31,-1066.12 654.27,-1061.17 665.5,-1050 681.14,-1034.44 657.8,-1016.5 673.5,-1001 687.01,-987.66 707.41,-983.53 725.69,-983"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="732.58,-983.02 725.57,-986.15 731.52,-983.51 725.58,-983.5 725.58,-983 725.58,-982.5 731.52,-982.51 725.59,-979.85 732.58,-983.02"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M622.7,-967.75C654.98,-965.12 695.85,-961.79 725.83,-959.35"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="732.73,-958.78 726,-962.49 731.71,-959.37 725.79,-959.85 725.75,-959.35 725.71,-958.85 731.63,-958.37 725.49,-956.21 732.73,-958.78"/>
 </g>
 <!-- src/routes/account&#45;security.jsx&#45;&gt;src/pages -->
-<g id="edge41" class="edge">
+<g id="edge42" class="edge">
 <title>src/routes/account&#45;security.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M622.35,-1066.92C636.94,-1069.09 652.4,-1073.03 665.5,-1080 706.31,-1101.73 739.59,-1146.32 755.93,-1171.21"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="759.68,-1177.07 753.26,-1172.87 758.69,-1176.44 755.49,-1171.44 755.91,-1171.17 756.33,-1170.9 759.53,-1175.9 758.56,-1169.47 759.68,-1177.07"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M622.45,-973.73C637.04,-975.9 652.48,-979.88 665.5,-987 670.2,-989.57 669.55,-992.39 673.5,-996 695.77,-1016.34 723.9,-1036.48 743.44,-1049.7"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="749.22,-1053.56 741.65,-1052.29 748.06,-1053.39 743.12,-1050.09 743.4,-1049.67 743.68,-1049.26 748.61,-1052.56 745.15,-1047.05 749.22,-1053.56"/>
 </g>
 <!-- src/routes/admin.jsx -->
-<g id="node38" class="node">
+<g id="node39" class="node">
 <title>src/routes/admin.jsx</title>
-<g id="a_node38"><a xlink:href="../../../src/routes/admin.jsx" xlink:title="admin.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M592.96,-1043.62C592.96,-1043.62 546.29,-1043.62 546.29,-1043.62 543.08,-1043.62 539.88,-1040.42 539.88,-1037.21 539.88,-1037.21 539.88,-1030.79 539.88,-1030.79 539.88,-1027.58 543.08,-1024.38 546.29,-1024.38 546.29,-1024.38 592.96,-1024.38 592.96,-1024.38 596.17,-1024.38 599.38,-1027.58 599.38,-1030.79 599.38,-1030.79 599.38,-1037.21 599.38,-1037.21 599.38,-1040.42 596.17,-1043.62 592.96,-1043.62"/>
-<text xml:space="preserve" text-anchor="start" x="547.88" y="-1031.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin.jsx</text>
+<g id="a_node39"><a xlink:href="../../../src/routes/admin.jsx" xlink:title="admin.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M592.96,-950.62C592.96,-950.62 546.29,-950.62 546.29,-950.62 543.08,-950.62 539.88,-947.42 539.88,-944.21 539.88,-944.21 539.88,-937.79 539.88,-937.79 539.88,-934.58 543.08,-931.38 546.29,-931.38 546.29,-931.38 592.96,-931.38 592.96,-931.38 596.17,-931.38 599.38,-934.58 599.38,-937.79 599.38,-937.79 599.38,-944.21 599.38,-944.21 599.38,-947.42 596.17,-950.62 592.96,-950.62"/>
+<text xml:space="preserve" text-anchor="start" x="547.88" y="-938.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/admin.jsx&#45;&gt;src/framework/contexts.js -->
-<g id="edge44" class="edge">
+<g id="edge45" class="edge">
 <title>src/routes/admin.jsx&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M599.57,-1036.31C619.96,-1036.41 646.85,-1033.32 665.5,-1019 672.44,-1013.67 666.53,-1006.3 673.5,-1001 688.38,-989.67 708.55,-985.66 726.33,-984.69"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="732.94,-984.51 726.03,-987.85 731.89,-985.04 725.96,-985.2 725.94,-984.7 725.93,-984.2 731.86,-984.04 725.86,-981.55 732.94,-984.51"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M599.58,-943.21C633,-945.77 688.2,-949.99 725.99,-952.87"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="732.76,-953.39 725.54,-956 731.67,-953.81 725.75,-953.36 725.78,-952.86 725.82,-952.36 731.74,-952.81 726.02,-949.72 732.76,-953.39"/>
 </g>
 <!-- src/routes/admin.jsx&#45;&gt;src/pages -->
-<g id="edge43" class="edge">
+<g id="edge44" class="edge">
 <title>src/routes/admin.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M599.58,-1032.94C619.47,-1033.5 645.74,-1036.88 665.5,-1049 713.48,-1078.45 745.58,-1139.91 759.31,-1170.66"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="762.01,-1176.91 756.34,-1171.73 761.13,-1176.13 758.77,-1170.68 759.23,-1170.48 759.69,-1170.29 762.04,-1175.74 762.12,-1169.24 762.01,-1176.91"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M599.71,-937.53C620.71,-936.74 648.3,-939.48 665.5,-956 678.58,-968.56 663.78,-980.7 673.5,-996 688.96,-1020.33 716.29,-1039.01 737.4,-1050.76"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="743.29,-1053.92 735.63,-1053.39 742.11,-1053.86 736.88,-1051.05 737.12,-1050.61 737.35,-1050.17 742.59,-1052.98 738.61,-1047.84 743.29,-1053.92"/>
 </g>
 <!-- src/routes/auth&#45;layout.jsx -->
-<g id="node39" class="node">
+<g id="node40" class="node">
 <title>src/routes/auth&#45;layout.jsx</title>
-<g id="a_node39"><a xlink:href="../../../src/routes/auth-layout.jsx" xlink:title="no&#45;orphans">
-<path fill="#3a8bc1" stroke="#216182" d="M604.58,-981.62C604.58,-981.62 534.67,-981.62 534.67,-981.62 531.46,-981.62 528.25,-978.42 528.25,-975.21 528.25,-975.21 528.25,-968.79 528.25,-968.79 528.25,-965.58 531.46,-962.38 534.67,-962.38 534.67,-962.38 604.58,-962.38 604.58,-962.38 607.79,-962.38 611,-965.58 611,-968.79 611,-968.79 611,-975.21 611,-975.21 611,-978.42 607.79,-981.62 604.58,-981.62"/>
-<text xml:space="preserve" text-anchor="start" x="536.25" y="-969.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">auth&#45;layout.jsx</text>
+<g id="a_node40"><a xlink:href="../../../src/routes/auth-layout.jsx" xlink:title="auth&#45;layout.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M604.58,-1291.62C604.58,-1291.62 534.67,-1291.62 534.67,-1291.62 531.46,-1291.62 528.25,-1288.42 528.25,-1285.21 528.25,-1285.21 528.25,-1278.79 528.25,-1278.79 528.25,-1275.58 531.46,-1272.38 534.67,-1272.38 534.67,-1272.38 604.58,-1272.38 604.58,-1272.38 607.79,-1272.38 611,-1275.58 611,-1278.79 611,-1278.79 611,-1285.21 611,-1285.21 611,-1288.42 607.79,-1291.62 604.58,-1291.62"/>
+<text xml:space="preserve" text-anchor="start" x="536.25" y="-1279.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">auth&#45;layout.jsx</text>
 </a>
 </g>
 </g>
+<!-- src/routes/auth&#45;layout.jsx&#45;&gt;src/components/SiteHeader.jsx -->
+<g id="edge46" class="edge">
+<title>src/routes/auth&#45;layout.jsx&#45;&gt;src/components/SiteHeader.jsx</title>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M611.35,-1278.08C628.33,-1275.8 648.11,-1272.29 665.5,-1267 692.17,-1258.88 720.85,-1245.06 740.88,-1234.51"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="747.01,-1231.21 742.33,-1237.3 746.31,-1232.16 741.08,-1234.96 740.84,-1234.52 740.61,-1234.08 745.84,-1231.27 739.36,-1231.75 747.01,-1231.21"/>
+</g>
 <!-- src/routes/design&#45;system.jsx -->
-<g id="node40" class="node">
+<g id="node41" class="node">
 <title>src/routes/design&#45;system.jsx</title>
-<g id="a_node40"><a xlink:href="../../../src/routes/design-system.jsx" xlink:title="no&#45;orphans">
+<g id="a_node41"><a xlink:href="../../../src/routes/design-system.jsx" xlink:title="no&#45;orphans">
 <path fill="#3a8bc1" stroke="#216182" d="M611.33,-1012.62C611.33,-1012.62 527.92,-1012.62 527.92,-1012.62 524.71,-1012.62 521.5,-1009.42 521.5,-1006.21 521.5,-1006.21 521.5,-999.79 521.5,-999.79 521.5,-996.58 524.71,-993.38 527.92,-993.38 527.92,-993.38 611.33,-993.38 611.33,-993.38 614.54,-993.38 617.75,-996.58 617.75,-999.79 617.75,-999.79 617.75,-1006.21 617.75,-1006.21 617.75,-1009.42 614.54,-1012.62 611.33,-1012.62"/>
 <text xml:space="preserve" text-anchor="start" x="529.5" y="-1000.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">design&#45;system.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/home.jsx -->
-<g id="node41" class="node">
+<g id="node42" class="node">
 <title>src/routes/home.jsx</title>
-<g id="a_node41"><a xlink:href="../../../src/routes/home.jsx" xlink:title="home.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M591.46,-1229.62C591.46,-1229.62 547.79,-1229.62 547.79,-1229.62 544.58,-1229.62 541.38,-1226.42 541.38,-1223.21 541.38,-1223.21 541.38,-1216.79 541.38,-1216.79 541.38,-1213.58 544.58,-1210.38 547.79,-1210.38 547.79,-1210.38 591.46,-1210.38 591.46,-1210.38 594.67,-1210.38 597.88,-1213.58 597.88,-1216.79 597.88,-1216.79 597.88,-1223.21 597.88,-1223.21 597.88,-1226.42 594.67,-1229.62 591.46,-1229.62"/>
-<text xml:space="preserve" text-anchor="start" x="549.38" y="-1217.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">home.jsx</text>
+<g id="a_node42"><a xlink:href="../../../src/routes/home.jsx" xlink:title="home.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M591.46,-1043.62C591.46,-1043.62 547.79,-1043.62 547.79,-1043.62 544.58,-1043.62 541.38,-1040.42 541.38,-1037.21 541.38,-1037.21 541.38,-1030.79 541.38,-1030.79 541.38,-1027.58 544.58,-1024.38 547.79,-1024.38 547.79,-1024.38 591.46,-1024.38 591.46,-1024.38 594.67,-1024.38 597.88,-1027.58 597.88,-1030.79 597.88,-1030.79 597.88,-1037.21 597.88,-1037.21 597.88,-1040.42 594.67,-1043.62 591.46,-1043.62"/>
+<text xml:space="preserve" text-anchor="start" x="549.38" y="-1031.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">home.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/home.jsx&#45;&gt;src/pages -->
-<g id="edge45" class="edge">
+<g id="edge47" class="edge">
 <title>src/routes/home.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M598.33,-1215.62C633.64,-1210.05 694.67,-1200.41 732.8,-1194.38"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="739.96,-1195.73 732.67,-1194.4 739.2,-1190.89 739.96,-1195.73"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M598.33,-1038.38C633.64,-1043.95 694.67,-1053.59 732.8,-1059.62"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="739.2,-1063.11 732.67,-1059.6 739.96,-1058.27 739.2,-1063.11"/>
 </g>
 <!-- src/routes/login.jsx -->
-<g id="node42" class="node">
+<g id="node43" class="node">
 <title>src/routes/login.jsx</title>
-<g id="a_node42"><a xlink:href="../../../src/routes/login.jsx" xlink:title="login.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M590.21,-1260.62C590.21,-1260.62 549.04,-1260.62 549.04,-1260.62 545.83,-1260.62 542.62,-1257.42 542.62,-1254.21 542.62,-1254.21 542.62,-1247.79 542.62,-1247.79 542.62,-1244.58 545.83,-1241.38 549.04,-1241.38 549.04,-1241.38 590.21,-1241.38 590.21,-1241.38 593.42,-1241.38 596.62,-1244.58 596.62,-1247.79 596.62,-1247.79 596.62,-1254.21 596.62,-1254.21 596.62,-1257.42 593.42,-1260.62 590.21,-1260.62"/>
-<text xml:space="preserve" text-anchor="start" x="551.25" y="-1248.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">login.jsx</text>
+<g id="a_node43"><a xlink:href="../../../src/routes/login.jsx" xlink:title="login.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M590.21,-1229.62C590.21,-1229.62 549.04,-1229.62 549.04,-1229.62 545.83,-1229.62 542.62,-1226.42 542.62,-1223.21 542.62,-1223.21 542.62,-1216.79 542.62,-1216.79 542.62,-1213.58 545.83,-1210.38 549.04,-1210.38 549.04,-1210.38 590.21,-1210.38 590.21,-1210.38 593.42,-1210.38 596.62,-1213.58 596.62,-1216.79 596.62,-1216.79 596.62,-1223.21 596.62,-1223.21 596.62,-1226.42 593.42,-1229.62 590.21,-1229.62"/>
+<text xml:space="preserve" text-anchor="start" x="551.25" y="-1217.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">login.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/login.jsx&#45;&gt;src/pages -->
-<g id="edge46" class="edge">
+<g id="edge48" class="edge">
 <title>src/routes/login.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M596.83,-1248.83C616.13,-1246.76 642.85,-1242.9 665.5,-1236 692.77,-1227.7 722.14,-1213.44 742.21,-1202.8"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="749.44,-1201.69 742.12,-1202.85 747.12,-1197.38 749.44,-1201.69"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M597.04,-1221.12C617.19,-1220.78 644.89,-1217.65 665.5,-1205 690.59,-1189.6 736.75,-1115.6 756.96,-1081.85"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="762.67,-1077.03 756.99,-1081.8 758.46,-1074.53 762.67,-1077.03"/>
 </g>
 <!-- src/routes/not&#45;found.jsx -->
-<g id="node43" class="node">
+<g id="node44" class="node">
 <title>src/routes/not&#45;found.jsx</title>
-<g id="a_node43"><a xlink:href="../../../src/routes/not-found.jsx" xlink:title="not&#45;found.jsx">
+<g id="a_node44"><a xlink:href="../../../src/routes/not-found.jsx" xlink:title="not&#45;found.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M600.83,-1105.62C600.83,-1105.62 538.42,-1105.62 538.42,-1105.62 535.21,-1105.62 532,-1102.42 532,-1099.21 532,-1099.21 532,-1092.79 532,-1092.79 532,-1089.58 535.21,-1086.38 538.42,-1086.38 538.42,-1086.38 600.83,-1086.38 600.83,-1086.38 604.04,-1086.38 607.25,-1089.58 607.25,-1092.79 607.25,-1092.79 607.25,-1099.21 607.25,-1099.21 607.25,-1102.42 604.04,-1105.62 600.83,-1105.62"/>
 <text xml:space="preserve" text-anchor="start" x="540" y="-1093.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">not&#45;found.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/page&#45;presentation&#45;examples.jsx -->
-<g id="node44" class="node">
+<g id="node45" class="node">
 <title>src/routes/page&#45;presentation&#45;examples.jsx</title>
-<g id="a_node44"><a xlink:href="../../../src/routes/page-presentation-examples.jsx" xlink:title="no&#45;orphans">
+<g id="a_node45"><a xlink:href="../../../src/routes/page-presentation-examples.jsx" xlink:title="no&#45;orphans">
 <path fill="#3a8bc1" stroke="#216182" d="M642.83,-1136.62C642.83,-1136.62 496.42,-1136.62 496.42,-1136.62 493.21,-1136.62 490,-1133.42 490,-1130.21 490,-1130.21 490,-1123.79 490,-1123.79 490,-1120.58 493.21,-1117.38 496.42,-1117.38 496.42,-1117.38 642.83,-1117.38 642.83,-1117.38 646.04,-1117.38 649.25,-1120.58 649.25,-1123.79 649.25,-1123.79 649.25,-1130.21 649.25,-1130.21 649.25,-1133.42 646.04,-1136.62 642.83,-1136.62"/>
 <text xml:space="preserve" text-anchor="start" x="498" y="-1124.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">page&#45;presentation&#45;examples.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/private&#45;layout.jsx -->
-<g id="node45" class="node">
+<g id="node46" class="node">
 <title>src/routes/private&#45;layout.jsx</title>
-<g id="a_node45"><a xlink:href="../../../src/routes/private-layout.jsx" xlink:title="private&#45;layout.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M609.83,-950.62C609.83,-950.62 529.42,-950.62 529.42,-950.62 526.21,-950.62 523,-947.42 523,-944.21 523,-944.21 523,-937.79 523,-937.79 523,-934.58 526.21,-931.38 529.42,-931.38 529.42,-931.38 609.83,-931.38 609.83,-931.38 613.04,-931.38 616.25,-934.58 616.25,-937.79 616.25,-937.79 616.25,-944.21 616.25,-944.21 616.25,-947.42 613.04,-950.62 609.83,-950.62"/>
-<text xml:space="preserve" text-anchor="start" x="531" y="-938.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">private&#45;layout.jsx</text>
+<g id="a_node46"><a xlink:href="../../../src/routes/private-layout.jsx" xlink:title="private&#45;layout.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M609.83,-1198.62C609.83,-1198.62 529.42,-1198.62 529.42,-1198.62 526.21,-1198.62 523,-1195.42 523,-1192.21 523,-1192.21 523,-1185.79 523,-1185.79 523,-1182.58 526.21,-1179.38 529.42,-1179.38 529.42,-1179.38 609.83,-1179.38 609.83,-1179.38 613.04,-1179.38 616.25,-1182.58 616.25,-1185.79 616.25,-1185.79 616.25,-1192.21 616.25,-1192.21 616.25,-1195.42 613.04,-1198.62 609.83,-1198.62"/>
+<text xml:space="preserve" text-anchor="start" x="531" y="-1186.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">private&#45;layout.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/private&#45;layout.jsx&#45;&gt;src/framework/contexts.js -->
-<g id="edge47" class="edge">
+<g id="edge50" class="edge">
 <title>src/routes/private&#45;layout.jsx&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M616.72,-946.96C632.3,-949.33 649.74,-952.36 665.5,-956 686.77,-960.91 710.09,-967.92 728.99,-974.04"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="735.57,-976.19 727.94,-977.01 734.41,-976.34 728.77,-974.49 728.92,-974.01 729.08,-973.54 734.72,-975.39 729.9,-971.02 735.57,-976.19"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M616.6,-1193.28C634.43,-1192.32 653.42,-1187.59 665.5,-1174 680.57,-1157.04 658.36,-986.89 673.5,-970 686.41,-955.59 707.27,-951.49 726.01,-951.26"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="732.83,-951.39 725.77,-954.41 731.76,-951.87 725.82,-951.76 725.83,-951.26 725.84,-950.76 731.78,-950.87 725.9,-948.11 732.83,-951.39"/>
+</g>
+<!-- src/routes/private&#45;layout.jsx&#45;&gt;src/components/SiteHeader.jsx -->
+<g id="edge49" class="edge">
+<title>src/routes/private&#45;layout.jsx&#45;&gt;src/components/SiteHeader.jsx</title>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M616.62,-1195.44C632.19,-1197.84 649.65,-1200.77 665.5,-1204 669.09,-1204.73 669.91,-1205.28 673.5,-1206 688.01,-1208.89 703.89,-1211.49 718.37,-1213.63"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="725.25,-1214.63 717.87,-1216.74 724.12,-1214.97 718.25,-1214.12 718.32,-1213.62 718.39,-1213.13 724.27,-1213.98 718.77,-1210.51 725.25,-1214.63"/>
 </g>
 <!-- src/routes/public&#45;layout.jsx -->
-<g id="node46" class="node">
+<g id="node47" class="node">
 <title>src/routes/public&#45;layout.jsx</title>
-<g id="a_node46"><a xlink:href="../../../src/routes/public-layout.jsx" xlink:title="no&#45;orphans">
-<path fill="#3a8bc1" stroke="#216182" d="M607.96,-1198.62C607.96,-1198.62 531.29,-1198.62 531.29,-1198.62 528.08,-1198.62 524.88,-1195.42 524.88,-1192.21 524.88,-1192.21 524.88,-1185.79 524.88,-1185.79 524.88,-1182.58 528.08,-1179.38 531.29,-1179.38 531.29,-1179.38 607.96,-1179.38 607.96,-1179.38 611.17,-1179.38 614.38,-1182.58 614.38,-1185.79 614.38,-1185.79 614.38,-1192.21 614.38,-1192.21 614.38,-1195.42 611.17,-1198.62 607.96,-1198.62"/>
-<text xml:space="preserve" text-anchor="start" x="532.88" y="-1186.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">public&#45;layout.jsx</text>
+<g id="a_node47"><a xlink:href="../../../src/routes/public-layout.jsx" xlink:title="public&#45;layout.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M607.96,-1260.62C607.96,-1260.62 531.29,-1260.62 531.29,-1260.62 528.08,-1260.62 524.88,-1257.42 524.88,-1254.21 524.88,-1254.21 524.88,-1247.79 524.88,-1247.79 524.88,-1244.58 528.08,-1241.38 531.29,-1241.38 531.29,-1241.38 607.96,-1241.38 607.96,-1241.38 611.17,-1241.38 614.38,-1244.58 614.38,-1247.79 614.38,-1247.79 614.38,-1254.21 614.38,-1254.21 614.38,-1257.42 611.17,-1260.62 607.96,-1260.62"/>
+<text xml:space="preserve" text-anchor="start" x="532.88" y="-1248.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">public&#45;layout.jsx</text>
 </a>
 </g>
 </g>
+<!-- src/routes/public&#45;layout.jsx&#45;&gt;src/components/SiteHeader.jsx -->
+<g id="edge51" class="edge">
+<title>src/routes/public&#45;layout.jsx&#45;&gt;src/components/SiteHeader.jsx</title>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M614.67,-1244.04C645.52,-1239.17 686.76,-1232.66 718.52,-1227.64"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="725.23,-1226.58 718.81,-1230.78 724.26,-1227.24 718.39,-1228.16 718.31,-1227.67 718.24,-1227.18 724.1,-1226.25 717.82,-1224.56 725.23,-1226.58"/>
+</g>
 <!-- src/routes/recipe&#45;editor&#45;proof.jsx -->
-<g id="node47" class="node">
+<g id="node48" class="node">
 <title>src/routes/recipe&#45;editor&#45;proof.jsx</title>
-<g id="a_node47"><a xlink:href="../../../src/routes/recipe-editor-proof.jsx" xlink:title="recipe&#45;editor&#45;proof.jsx">
+<g id="a_node48"><a xlink:href="../../../src/routes/recipe-editor-proof.jsx" xlink:title="recipe&#45;editor&#45;proof.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M619.58,-919.62C619.58,-919.62 519.67,-919.62 519.67,-919.62 516.46,-919.62 513.25,-916.42 513.25,-913.21 513.25,-913.21 513.25,-906.79 513.25,-906.79 513.25,-903.58 516.46,-900.38 519.67,-900.38 519.67,-900.38 619.58,-900.38 619.58,-900.38 622.79,-900.38 626,-903.58 626,-906.79 626,-906.79 626,-913.21 626,-913.21 626,-916.42 622.79,-919.62 619.58,-919.62"/>
 <text xml:space="preserve" text-anchor="start" x="521.25" y="-907.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">recipe&#45;editor&#45;proof.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/recipe&#45;editor&#45;proof.jsx&#45;&gt;src/features/articleSource/recipeDescriptionSanitizer.server.js -->
-<g id="edge48" class="edge">
+<g id="edge52" class="edge">
 <title>src/routes/recipe&#45;editor&#45;proof.jsx&#45;&gt;src/features/articleSource/recipeDescriptionSanitizer.server.js</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M592.38,-900.02C627.45,-883.94 696.58,-852.24 736.5,-833.93"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="742.81,-831.04 737.76,-836.82 742.05,-831.93 736.66,-834.41 736.45,-833.95 736.24,-833.5 741.64,-831.02 735.13,-831.09 742.81,-831.04"/>
 </g>
 <!-- src/routes/recipe&#45;editor&#45;proof.jsx&#45;&gt;src/features/articleSource/recipeSource.js -->
-<g id="edge49" class="edge">
+<g id="edge53" class="edge">
 <title>src/routes/recipe&#45;editor&#45;proof.jsx&#45;&gt;src/features/articleSource/recipeSource.js</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M588.87,-899.99C610.4,-887.23 645.76,-863.18 665.5,-833 672.82,-821.81 663.54,-812.92 673.5,-804 684.94,-793.75 700.5,-788.99 715.63,-787.07"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="722.53,-786.45 715.84,-790.22 721.51,-787.04 715.6,-787.58 715.56,-787.08 715.51,-786.58 721.42,-786.04 715.27,-783.94 722.53,-786.45"/>
 </g>
 <!-- src/routes/register.jsx -->
-<g id="node48" class="node">
+<g id="node49" class="node">
 <title>src/routes/register.jsx</title>
-<g id="a_node48"><a xlink:href="../../../src/routes/register.jsx" xlink:title="register.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M595.58,-1291.62C595.58,-1291.62 543.67,-1291.62 543.67,-1291.62 540.46,-1291.62 537.25,-1288.42 537.25,-1285.21 537.25,-1285.21 537.25,-1278.79 537.25,-1278.79 537.25,-1275.58 540.46,-1272.38 543.67,-1272.38 543.67,-1272.38 595.58,-1272.38 595.58,-1272.38 598.79,-1272.38 602,-1275.58 602,-1278.79 602,-1278.79 602,-1285.21 602,-1285.21 602,-1288.42 598.79,-1291.62 595.58,-1291.62"/>
-<text xml:space="preserve" text-anchor="start" x="545.25" y="-1279.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">register.jsx</text>
+<g id="a_node49"><a xlink:href="../../../src/routes/register.jsx" xlink:title="register.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M595.58,-1074.62C595.58,-1074.62 543.67,-1074.62 543.67,-1074.62 540.46,-1074.62 537.25,-1071.42 537.25,-1068.21 537.25,-1068.21 537.25,-1061.79 537.25,-1061.79 537.25,-1058.58 540.46,-1055.38 543.67,-1055.38 543.67,-1055.38 595.58,-1055.38 595.58,-1055.38 598.79,-1055.38 602,-1058.58 602,-1061.79 602,-1061.79 602,-1068.21 602,-1068.21 602,-1071.42 598.79,-1074.62 595.58,-1074.62"/>
+<text xml:space="preserve" text-anchor="start" x="545.25" y="-1062.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">register.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/register.jsx&#45;&gt;src/pages -->
-<g id="edge50" class="edge">
+<g id="edge54" class="edge">
 <title>src/routes/register.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M602.48,-1280.9C621.43,-1279.3 645.59,-1275.57 665.5,-1267 699.95,-1252.18 733.07,-1222.96 751.62,-1204.79"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="758.36,-1201.53 751.67,-1204.74 754.9,-1198.07 758.36,-1201.53"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M602.16,-1065C637.82,-1065 695.69,-1065 732.49,-1065"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="739.46,-1067.45 732.46,-1065 739.46,-1062.55 739.46,-1067.45"/>
 </g>
 <!-- src/routes/verify&#45;email.jsx -->
-<g id="node49" class="node">
+<g id="node50" class="node">
 <title>src/routes/verify&#45;email.jsx</title>
-<g id="a_node49"><a xlink:href="../../../src/routes/verify-email.jsx" xlink:title="verify&#45;email.jsx">
+<g id="a_node50"><a xlink:href="../../../src/routes/verify-email.jsx" xlink:title="verify&#45;email.jsx">
 <path fill="#3a8bc1" stroke="#216182" d="M604.58,-1167.62C604.58,-1167.62 534.67,-1167.62 534.67,-1167.62 531.46,-1167.62 528.25,-1164.42 528.25,-1161.21 528.25,-1161.21 528.25,-1154.79 528.25,-1154.79 528.25,-1151.58 531.46,-1148.38 534.67,-1148.38 534.67,-1148.38 604.58,-1148.38 604.58,-1148.38 607.79,-1148.38 611,-1151.58 611,-1154.79 611,-1154.79 611,-1161.21 611,-1161.21 611,-1164.42 607.79,-1167.62 604.58,-1167.62"/>
 <text xml:space="preserve" text-anchor="start" x="536.25" y="-1155.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">verify&#45;email.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/verify&#45;email.jsx&#45;&gt;src/pages -->
-<g id="edge51" class="edge">
+<g id="edge55" class="edge">
 <title>src/routes/verify&#45;email.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M611.29,-1164.42C647.15,-1170.09 698.81,-1178.25 732.61,-1183.59"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="739.01,-1187.08 732.48,-1183.57 739.77,-1182.24 739.01,-1187.08"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M611.09,-1156.06C628.4,-1154.11 648.5,-1150.32 665.5,-1143 699.95,-1128.18 733.07,-1098.96 751.62,-1080.79"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="758.36,-1077.53 751.67,-1080.74 754.9,-1074.07 758.36,-1077.53"/>
 </g>
 </g>
 </svg>

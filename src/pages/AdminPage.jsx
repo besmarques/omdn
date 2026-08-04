@@ -1,38 +1,9 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-
-import { logout } from '@/api/authApi';
-
 export default function AdminPage({ authorized, principal }) {
-	const navigate = useNavigate();
-	const [message, setMessage] = useState(authorized ? 'You have access to this admin route' : 'Forbidden');
-
-	async function handleLogout() {
-		try {
-			const result = await logout();
-
-			if (!result.ok) {
-				setMessage(result.body?.message ?? 'Logout failed');
-				return;
-			}
-
-			navigate('/login', { replace: true });
-		} catch (error) {
-			setMessage(error.message || 'Unable to contact the server');
-		}
-	}
-
 	return (
 		<main>
 			<h1>Admin</h1>
-			<p>{message}</p>
+			<p>{authorized ? 'You have access to this admin route' : 'Forbidden'}</p>
 			{authorized && <p>Signed in as {principal.user.email}</p>}
-			<p>
-				<Link to="/account/security">Account security</Link>
-			</p>
-			<button type="button" onClick={handleLogout}>
-				Logout
-			</button>
 		</main>
 	);
 }

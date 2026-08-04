@@ -358,7 +358,7 @@ still performs authorization independently for protected API operations.
 
 ## 12. Frontend flow
 
-`src/root.jsx` is the sole HTML document shell in React Router Framework Mode. It owns global CSS, metadata, the favicon, scroll restoration, Framework scripts, and the last-resort error document. `src/entry.server.jsx` streams that document on the server, while React Router's default client entry hydrates the same markup in the browser and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old declarative SPA router has been removed, so this Framework configuration is the only frontend route authority.
+`src/root.jsx` is the sole HTML document shell in React Router Framework Mode. It owns global CSS, metadata, the favicon, scroll restoration, Framework scripts, and the last-resort error document. The public, authentication, and private layouts render `SiteHeader.jsx` above their route outlet, so every normal page uses the same navigation component. The private layout passes its own loader data to show account links, the signed-in email, and logout; public pages retain guest links without opening a session or calling `/me`. `src/entry.server.jsx` streams that document on the server, while React Router's default client entry hydrates the same markup in the browser and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old declarative SPA router has been removed, so this Framework configuration is the only frontend route authority.
 
 For a production page request, the current frontend works like this:
 
@@ -383,7 +383,8 @@ In production, the security middleware creates a new Content Security Policy non
 - `/verify-email?token=...` submits the verification token once.
 - `/login` logs in, calls `/me`, and navigates administrators to `/admin` or other users to `/account/security`.
 - `/account/security` exposes the basic TOTP setup and management flow to every authenticated user.
-- `/admin` resolves the session and permission in server loaders and supports logout.
+- `/admin` resolves the session and permission in server loaders.
+- The shared header provides public navigation everywhere and account navigation plus logout on authenticated private pages.
 - `/dev/design-system` exists only in development.
 - `/dev/page-examples/recipe` and `/dev/page-examples/gift-ideas` demonstrate how a template can use independently selected layouts, headers, footers, and region blocks. These are in-memory examples rather than database content.
 

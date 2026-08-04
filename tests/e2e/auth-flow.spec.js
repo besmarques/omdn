@@ -116,6 +116,8 @@ test('renders the homepage through its Framework route module', async ({ page })
 	const response = await page.goto('/');
 
 	expect(response?.status()).toBe(200);
+	await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'O Melhor do Natal' })).toBeVisible();
 	expect(browserProblems).toEqual([]);
 });

@@ -1,5 +1,7 @@
 import { Outlet, redirect } from 'react-router';
 
+import SiteHeader from '../components/SiteHeader';
+
 import { principalContext } from '#framework/contexts';
 
 export function headers() {
@@ -18,6 +20,11 @@ export function loader({ context }) {
 	return { principal };
 }
 
-export default function PrivateLayout() {
-	return <Outlet />;
+export default function PrivateLayout({ loaderData }) {
+	return (
+		<>
+			<SiteHeader principal={loaderData.principal} />
+			<Outlet />
+		</>
+	);
 }

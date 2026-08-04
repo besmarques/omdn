@@ -1,5 +1,7 @@
 import { Outlet } from 'react-router';
 
+import SiteHeader from '../components/SiteHeader';
+
 export function headers() {
 	return {
 		'Cache-Control': 'private, no-store',
@@ -7,5 +9,10 @@ export function headers() {
 }
 
 export default function AuthLayout() {
-	return <Outlet />;
+	return (
+		<>
+			<SiteHeader />
+			<Outlet />
+		</>
+	);
 }
