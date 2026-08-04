@@ -169,7 +169,11 @@ are deliberately absent from this context.
 
 The browser receives a cookie named `omdn_session`. The cookie contains a signed, opaque session identifier—not the user object, roles, or permissions.
 
-The matching session data is stored in MariaDB's `sessions` table. After login, it contains a `userId`. The session expires after seven days.
+The matching session data is stored in MariaDB's `sessions` table. After login,
+it contains a `userId`. The current code expires it after seven days. The
+approved Phase 3 policy, not implemented yet, replaces that with a six-hour idle
+timeout and a 24-hour absolute lifetime, or 30 days when the user deliberately
+selects “remember me.”
 
 Cookie security settings:
 
@@ -299,6 +303,12 @@ The backend flow exists, but the dedicated frontend TOTP screen is still pending
 Forgot-password responses do not reveal whether an email exists. Reset tokens are random; only their hashes are stored. A successful reset changes the password, consumes reset tokens, and deletes all existing sessions in one transaction.
 
 An authenticated password change verifies the current password, updates the hash, regenerates the current session, and revokes all other sessions.
+
+That sentence describes the current code. The approved Phase 3 policy will
+instead revoke every session after a password change, including the current
+one. Password reset and account deletion also revoke every session. TOTP enable,
+disable, and recovery-code regeneration will preserve the current recently
+authenticated session but revoke all other sessions.
 
 ### Logout
 

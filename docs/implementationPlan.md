@@ -258,6 +258,27 @@ This is a breaking API migration. Update the controller, audit policy, frontend,
 
 Changing to a `__Host-` cookie and changing session lifetimes are worthwhile production decisions, but they require an explicit migration and should not be hidden inside the router migration.
 
+### Approved session lifetime and revocation policy
+
+The Phase 3 implementation must enforce:
+
+- A six-hour idle timeout, measured from the last accepted authenticated activity.
+- A 24-hour absolute lifetime by default.
+- A user-selectable “remember me” option that chooses a 30-day absolute
+  lifetime at login; activity can never extend either absolute deadline.
+- Password changes revoke every session, including the session that performed
+  the change, requiring a fresh login.
+- Password resets and account deletion revoke every session.
+- TOTP security changes, including enable, disable, and recovery-code
+  regeneration, revoke every other session while preserving the recently
+  authenticated session performing the operation.
+
+The cookie expiry, MariaDB expiry, and server-side checks must agree. The server
+must not trust a client-provided lifetime value other than the allowlisted
+default/remember-me selection. Normal successful-login behavior—whether a new
+login continues revoking older sessions or permits multiple active devices—must
+be decided before implementation.
+
 ## 7. Application and worker boundaries
 
 The existing code already uses services and repositories. New blog modules must follow the same dependency direction and improve consistency rather than create a parallel architecture.
@@ -802,9 +823,9 @@ and frontend token refresh are implemented and tested.
 
 ## 23. Next decision
 
-The next implementation task is Phase 3 session expiry and revocation: define
-idle and absolute lifetimes, session-version invalidation, and the exact events
-that revoke other sessions. After authentication hardening, the next domain
+The next implementation task is Phase 3 session expiry and revocation. The
+lifetimes and sensitive-event rules are approved; normal successful-login
+behavior and the persistence design must be finalized before coding. After authentication hardening, the next domain
 decision is the editor/article-source proof of concept because it determines the
 revision schema, renderer, sanitizer, media references, and editorial interface.
 
@@ -837,8 +858,9 @@ against that evidence before launch.
 
 The session cookie is `omdn_session`, HTTP-only, same-site `Lax`, host-only,
 secure in production, and stored in the MariaDB `sessions` table. The current
-nominal lifetime is seven days; Phase 3 must replace this simple lifetime with
-the approved idle/absolute-expiry and revocation contract.
+code still has a nominal seven-day lifetime. Phase 3 must replace it with the
+approved six-hour idle timeout and user-selected 24-hour or 30-day absolute
+lifetime.
 
 ## 25. Dependency policy
 
