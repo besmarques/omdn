@@ -367,19 +367,25 @@ Exit criteria:
 
 ### Step 2.4 — Enable SSR for one public route
 
+Status: completed on 2026-08-04. SSR is enabled through the official
+`@react-router/express@8.3.0` adapter. The homepage is the first public route
+verified at both the raw HTTP and browser hydration levels. Production uses
+the generated `build/server` bundle, a streaming server entry, a per-response
+CSP nonce, a safe root error document, and a true HTTP `404` fallback.
+
 Use a read-only route with no authentication or database complexity, such as an information page.
 
 Verify:
 
-- Complete HTML is present without browser JavaScript.
-- Client hydration succeeds.
-- Head metadata is rendered on the server.
-- Unexpected failures render a safe error document.
-- Missing routes return HTTP `404`, not an HTTP `200` not-found component.
+- [x] Complete HTML is present without browser JavaScript.
+- [x] Client hydration succeeds.
+- [x] Head metadata is rendered on the server.
+- [x] Unexpected failures render a safe error document.
+- [x] Missing routes return HTTP `404`, not an HTTP `200` not-found component.
 
 Exit criteria:
 
-- First SSR route passes HTTP-level and browser hydration tests.
+- [x] First SSR route passes HTTP-level and browser hydration tests.
 
 ### Step 2.5 — Establish public/private route layouts
 

@@ -29,5 +29,6 @@ describe('security headers', () => {
 		const response = await request(createTestApp(true)).get('/');
 
 		expect(response.headers['strict-transport-security']).toBe('max-age=31536000; includeSubDomains');
+		expect(response.headers['content-security-policy']).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/u);
 	});
 });

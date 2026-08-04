@@ -51,8 +51,8 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
   starts listening and owns process signals.
 - `server/framework/createFrameworkRequestContext.js` creates a fresh React
   Router context for each page request using public React Router 8.3 APIs. The
-  current SPA fallback does not consume loader data yet; Step 2.4 will pass this
-  context to the server request handler.
+  official Express adapter passes it to loaders and actions through
+  `getLoadContext`.
 - Vite proxies `/api` to `http://127.0.0.1:3000`.
 - Express listens on port `3000` unless `PORT` overrides it.
 - The development database is MariaDB at `127.0.0.1:3306`, database `omdn`.
@@ -61,11 +61,13 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
 
 - Repository start command: `npm start`.
 - `prestart` runs `npm run build`; `start` then runs `node server/server.js`.
-- With `APP_ENV=production`, Express serves the Framework `build/client` directory and the
-  SPA fallback in addition to `/api`.
+- With `APP_ENV=production`, Express serves the Framework `build/client`
+  directory and delegates document requests to the React Router server bundle
+  in `build/server`, in addition to serving `/api`.
 - Fingerprinted `/assets` responses are served before the `/api` session pipeline
   with immutable one-year caching. JSON parsing, MariaDB sessions, and CSRF
-  checks do not run for static or page requests.
+  checks do not run for static or page requests. Production pages receive a
+  per-response CSP nonce and are server-rendered before browser hydration.
 - The intended platform is Hostinger Cloud Startup with the Node application
   and MariaDB in the same hosting environment.
 - The actual Hostinger start command, Node version, MariaDB version, environment

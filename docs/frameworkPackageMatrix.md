@@ -1,6 +1,8 @@
 # React Router Framework Package Matrix
 
-Status: Step 1.1 was verified and the Step 1.3 configuration was implemented on 2026-08-04.
+Status: the package decision was verified in Step 1.1, Framework configuration
+was introduced in Step 1.3, and the Phase 2 Express adapter was installed and
+integrated in Step 2.4 on 2026-08-04.
 
 ## 1. Decision
 
@@ -17,17 +19,18 @@ All first-party React Router packages must use the same exact `8.3.0` version. T
 
 These values come from the current workspace and lockfile:
 
-| Component           | Installed version |
-| ------------------- | ----------------- |
-| Node.js             | `24.18.1`         |
-| npm                 | `11.16.0`         |
-| React               | `19.2.8`          |
-| React DOM           | `19.2.8`          |
-| React Router        | `8.3.0`           |
-| Vite                | `8.1.5`           |
-| `@react-router/dev` | `8.3.0`           |
-| `isbot`             | `5.2.1`           |
-| Express             | `5.2.1`           |
+| Component               | Installed version |
+| ----------------------- | ----------------- |
+| Node.js                 | `24.18.1`         |
+| npm                     | `11.16.0`         |
+| React                   | `19.2.8`          |
+| React DOM               | `19.2.8`          |
+| React Router            | `8.3.0`           |
+| Vite                    | `8.1.5`           |
+| `@react-router/dev`     | `8.3.0`           |
+| `@react-router/express` | `8.3.0`           |
+| `isbot`                 | `5.2.1`           |
+| Express                 | `5.2.1`           |
 
 ## 3. Compatibility result
 
@@ -71,7 +74,7 @@ The React Router plugin supplies the Framework compilation, route-module transfo
 
 | Package                    | Decision                                                                                                            |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `@react-router/express`    | Defer until Phase 2 when the Framework request handler is mounted in Express                                        |
+| `@react-router/express`    | Installed in Phase 2; its request handler is mounted after the API boundary                                         |
 | `@react-router/serve`      | Do not install; OMDN intentionally owns its Express server                                                          |
 | `@react-router/node`       | Do not install directly unless OMDN imports its APIs; it is already an internal dependency of the selected packages |
 | `@react-router/fs-routes`  | Do not install; use explicit route configuration for a controlled incremental migration                             |
@@ -142,12 +145,12 @@ The generated `.react-router/` directory is ignored by Git.
 
 `react-router build` normally writes browser artifacts under `build/client` and, when SSR is enabled, the request-handler bundle under `build/server`.
 
-With `ssr: false`, OMDN still needs Express production fallback behavior for the client application. Step 1.3 must explicitly choose and test one output contract:
+During the completed `ssr: false` migration slice, OMDN needed Express fallback behavior for the client application. Step 1.3 therefore chose and tested one output contract:
 
 - adopt React Router's default `build/client` path and update Express static/fallback paths, or
 - configure a deliberate build directory and still account for the `client` subdirectory.
 
-OMDN uses the documented default `build/client`. Express serves `build/client/index.html` as the production fallback and serves generated `/assets` with immutable one-year caching before the fallback.
+OMDN uses the documented default output paths. With SSR now enabled, Express serves generated `/assets` from `build/client` with immutable one-year caching and the official adapter imports `build/server/index.js` for document requests.
 
 The React Router CLI also added `isbot@5` as a runtime dependency required by its build/runtime conventions. The installed version is recorded in the lockfile.
 
@@ -201,8 +204,8 @@ The authentication API and CSRF contract must not change during Phase 1.
 
 - Exact package names and versions are known.
 - Current Node, React, Vite, and Express versions are compatible.
-- Framework SPA Mode does not need the Express adapter yet.
-- The custom Express adapter is selected for the later SSR phase.
+- Framework SPA Mode did not need the Express adapter during Phase 1.
+- The official Express adapter is installed and active for the Phase 2 SSR runtime.
 - The standard React Vite plugin will be replaced during configuration, not during dependency installation.
 - Optional RSC, TypeScript, Cloudflare, file-routing, and default-server packages are excluded.
 - No dependency or runtime version changed during this verification step.

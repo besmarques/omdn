@@ -1,4 +1,4 @@
 export default {
 	appDirectory: 'src',
-	ssr: false,
+	ssr: true,
 };

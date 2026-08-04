@@ -82,10 +82,10 @@ Before changing the router:
 
 ### Stage 2: adopt Framework Mode without SSR
 
-Current progress on 2026-08-04: Framework SPA Mode and its document shell are
-configured with `ssr: false`; the old HTML/`BrowserRouter` bootstrap is removed.
-Every current URL now has a dedicated Framework route module. The obsolete
-`App.jsx`, manual route tree, and legacy adapter were removed in Step 1.6.
+Current progress on 2026-08-04: the initial Framework SPA conversion is
+complete and SSR is now enabled. The old HTML/`BrowserRouter` bootstrap is
+removed, every current URL has a dedicated Framework route module, and the
+homepage is the first production-verified public SSR route.
 
 - Keep the completed Framework route-module conversion as the only frontend route authority.
 - Keep the Framework-owned document shell.
@@ -111,12 +111,11 @@ Production request order should become:
 11. Final Express error handler
 ```
 
-The Step 2.2 ordering work is complete for SPA Mode. Static files are ahead of
+The Step 2.2 ordering work is complete. Static files are ahead of
 body parsing and sessions; JSON parsing, sessions, and CSRF protection are
 scoped to `/api`; and API errors retain correlation IDs. Baseline response
-headers are active. Content Security Policy remains a deliberate Step 2.4 task
-so the React Router handler can issue per-response nonces for its inline
-Framework scripts.
+headers are active. Step 2.4 added a per-response nonce-based Content Security
+Policy for the React Router server entry and its inline Framework scripts.
 
 The exact adapter API must be verified against the installed React Router version before implementation.
 
@@ -124,10 +123,15 @@ Step 2.3 verified the installed 8.3 API and uses its public `createContext` and
 `RouterContextProvider` exports. The frontend boundary creates a new provider
 per request with approved route services, principal/guest state, request ID, and
 an injectable clock. Raw database, session, rate-limit, and worker dependencies
-remain outside route context. Step 2.4 will pass this provider through the
-custom server adapter's `getLoadContext` hook.
+remain outside route context. Step 2.4 now passes this provider through the
+official Express adapter's `getLoadContext` hook.
 
 ### Stage 4: enable SSR incrementally
+
+Step 2.4 completed this first SSR slice on 2026-08-04. Express now uses the
+official adapter and the `build/server` bundle, the homepage renders complete
+server HTML and metadata, hydration is covered in Playwright, missing pages
+return `404`, and unexpected root failures use a safe error document.
 
 Migrate one read-only public route first and verify:
 

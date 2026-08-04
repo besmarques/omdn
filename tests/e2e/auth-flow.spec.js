@@ -107,9 +107,10 @@ test('loads Framework route modules directly and through client navigation', asy
 	await page.goto('/dev/design-system');
 	await expect(page.getByRole('heading', { name: 'Design System' })).toBeVisible();
 
-	await page.goto('/route-that-does-not-exist');
+	const missingResponse = await page.goto('/route-that-does-not-exist');
+	expect(missingResponse?.status()).toBe(404);
 	await expect(page.getByText('Page not found')).toBeVisible();
-	expect(browserErrors).toEqual([]);
+	expect(browserErrors.filter((message) => !message.includes('server responded with a status of 404'))).toEqual([]);
 });
 
 test('renders the homepage through its Framework route module', async ({ page }) => {

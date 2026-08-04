@@ -5,7 +5,7 @@ import path from 'node:path';
 import express from 'express';
 import request from 'supertest';
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import createFrontendHandlers from '#server/frontend/createFrontendHandlers';
 
@@ -22,7 +22,13 @@ describe('frontend handlers', () => {
 		await mkdir(path.join(clientBuildPath, 'assets'));
 		await writeFile(path.join(clientBuildPath, 'assets', 'application-ABC123.js'), 'export default true;');
 
-		const handlers = createFrontendHandlers({ appEnvironment: 'production' }, { clientBuildPath });
+		const handlers = createFrontendHandlers(
+			{ appEnvironment: 'production' },
+			{
+				clientBuildPath,
+				createHandler: () => (_req, res) => res.sendStatus(204),
+			},
+		);
 		const app = express();
 
 		app.use('/assets', handlers.assets);
@@ -35,5 +41,28 @@ describe('frontend handlers', () => {
 
 	it('does not create frontend handlers outside production', () => {
 		expect(createFrontendHandlers({ appEnvironment: 'development' })).toEqual({});
+	});
+
+	it('passes the server build and load-context factory to the official adapter boundary', () => {
+		const requestHandler = () => {};
+		const createHandler = vi.fn(() => requestHandler);
+		const getLoadContext = vi.fn();
+		const serverBuildPath = '/tmp/omdn-test-server-build.js';
+
+		const handlers = createFrontendHandlers(
+			{ appEnvironment: 'production' },
+			{
+				createHandler,
+				getLoadContext,
+				serverBuildPath,
+			},
+		);
+
+		expect(createHandler).toHaveBeenCalledWith({
+			build: expect.any(Function),
+			getLoadContext,
+			mode: 'production',
+		});
+		expect(handlers.requestHandler).toBe(requestHandler);
 	});
 });

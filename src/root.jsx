@@ -1,6 +1,6 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
+import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteError } from 'react-router';
 
-import '@/index.css';
+import './index.css';
 
 export function links() {
 	return [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }];
@@ -23,6 +23,32 @@ export default function Root() {
 				<Outlet />
 				<ScrollRestoration />
 				<Scripts />
+			</body>
+		</html>
+	);
+}
+
+export function ErrorBoundary() {
+	const error = useRouteError();
+	const notFound = isRouteErrorResponse(error) && error.status === 404;
+
+	return <ErrorDocument notFound={notFound} />;
+}
+
+export function ErrorDocument({ notFound }) {
+	return (
+		<html lang="en">
+			<head>
+				<meta charSet="UTF-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+				<title>{notFound ? 'Page not found' : 'Unexpected error'}</title>
+				<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+			</head>
+			<body>
+				<main>
+					<h1>{notFound ? 'Page not found' : 'Something went wrong'}</h1>
+					{!notFound && <p>Please try again later.</p>}
+				</main>
 			</body>
 		</html>
 	);

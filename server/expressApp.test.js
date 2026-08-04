@@ -117,8 +117,7 @@ describe('Express application construction', () => {
 		expect(sessionMiddleware).not.toHaveBeenCalled();
 	});
 
-	it('creates a fresh Framework context for every frontend request', async () => {
-		const contexts = [];
+	it('delegates every page request to the frontend handler', async () => {
 		const services = {
 			authenticated: (_req, _res, next) => next(),
 			authEventService: { record: vi.fn() },
@@ -128,18 +127,15 @@ describe('Express application construction', () => {
 			workers: [],
 		};
 		const frontend = {
-			getLoadContext: vi.fn((req) => ({ requestId: req.correlationId })),
-			requestHandler: (_req, res, context) => {
-				contexts.push(context);
+			requestHandler: vi.fn((_req, res) => {
 				res.sendStatus(204);
-			},
+			}),
 		};
 		const app = createApp({}, { appEnvironment: 'test', totpEncryptionKey: Buffer.alloc(32) }, services, { frontend });
 
 		await request(app).get('/first').set('x-correlation-id', 'first');
 		await request(app).get('/second').set('x-correlation-id', 'second');
 
-		expect(contexts).toEqual([{ requestId: 'first' }, { requestId: 'second' }]);
-		expect(contexts[0]).not.toBe(contexts[1]);
+		expect(frontend.requestHandler).toHaveBeenCalledTimes(2);
 	});
 });

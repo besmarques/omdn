@@ -329,16 +329,18 @@ React development `StrictMode` may mount effects twice, and browser caching can 
 
 ## 12. Frontend flow
 
-`src/root.jsx` is the sole HTML document shell in React Router Framework SPA Mode. It owns global CSS, metadata, the favicon, scroll restoration, and Framework scripts. React Router's default client entry performs hydration and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old declarative SPA router has been removed, so this Framework configuration is the only frontend route authority.
+`src/root.jsx` is the sole HTML document shell in React Router Framework Mode. It owns global CSS, metadata, the favicon, scroll restoration, Framework scripts, and the last-resort error document. `src/entry.server.jsx` streams that document on the server, while React Router's default client entry hydrates the same markup in the browser and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old declarative SPA router has been removed, so this Framework configuration is the only frontend route authority.
 
-The current frontend is a client-rendered single-page application:
+For a production page request, the current frontend works like this:
 
-- The browser receives a small HTML shell.
-- JavaScript loads.
-- React selects and renders the page.
+- Express serves fingerprinted assets itself and sends document requests to React Router.
+- React Router renders complete HTML on the server and streams it to the browser.
+- JavaScript loads and hydrates the existing HTML, attaching React behavior without rebuilding a different page.
 - Pages call the Express API when they need server data.
 
-It now uses React Router Framework tooling with `ssr: false`, and every current page has a Framework route module. It is not SSR. Later phases will render public SEO-sensitive pages on the server while Express remains the outer HTTP server.
+SSR is enabled for the Framework application, and the homepage is the first public route covered by raw-HTTP and hydration tests. This does not yet mean private routes load account data on the server: the current login/admin mockup still calls the API in the browser. Public/private layouts and private loader authentication are later steps.
+
+In production, the security middleware creates a new Content Security Policy nonce for every response. It replaces any client-supplied internal nonce header, and the server entry applies that trusted value to React Router's inline scripts. This lets the browser run the generated scripts without allowing arbitrary inline scripts.
 
 ### Current page behavior
 

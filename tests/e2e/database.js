@@ -25,7 +25,7 @@ function requiredEnvironmentValue(name) {
 export function getTestDatabaseName() {
 	const databaseName = requiredEnvironmentValue('DB_NAME');
 
-	if (!/^[a-zA-Z0-9_]+_playwright$/.test(databaseName)) {
+	if (!/^[a-zA-Z0-9_]+_playwright(?:_ssr)?$/u.test(databaseName)) {
 		throw new Error(`Refusing to use unsafe Playwright database name: ${databaseName}`);
 	}
 

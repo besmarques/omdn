@@ -226,7 +226,7 @@ Generated `node_modules/`, `build/`, legacy `dist/`, and local environment files
 - Auth services receive explicit dependency objects. Transactional services obtain one executor through `dbConnect/withConnection.js` and pass it to capability repositories so related queries remain on the same connection.
 - `server/routes/` contains shared/cross-feature routers; `server/middleware/` contains shared middleware.
 - `server/application/` constructs process-level services and owns worker lifecycle without opening a listener.
-- `server/frontend/` owns the current production static-asset and SPA fallback boundary that the React Router request handler will replace.
+- `server/frontend/` serves production assets and mounts the official React Router Express request handler.
 - `server/framework/` defines React Router request-context keys and creates one isolated `RouterContextProvider` per page request. It exposes only approved route services, an immutable principal snapshot, the request ID, and a clock—not the database pool.
 - `server/expressApp.js` composes only the HTTP application; `server/server.js` starts the listener and registers shutdown signals.
 - Frontend imports use `@/*`; backend imports use `#server/*`.
@@ -253,12 +253,12 @@ npm run dev:server
 | `npm run test:watch`       | Runs Vitest in watch mode                                   |
 | `npm run test:e2e`         | Runs Playwright auth characterization tests                 |
 | `npm run test:e2e:headed`  | Runs Playwright with a visible Chromium browser             |
+| `npm run test:ssr`         | Builds production SSR and tests HTTP output and hydration   |
 | `npm run dev`              | Starts React Router Framework development mode              |
 | `npm run dev:server`       | Loads `.env.development` and starts Express in watch mode   |
-| `npm run build`            | Builds the Framework SPA into `build/client`                |
+| `npm run build`            | Builds Framework client and server bundles                  |
 | `npm start`                | Builds the frontend through `prestart`, then starts Express |
 | `npm run lint`             | Runs ESLint                                                 |
-| `npm run preview`          | Previews the production frontend build                      |
 | `npm run diagram`          | Generates focused dependency graphs under `docs/`           |
 | `npm run diagram:validate` | Checks dependency rules without generating diagrams         |
 | `npm run logic-map`        | Regenerates Mermaid logic maps under `docs/logic/`          |
@@ -274,6 +274,11 @@ create and drop that isolated database. Install its local browser once with
 The test backend and frontend default to ports `3100` and `5174` so they can run
 beside normal development servers. `PLAYWRIGHT_BACKEND_PORT` and
 `PLAYWRIGHT_FRONTEND_PORT` may override those test-only ports.
+
+`npm run test:ssr` uses the separate `_playwright_ssr` database and starts the
+production Express/React Router build on port `3200`. It verifies raw
+server-rendered HTML and metadata, CSP nonces, hydration, HTTP `404` behavior,
+and preservation of the JSON API boundary.
 
 ## Architecture maps
 
@@ -374,9 +379,9 @@ Account deletion is initially a soft delete. A background retention worker runs 
 | `POST /api/account/password/change`             | Authenticated             | Changes the password, revokes other sessions, and regenerates the current session |
 | `GET /api/admin/test`                           | `users.manage` permission | Tests protected admin access                                                      |
 
-The generic `/api` router and JSON 404 handler are mounted last within the API pipeline. Express assigns every request a correlation ID and applies baseline security headers globally, while JSON parsing, MariaDB sessions, and CSRF checks are scoped to `/api`. With `APP_ENV=production`, Express serves immutable assets and the SPA fallback from `build/client` before session middleware, so static requests never open a session. The frontend boundary creates a fresh React Router context for every page request, ready for the server handler added in Step 2.4. A nonce-based Content Security Policy will be added with that handler because the current SPA document contains Framework-generated inline scripts.
+The generic `/api` router and JSON 404 handler are mounted last within the API pipeline. Express assigns every request a correlation ID and applies baseline security headers globally, while JSON parsing, MariaDB sessions, and CSRF checks are scoped to `/api`. With `APP_ENV=production`, Express serves immutable assets from `build/client` and delegates document requests to the official React Router handler backed by `build/server`. Static and page requests never open an API session. The frontend boundary creates a fresh React Router context for every page request. Production responses use a per-request Content Security Policy nonce, which the security middleware overwrites on an internal request header before the server entry applies it to Framework scripts.
 
-The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, and Framework scripts. Every current URL maps to an explicit module in `src/routes/`, including the development-only design-system route and the not-found fallback. The old declarative SPA router and its compatibility adapter have been removed.
+The frontend now builds with React Router Framework SSR. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, Framework scripts, and a safe root error boundary. `src/entry.server.jsx` streams the server document. Every current URL maps to an explicit module in `src/routes/`, including the development-only design-system route and the HTTP `404` fallback. The homepage is the first production-verified public SSR route; private route loading remains a later step.
 
 ## Design system
 

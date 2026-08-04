@@ -49,11 +49,7 @@ export default function createApp(db, config, services, { frontend: providedFron
 	app.use('/api', createApiRoutes(db));
 
 	if (frontend.requestHandler) {
-		app.get('/{*splat}', (req, res) => {
-			const context = frontend.getLoadContext?.(req, res);
-
-			frontend.requestHandler(req, res, context);
-		});
+		app.all('/{*splat}', frontend.requestHandler);
 	}
 
 	app.use('/api', apiErrorHandler);
