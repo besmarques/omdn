@@ -368,12 +368,15 @@ For a production page request, the current frontend works like this:
 - Pages call the Express API when they need server data.
 
 SSR is enabled for the Framework application. Public, authentication, and
-private route layouts now own cache policy and account-loading boundaries. Only
-private document/data requests load the MariaDB session; public pages do not.
-The Express boundary covers `/admin`, future nested routes such as
-`/admin/posts`, `/account/security`, and their `.data` requests. It deliberately
-does not match a different public name such as `/administrator` or unrelated
-future account pages automatically.
+private route layouts now own cache policy and account-loading boundaries.
+Private and authentication document/data requests load the MariaDB session;
+public pages do not. This lets the authentication layout redirect an already
+authenticated user away from `/login`, `/register`, and `/verify-email` without
+adding a browser `/me` call. A pending TOTP challenge is not an authenticated
+principal and therefore remains on `/login`. The Express boundary also covers
+`/admin`, future nested routes such as `/admin/posts`, `/account/security`, and
+their `.data` requests. It deliberately does not match a different public name
+such as `/administrator` or unrelated future account pages automatically.
 
 In production, the security middleware creates a new Content Security Policy nonce for every response. It replaces any client-supplied internal nonce header, and the server entry applies that trusted value to React Router's inline scripts. This lets the browser run the generated scripts without allowing arbitrary inline scripts.
 
@@ -381,7 +384,7 @@ In production, the security middleware creates a new Content Security Policy non
 
 - `/register` manages form state and displays server validation errors.
 - `/verify-email?token=...` submits the verification token once.
-- `/login` logs in, calls `/me`, and navigates administrators to `/admin` or other users to `/account/security`.
+- `/login` logs in, calls `/me`, and navigates administrators to `/admin` or other users to `/account/security`; its parent layout redirects users who are already authenticated.
 - `/account/security` exposes the basic TOTP setup and management flow to every authenticated user.
 - `/admin` resolves the session and permission in server loaders.
 - The shared header provides public navigation everywhere and account navigation plus logout on authenticated private pages.

@@ -61,6 +61,7 @@ export default function createApp(db, config, services, { frontend: providedFron
 			session.middleware,
 			resolvePrincipal,
 		);
+		app.use(/^\/(?:login|register|verify-email)(?:$|\.data$)/u, session.middleware, resolvePrincipal);
 		app.all('/{*splat}', frontend.requestHandler);
 	}
 

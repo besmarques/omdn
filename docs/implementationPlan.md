@@ -774,8 +774,10 @@ the obsolete SPA router was removed.
 
 Status: complete. Express and the official Framework adapter serve SSR from one
 origin. Public, authentication, and private layouts are active. `/admin`, nested
-`/admin/*` documents, and their `.data` requests resolve the session principal;
-public routes avoid MariaDB sessions.
+`/admin/*`, `/account/security`, authentication documents, and their `.data`
+requests resolve the session principal; public routes avoid MariaDB sessions.
+The authentication layout redirects fully authenticated users to their private
+landing page while leaving pending-TOTP sessions on `/login`.
 
 1. Add the Framework request handler and request context.
 2. Implement the public/private route-tree separation.

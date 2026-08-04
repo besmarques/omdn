@@ -144,7 +144,7 @@ describe('Express application construction', () => {
 		expect(frontend.requestHandler).toHaveBeenCalledTimes(2);
 	});
 
-	it('resolves sessions only for private document and data requests', async () => {
+	it('resolves sessions only for private and authentication document/data requests', async () => {
 		const sessionMiddleware = vi.fn((req, _res, next) => {
 			req.session = { userId: 1 };
 			next();
@@ -172,9 +172,16 @@ describe('Express application construction', () => {
 		await request(app).get('/account/security');
 		await request(app).get('/account/security.data');
 		await request(app).get('/account/profile');
+		await request(app).get('/login');
+		await request(app).get('/login.data');
+		await request(app).get('/register');
+		await request(app).get('/register.data');
+		await request(app).get('/verify-email');
+		await request(app).get('/verify-email.data');
+		await request(app).get('/login/help');
 		await request(app).get('/administrator');
 
-		expect(sessionMiddleware).toHaveBeenCalledTimes(6);
-		expect(resolvePrincipal).toHaveBeenCalledTimes(6);
+		expect(sessionMiddleware).toHaveBeenCalledTimes(12);
+		expect(resolvePrincipal).toHaveBeenCalledTimes(12);
 	});
 });

@@ -191,6 +191,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await loginThroughPage(page);
 			await expect(page).toHaveURL(/\/account\/security$/u);
 			await expect(page.getByRole('heading', { name: 'Account security' })).toBeVisible();
+			await page.goto('/login');
+			await expect(page).toHaveURL(/\/account\/security$/u);
 
 			await page.goto('/admin');
 			await expect(page.getByText('Forbidden')).toBeVisible();
@@ -211,6 +213,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await loginThroughPage(page);
 			await expect(page).toHaveURL(/\/admin$/u);
 			await expect(page.getByText('You have access to this admin route')).toBeVisible();
+			await page.goto('/login');
+			await expect(page).toHaveURL(/\/admin$/u);
 		});
 
 		let totpSecret;
@@ -262,6 +266,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await expect(page.getByText('You have access to this admin route')).toBeVisible();
 
 			await page.getByRole('button', { name: 'Logout' }).click();
+			await expect(page).toHaveURL(/\/login$/u);
 		});
 
 		await test.step('complete login with a recovery code and log out', async () => {
