@@ -33,7 +33,10 @@ export default function createApp(db, config) {
 		app.set('trust proxy', 1);
 	}
 
-	app.use(createSessionMiddleware(db, config.session));
+	const session = createSessionMiddleware(db, config.session);
+
+	app.locals.sessionStore = session.store;
+	app.use(session.middleware);
 
 	const authenticated = requireAuth(db);
 	const createRateLimitStore = (namespace) => createMySqlRateLimitStore(db, namespace);

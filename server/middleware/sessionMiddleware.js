@@ -24,7 +24,7 @@ export default function createSessionMiddleware(db, config) {
 		db,
 	);
 
-	return session({
+	const middleware = session({
 		name: 'omdn_session',
 		secret: config.secret,
 		store: sessionStore,
@@ -37,4 +37,9 @@ export default function createSessionMiddleware(db, config) {
 			maxAge: sessionDuration,
 		},
 	});
+
+	return {
+		middleware,
+		store: sessionStore,
+	};
 }

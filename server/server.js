@@ -3,6 +3,7 @@ import process from 'node:process';
 import loadServerConfig from '#server/config/serverConfig';
 import createApp from '#server/expressApp';
 import createPool from '#server/dbConnect/createPool';
+import createGracefulShutdown from '#server/shutdown';
 
 const config = loadServerConfig(process.env);
 const db = createPool(config.database);
@@ -15,33 +16,14 @@ const server = app.listen(config.port, () => {
 	console.log(`OMDN running on port ${config.port}`);
 });
 
-let shuttingDown = false;
-
-async function shutdown(signal) {
-	if (shuttingDown) {
-		return;
-	}
-
-	shuttingDown = true;
-
-	console.log(`Received ${signal}; shutting down`);
-
-	await new Promise((resolve, reject) => {
-		server.close((error) => {
-			if (error) {
-				reject(error);
-				return;
-			}
-
-			resolve();
-		});
-	});
-
-	await app.locals.authEventService.drain();
-	await app.locals.authEventOutboxWorker.stop();
-	await app.locals.deletedAccountCleanupWorker.stop();
-	await db.end();
-}
+const shutdown = createGracefulShutdown({
+	server,
+	authEventService: app.locals.authEventService,
+	authEventOutboxWorker: app.locals.authEventOutboxWorker,
+	deletedAccountCleanupWorker: app.locals.deletedAccountCleanupWorker,
+	sessionStore: app.locals.sessionStore,
+	db,
+});
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
 	process.once(signal, () => {

@@ -205,6 +205,7 @@ async function stopServer() {
 	}
 
 	const processToStop = serverProcess;
+	const shutdownOutputStart = serverOutput.length;
 
 	serverProcess = null;
 
@@ -225,6 +226,16 @@ async function stopServer() {
 		} else {
 			processToStop.kill('SIGKILL');
 		}
+
+		await once(processToStop, 'exit');
+
+		throw new Error('Backend graceful shutdown exceeded 10 seconds');
+	}
+
+	const shutdownOutput = serverOutput.slice(shutdownOutputStart);
+
+	if (!shutdownOutput.includes('Shutdown complete')) {
+		throw new Error('Backend exited without completing graceful shutdown');
 	}
 
 	console.log('✓ Backend stopped');
