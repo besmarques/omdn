@@ -228,8 +228,8 @@ Completed on 2026-08-04. Every current URL now has an explicit Framework route
 module: not-found, home, the development-only design-system preview, login,
 registration, email verification, and admin. The existing page components were
 preserved, and browser coverage verifies direct loads and client navigation.
-The old compatibility router files remain only for the cleanup in Step 1.6 and
-are not part of the live Framework route configuration.
+The old compatibility router files were removed in Step 1.6 and are not part of
+the live Framework route configuration.
 
 Convert in this order:
 
@@ -255,12 +255,16 @@ Exit criteria:
 
 ### Step 1.6 — Remove the old SPA router bootstrap
 
+Completed on 2026-08-04. The unused `App.jsx`, manual `AppRoutes` and
+development route tree, and legacy Framework adapter were deleted. The
+Framework route manifest is now the only frontend route authority.
+
 Only after every route has migrated:
 
-- The `BrowserRouter` bootstrap was removed in Step 1.4 after the Framework shell was proven.
-- Remove the old manual `AppRoutes` tree if no longer used.
-- Remove obsolete SPA-only files.
-- Keep the API client unchanged.
+- [x] The `BrowserRouter` bootstrap was removed in Step 1.4 after the Framework shell was proven.
+- [x] Remove the old manual `AppRoutes` tree after all routes migrate.
+- [x] Remove obsolete SPA-only files.
+- [x] Keep the API client unchanged.
 
 Release gate:
 

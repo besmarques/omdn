@@ -46,7 +46,7 @@ Not yet implemented as a complete user interface:
 - TOTP screens
 - Password recovery and account management screens
 - The blog/post system
-- Dedicated Framework route modules and server-side rendering (SSR)
+- Server-side rendering (SSR)
 - The final design system
 
 The files under `src/components/ui/` are an offline shadcn reference library. They are not the final UI architecture and do not need to influence current backend work.
@@ -58,7 +58,8 @@ The files under `src/components/ui/` are an offline shadcn reference library. Th
 | `src/`               | Code that runs in the browser                  |
 | `src/pages/`         | Page components such as login and registration |
 | `src/api/`           | Browser-to-backend API calls                   |
-| `src/router/`        | Current client-side URL routing                |
+| `src/routes.js`      | Maps URLs to React Router Framework modules    |
+| `src/routes/`        | Framework route modules for individual pages   |
 | `src/components/ui/` | Offline shadcn reference components            |
 | `server/`            | Code that runs in Node.js                      |
 | `server/modules/`    | Business features grouped by domain            |
@@ -294,7 +295,7 @@ React development `StrictMode` may mount effects twice, and browser caching can 
 
 ## 12. Frontend flow
 
-`src/root.jsx` is the sole HTML document shell in React Router Framework SPA Mode. It owns global CSS, metadata, the favicon, scroll restoration, and Framework scripts. React Router's default client entry performs hydration and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old `AppRoutes.jsx` tree is no longer used and is retained only until the Step 1.6 cleanup.
+`src/root.jsx` is the sole HTML document shell in React Router Framework SPA Mode. It owns global CSS, metadata, the favicon, scroll restoration, and Framework scripts. React Router's default client entry performs hydration and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old declarative SPA router has been removed, so this Framework configuration is the only frontend route authority.
 
 The current frontend is a client-rendered single-page application:
 

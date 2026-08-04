@@ -84,12 +84,11 @@ Before changing the router:
 
 Current progress on 2026-08-04: Framework SPA Mode and its document shell are
 configured with `ssr: false`; the old HTML/`BrowserRouter` bootstrap is removed.
-Every current URL now has a dedicated Framework route module. The old
-`App.jsx`, `AppRoutes.jsx`, `DevRoutes.jsx`, and legacy route adapter are no
-longer live and remain only for the explicit cleanup in Step 1.6.
+Every current URL now has a dedicated Framework route module. The obsolete
+`App.jsx`, manual route tree, and legacy adapter were removed in Step 1.6.
 
-- Keep the completed `BrowserRouter` replacement and convert the remaining manual route tree to Framework route modules.
-- Introduce the Framework-owned document shell.
+- Keep the completed Framework route-module conversion as the only frontend route authority.
+- Keep the Framework-owned document shell.
 - Keep `ssr: false` initially.
 - Preserve current routes and API behavior.
 - Do not add content features during this stage.

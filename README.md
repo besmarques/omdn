@@ -179,11 +179,7 @@ omdn/
 |   |-- pages/
 |   |   |-- dev/DesignSystemPage.jsx
 |   |   `-- HomePage.jsx
-|   |-- router/
-|   |   |-- AppRoutes.jsx
-|   |   `-- DevRoutes.jsx
 |   |-- App.css
-|   |-- App.jsx
 |   |-- index.css
 |   |-- root.jsx
 |   |-- routes.js
@@ -191,7 +187,6 @@ omdn/
 |       |-- admin.jsx
 |       |-- design-system.jsx
 |       |-- home.jsx
-|       |-- legacy.jsx
 |       |-- login.jsx
 |       |-- not-found.jsx
 |       |-- register.jsx
@@ -368,7 +363,7 @@ Account deletion is initially a soft delete. A background retention worker runs 
 
 The generic `/api` router and JSON 404 handler are mounted last. With `APP_ENV=production`, Express serves immutable assets and the SPA fallback from `build/client`.
 
-The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, and Framework scripts. Every current URL maps to an explicit module in `src/routes/`, including the development-only design-system route and the not-found fallback. The old `AppRoutes` compatibility tree is no longer live and remains only for the Step 1.6 cleanup.
+The frontend now builds in React Router Framework SPA Mode with `ssr: false`. `src/root.jsx` is the sole document shell and owns global CSS, metadata, document language, the favicon, scroll restoration, and Framework scripts. Every current URL maps to an explicit module in `src/routes/`, including the development-only design-system route and the not-found fallback. The old declarative SPA router and its compatibility adapter have been removed.
 
 ## Design system
 

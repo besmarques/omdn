@@ -40,5 +40,6 @@ test-results
 !/docs/implementationPlan.md
 !/docs/juniorDeveloperGuide.md
 !/docs/pingPong.md
+!/docs/register-login-admin-integration-path.md
 !/docs/runtimeInventory.md
 !/docs/stepByStepImplementation.md
