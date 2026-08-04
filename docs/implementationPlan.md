@@ -340,6 +340,314 @@ Required entities:
 - Site identity/settings
 - Generic domain outbox events
 
+### Approved content-foundation schema
+
+The first content migration covers authors, recipes/posts, revisions,
+categories, tags, slugs, publication schedules, content audit events, and a
+generic domain outbox. Media tables and site settings remain later migrations
+because their storage/processing contracts are not yet approved.
+
+All identifiers are `BIGINT UNSIGNED`. All timestamps use `DATETIME(3)` in UTC.
+Text tables use `utf8mb4_unicode_ci`; machine identifiers, hashes, and lease IDs
+use an explicit ASCII or binary collation. State columns use constrained
+`VARCHAR` values rather than MariaDB `ENUM` so lifecycle additions do not require
+an enum-column rebuild. Every foreign-key column receives an index.
+
+```text
+authors
+  id                    PK
+  user_id               UNIQUE, FK users.id RESTRICT
+  display_name          VARCHAR(100)
+  biography_html        TEXT NULL (server-sanitized)
+  biography_plain_text  TEXT NULL
+  lock_version          INT UNSIGNED DEFAULT 1
+  created_at, updated_at
+
+posts
+  id                    PK
+  owner_user_id         FK users.id RESTRICT
+  author_id             FK authors.id RESTRICT
+  content_type          VARCHAR(32) CHECK ('recipe' initially)
+  status                VARCHAR(32) CHECK approved lifecycle values
+  visibility            VARCHAR(16) CHECK public | private
+  is_pillar_content     TINYINT(1) DEFAULT 0
+  primary_category_id   FK categories.id RESTRICT NULL
+  lock_version          INT UNSIGNED DEFAULT 1
+  published_at          DATETIME(3) NULL
+  archived_at           DATETIME(3) NULL
+  trashed_at            DATETIME(3) NULL
+  created_at, updated_at
+
+post_revisions
+  id                    PK
+  post_id               FK posts.id CASCADE
+  revision_number       INT UNSIGNED
+  created_by_user_id    FK users.id SET NULL, NULL
+  title                 VARCHAR(255)
+  excerpt               TEXT NULL
+  seo_title             VARCHAR(255) NULL
+  seo_description       VARCHAR(320) NULL
+  focus_keyword         VARCHAR(500) NULL (editorial aid, not rendered metadata)
+  layout_key            VARCHAR(64) ASCII
+  template_key          VARCHAR(64) ASCII
+  header_key            VARCHAR(64) ASCII
+  footer_key            VARCHAR(64) ASCII
+  region_config         JSON
+  source                 JSON
+  source_schema_version SMALLINT UNSIGNED
+  render_version        SMALLINT UNSIGNED
+  plain_text             MEDIUMTEXT
+  source_sha256          BINARY(32)
+  created_at
+  UNIQUE (post_id, revision_number)
+  UNIQUE (post_id, id) for composite pointer foreign keys
+
+post_revision_heads
+  post_id                PK, FK posts.id CASCADE
+  current_revision_id    NOT NULL
+  submitted_revision_id  NULL
+  published_revision_id  NULL
+  submitted_by_user_id   FK users.id SET NULL, NULL
+  submitted_at           DATETIME(3) NULL
+  composite FKs (post_id, each revision id) → post_revisions(post_id, id)
+
+categories
+  id                    PK
+  parent_id             FK categories.id RESTRICT NULL
+  name                  VARCHAR(120)
+  description           TEXT NULL
+  lock_version          INT UNSIGNED DEFAULT 1
+  created_at, updated_at
+
+post_categories
+  post_id               FK posts.id CASCADE
+  category_id           FK categories.id RESTRICT
+  PRIMARY KEY (post_id, category_id)
+
+tags
+  id                    PK
+  name                  VARCHAR(120)
+  normalized_name       VARCHAR(120) UNIQUE
+  lock_version          INT UNSIGNED DEFAULT 1
+  created_at, updated_at
+
+post_tags
+  post_id               FK posts.id CASCADE
+  tag_id                FK tags.id RESTRICT
+  PRIMARY KEY (post_id, tag_id)
+
+route_slugs
+  id                    PK
+  resource_type         VARCHAR(32) CHECK post | category | author | tag
+  resource_id           BIGINT UNSIGNED
+  slug                  VARCHAR(200) ASCII, UNIQUE
+  kind                  VARCHAR(16) CHECK canonical | redirect
+  canonical_slot        generated as 1 for canonical, NULL for redirect
+  created_at
+  UNIQUE (resource_type, resource_id, canonical_slot)
+
+publication_schedules
+  id                    PK
+  post_id               FK posts.id CASCADE
+  revision_id           NOT NULL
+  publish_at            DATETIME(3)
+  status                VARCHAR(16) CHECK pending | processing | completed | cancelled | failed
+  active_post_id        generated as post_id for pending/processing, otherwise NULL
+  attempts              INT UNSIGNED DEFAULT 0
+  available_at          DATETIME(3)
+  locked_at             DATETIME(3) NULL
+  locked_by             CHAR(36) ASCII BINARY NULL
+  processed_at          DATETIME(3) NULL
+  last_error            VARCHAR(1000) NULL
+  created_by_user_id    FK users.id SET NULL, NULL
+  created_at, updated_at
+  FK (post_id, revision_id) → post_revisions(post_id, id)
+  UNIQUE (active_post_id)
+  INDEX (status, available_at, locked_at, id)
+
+content_events
+  id                    PK
+  outbox_id             UNIQUE NULL
+  post_id               FK posts.id SET NULL, NULL
+  revision_id           FK post_revisions.id SET NULL, NULL
+  actor_user_id         FK users.id SET NULL, NULL
+  event_type            VARCHAR(64) ASCII
+  metadata              JSON NULL
+  created_at
+
+domain_outbox
+  id                    PK
+  aggregate_type        VARCHAR(32) ASCII
+  aggregate_id          BIGINT UNSIGNED
+  event_type            VARCHAR(64) ASCII
+  payload               JSON
+  attempts              INT UNSIGNED DEFAULT 0
+  available_at, locked_at, locked_by, processed_at, last_error
+  created_at, updated_at
+  INDEX (processed_at, available_at, locked_at, id)
+```
+
+`posts.owner_user_id` is the authorization owner and does not change when a
+displayed byline changes. `posts.author_id` controls the public author profile.
+The initial `authors.user_id` is one-to-one and required. Guest/team authors can
+be added later through an explicit migration instead of weakening initial
+ownership rules.
+
+Actor/history references such as `created_by_user_id` and
+`submitted_by_user_id` are nullable with `ON DELETE SET NULL`. This preserves
+content history while allowing the account-retention purge to remove a user.
+Ownership references remain `RESTRICT`: that purge must first permanently delete
+the user's owned posts and author profile through the explicit content deletion
+workflow. It must never let a database cascade publish/delete content by
+surprise.
+
+The application validates JSON with the versioned recipe schema before insert.
+MariaDB's JSON validity is necessary but not sufficient because the database
+does not understand recipe semantics. Revisions are immutable by service and
+repository contract: repositories expose insert/read operations, never a source
+update. `source_sha256` detects accidental duplicate source and supports
+integrity diagnostics; it is not an authorization mechanism.
+
+`visibility` initially supports only `public` and `private`. Private content is
+available only to authorized preview/admin routes and must emit `noindex`; it is
+not returned by public APIs, archives, feeds, or sitemaps. Password-protected
+content is deferred because it requires a separate access/session/cache threat
+model and should not be copied from WordPress accidentally.
+
+SEO title, description, and focus keyword live on the immutable revision so the
+published metadata always matches the published content version. The focus
+keyword is an editorial hint only and is never emitted as a legacy keywords
+meta tag. `is_pillar_content` is post-level classification because it describes
+the stable resource rather than one wording revision.
+
+Layout, template, header, footer, and region configuration are also revisioned
+publication inputs. Keys are accepted only when present in the trusted
+presentation registries, and `region_config` must pass an application schema
+that permits data/configuration rather than executable imports. This is OMDN
+domain configuration—not a migration of Astra or WordPress plugin settings.
+
+`title` and `plain_text` are derived snapshots of validated `source`; the service
+must reject or derive them rather than accepting contradictory client values.
+`excerpt` and SEO fields are explicit editorial metadata. Submitted actor/time
+columns must both be null when there is no `submitted_revision_id`, and all must
+be populated together when entering `in_review`; enforce this with a database
+`CHECK` plus service validation.
+
+### WordPress recipe-field mapping
+
+The supplied WordPress page is a useful requirements inventory, but its proposed
+single `recipes` table is not the OMDN persistence model. Fields map as follows:
+
+| WordPress/page field                                 | OMDN owner                                                                      | Decision                                                                      |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Title, description, ingredients, instructions        | Immutable revision `source` JSON                                                | Structured and schema-validated; only description has narrowly sanitized HTML |
+| Servings                                             | Revision recipe `yield`                                                         | Store numeric quantity plus unit, not one display string                      |
+| Preparation range                                    | Revision `prepMinutes`/`cookMinutes`                                            | Store exact minutes and derive display/filter ranges such as “under 60”       |
+| Difficulty                                           | Next recipe source-schema version                                               | Constrained `easy`, `medium`, or `hard` value                                 |
+| Submitted by                                         | `posts.owner_user_id` and `author_id`                                           | Real foreign keys, never a free-form authorization string                     |
+| Excerpt and SEO fields                               | Immutable revision columns                                                      | Publication metadata changes create a revision                                |
+| Slug                                                 | `route_slugs`                                                                   | One canonical slug plus collision-safe historical redirects                   |
+| Status, visibility, dates, pillar flag               | `posts`                                                                         | Stable publication/resource metadata                                          |
+| Categories                                           | `categories` plus `post_categories`                                             | Many-to-many, with a validated primary category                               |
+| Featured image                                       | Future media asset/revision-media relation                                      | No arbitrary URL as the canonical media identity                              |
+| External image URL                                   | Not supported initially                                                         | Import through the media validation pipeline if later required                |
+| Rank Math score, Content AI, Link Whisper, LiteSpeed | Nowhere                                                                         | WordPress plugin implementation details, not domain data                      |
+| Astra layout/template choices                        | Not imported; map deliberate OMDN equivalents into revision presentation fields | Allowlisted layout/template/header/footer IDs plus validated region data      |
+
+Ingredients and instructions must not be stored as HTML `LONGTEXT`. They are
+ordered arrays of objects with stable item IDs, quantities, units, names, and
+instruction text. This enables validation, reordering, accessible rendering,
+search extraction, and correct schema.org `Recipe` JSON-LD without parsing
+arbitrary editor markup.
+
+The current recipe proof is schema version 1 and already stores exact prep/cook
+minutes, structured yield, ingredients, instructions, and description. Before
+the first database migration persists recipes, define version 2 to add the
+approved `difficulty` field and a tested version-1-to-version-2 restoration path.
+Do not silently add a field while continuing to label the data schema version 1.
+
+Create tables in dependency order: authors/categories/tags, posts, revisions,
+revision heads, taxonomy joins, slugs, schedules, domain outbox, then content
+events. Add or validate cyclic/composite revision-head constraints only after
+both participating tables exist. The migration must be applied to an empty
+database and to a database containing the current authentication schema.
+
+`route_slugs` deliberately has a polymorphic resource reference and therefore
+cannot use a normal foreign key to every target table. Services must create and
+delete slug rows in the same transaction as their resource. The globally unique
+normalized ASCII slug prevents collisions between posts, categories, authors,
+and tags. The generated `canonical_slot` permits many historical redirects but
+only one canonical slug per resource. This generated-column behavior must be
+proved against MariaDB 11.8 before accepting the migration.
+
+The generated `publication_schedules.active_post_id` similarly permits schedule
+history while enforcing at most one pending/processing schedule per post.
+Completed, cancelled, and failed rows evaluate to `NULL`; MariaDB permits
+multiple `NULL` values in the unique index. The service still locks the post
+before creating or cancelling schedules.
+
+Required query indexes, in addition to primary/unique/foreign-key indexes:
+
+```text
+posts (status, published_at DESC, id DESC)       public keyset pagination
+posts (owner_user_id, status, updated_at DESC, id DESC)
+posts (author_id, status, published_at DESC, id DESC)
+posts (primary_category_id, status, published_at DESC, id DESC)
+posts (status, updated_at DESC, id DESC)         administration listing
+post_revisions (post_id, created_at DESC, id DESC)
+post_categories (category_id, post_id)
+post_tags (tag_id, post_id)
+route_slugs (resource_type, resource_id, kind)
+```
+
+Exact index selection must be confirmed with `EXPLAIN` against representative
+data. Do not add indexes for every imaginable filter: each index increases write
+cost and storage.
+
+### Transaction contracts
+
+Creating a recipe locks no existing post: insert the post, its first immutable
+revision, its revision-head row, taxonomy joins, canonical slug, audit event,
+and outbox event in one transaction. Failure leaves none of them behind.
+
+Saving an edit requires the client's `If-Match` lock version. The service locks
+the post/head, compares versions, validates and sanitizes the complete recipe,
+inserts a new revision number, points `current_revision_id` to it, returns an
+`in_review` post to `draft` when its submitted revision is superseded, increments
+`lock_version`, writes audit/outbox records, and commits once. Revision rows are
+never updated.
+
+Publishing immediately or from a schedule must:
+
+1. Lock the post, revision-head row, and active schedule when present.
+2. Recheck account, scoped permission, ownership, lifecycle, and lock version.
+3. Verify the selected revision belongs to the post and the post has a canonical
+   slug plus valid primary-category membership.
+4. Set `published_revision_id` to that exact revision, set `published`, preserve
+   the working `current_revision_id`, and update timestamps.
+5. Complete/cancel the relevant schedule idempotently.
+6. Increment `lock_version` and insert content audit/domain-outbox events.
+7. Commit once.
+
+The operation is idempotent when the same revision is already published and the
+same schedule/event identity was processed. It must not emit a second publish
+event or reset `published_at` during a retry.
+
+### Permission migration contract
+
+The content-foundation migration replaces coarse `posts.publish` grants with
+the approved scoped permission codes. Seed updates must be idempotent:
+
+- administrators receive every post permission;
+- editors receive create plus `_all` edit/review/publish/delete permissions;
+- authors receive create plus own edit/submit/publish/delete permissions;
+- contributors receive create plus own edit/submit/delete permissions;
+- subscribers receive none.
+
+Insert the new codes and role links before removing `posts.publish`. Content
+services must reference only the new codes. A real MariaDB test must prove that
+rerunning the seed does not duplicate or broaden grants.
+
 ### Posts and immutable revisions
 
 Maintain these separate concepts:
@@ -356,12 +664,23 @@ Editors may continue creating revisions after another revision has been schedule
 
 The post/revision relationship creates a potential foreign-key cycle when posts point to current/published revisions and revisions point back to posts.
 
-Before accepting final DDL:
+`post_revision_heads` isolates the reverse revision pointers. The exact
+permanent-delete transaction is:
 
-- Define the exact hard-delete transaction.
-- Clear revision pointers before deleting a post if required.
-- Test deletion, restore, and cascade behavior against MariaDB.
-- Never rely on untested cascade order.
+1. Lock the post and revision-head row.
+2. Verify `trashed_at` satisfies retention and the actor has
+   `posts.delete_permanent`.
+3. Cancel/delete publication schedules and remove category/tag relations.
+4. Delete polymorphic slug rows and revision/media relations.
+5. Delete `post_revision_heads`, removing all reverse revision references.
+6. Delete the post; its revisions then cascade safely.
+7. Append the deletion audit/outbox record using the captured identifiers and
+   non-sensitive metadata.
+8. Commit once.
+
+Content events use `SET NULL` references so retained audit history does not
+block deletion. The migration integration test must execute this transaction on
+MariaDB; untested cascade ordering is not accepted.
 
 ### Primary category
 
@@ -375,6 +694,11 @@ post_categories           → all assigned categories
 ```
 
 The service verifies that the primary category is also assigned to the post within the transaction.
+
+Category assignment is updated by locking the post, replacing join rows,
+verifying `primary_category_id` is present in the resulting set, updating that
+pointer, incrementing `lock_version`, and committing once. A referenced category
+cannot be deleted until posts choose a replacement or remove it.
 
 ### Unified slug namespace
 
@@ -586,10 +910,10 @@ Initial role grants:
 
 An editor may publish an author's or contributor's content. An author may
 self-publish only owned content. A contributor always needs an editor or
-administrator to publish. Ownership is the immutable `posts.author_id` for
-authorization purposes; changing the displayed byline does not transfer
-ownership. A dedicated ownership-transfer operation may be added later and must
-require `posts.edit_all` plus an audit event.
+administrator to publish. Ownership is the stable `posts.owner_user_id` for
+authorization purposes; `posts.author_id` controls the displayed byline and does
+not transfer ownership. A dedicated ownership-transfer operation may be added
+later and must require `posts.edit_all` plus an audit event.
 
 The current authentication seed predates this decision and contains the coarse
 `posts.publish` permission. Replace it with the approved scoped permissions in
@@ -893,7 +1217,7 @@ responses remove private query data.
 
 1. [ ] Complete the editor/source-format proof of concept (recipe slice complete; general rich content remains).
 2. [x] Approve the publication lifecycle and permissions (2026-08-04).
-3. Finalize corrected post/revision/category/slug schema.
+3. [x] Finalize corrected post/revision/category/slug schema (2026-08-04).
 4. Select migration tooling.
 5. Apply content migrations with real MariaDB integration tests.
 

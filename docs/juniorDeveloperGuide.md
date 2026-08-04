@@ -625,9 +625,9 @@ version after somebody else saved changes returns `412 Precondition Failed`.
 
 A role is a named collection of permissions; a permission is one capability.
 Ownership adds another condition. `posts.edit_own` does not mean “edit every
-post”—the backend must load the post and verify that its author ID matches the
-current user. Permissions ending in `_all` deliberately bypass that ownership
-restriction.
+post”—the backend must load the post and verify that its `owner_user_id` matches
+the current user. The displayed author is separate and does not grant access.
+Permissions ending in `_all` deliberately bypass that ownership restriction.
 
 The initial editorial model behaves like this:
 
@@ -650,6 +650,117 @@ The browser can use these permissions to hide or disable controls, but requests
 remain hostile input. A user can modify JavaScript or call the API manually, so
 the backend repeats the capability, ownership, lifecycle, and optimistic-
 concurrency checks inside the operation's transaction.
+
+### How the recipe tables will fit together
+
+The approved schema separates identity, editable history, and publication:
+
+```text
+users ──→ authors
+  │          │
+  └──→ posts ┘
+         │
+         ├──→ post_revisions (immutable history)
+         ├──→ post_revision_heads (current/submitted/published pointers)
+         ├──→ categories and tags (through join tables)
+         ├──→ route_slugs (canonical URL and old redirects)
+         └──→ publication_schedules (one exact future revision)
+```
+
+`posts` is the stable identity and lifecycle record. It owns fields such as the
+status, visibility, owner, displayed author, timestamps, pillar classification,
+and optimistic `lock_version`. It does not contain the complete recipe document.
+
+`post_revisions` contains versioned recipe JSON plus useful snapshots such as
+the title, excerpt, SEO title/description, focus keyword, and derived plain text.
+Saving inserts a row with the next revision number. The repository will
+intentionally offer no method that overwrites a revision's source. Keeping SEO
+metadata in the revision ensures the HTML title and description correspond to
+the exact recipe version visitors are reading.
+
+The revision also stores allowlisted layout, template, header, and footer keys
+plus validated region configuration. This is intentional OMDN presentation
+data, not copied Astra configuration. Versioning it means the published revision
+determines both its content and its approved presentation while the editor can
+prepare a different draft layout safely.
+
+`post_revision_heads` is a small one-row-per-post pointer table. It answers
+three different questions:
+
+- What is the newest editorial revision?
+- Which revision was submitted for review?
+- Which revision are visitors currently reading?
+
+Keeping those answers separate is what lets an author edit a published recipe
+without changing the public page. Composite foreign keys include both the post
+ID and revision ID, preventing a bug from pointing one recipe at another
+recipe's revision.
+
+Categories and tags use **join tables** because a recipe can have many of them
+and each category/tag can belong to many recipes. This is a many-to-many
+relationship. The primary category is also stored on `posts` for efficient
+queries, but the service must ensure it is present in `post_categories` within
+the same transaction.
+
+`route_slugs` owns URL names in one namespace. A recipe has one canonical slug
+and may keep several old slugs as redirects. An old slug points directly to the
+resource identity, not to another slug, so changing a name several times does
+not create a slow redirect chain.
+
+The separate revision-head table also makes permanent deletion safer. The
+transaction deletes the pointer row first, then deletes the post and lets its
+revisions cascade. We will prove this order against real MariaDB rather than
+assuming that circular foreign-key deletion works.
+
+Indexes are planned around actual access patterns: published feeds order by
+`published_at` and ID, administrative lists order by `updated_at` and ID, and
+taxonomy joins support lookup from either direction. An index speeds reads but
+costs storage and work on every write, so “index every column” is not a useful
+strategy.
+
+Creating, editing, publishing, or deleting content spans multiple tables. The
+service wraps each operation in one database transaction and writes its audit
+and outbox event before committing. This guarantees that readers never observe
+half a recipe—for example, a post without its first revision or a published
+state without the selected published revision.
+
+### Translating the old WordPress recipe form
+
+An old administration form shows requirements, but its fields do not dictate
+our database columns. WordPress plugins often place unrelated values around the
+same editor screen. We first ask who owns each value and whether it should be
+versioned.
+
+- Recipe title, description, exact preparation/cooking minutes, yield,
+  difficulty, ingredients, and instructions belong to immutable recipe JSON.
+- The displayed preparation range is derived from exact minutes. Storing only
+  “under one hour” would throw away information and make calculations weaker.
+- Ingredients and instructions remain structured arrays, not HTML blobs. This
+  lets the application validate and reorder them and generate accessible HTML
+  and schema.org data reliably.
+- Slugs live in the shared slug table because old URLs must redirect safely.
+- Ownership and displayed author use foreign keys, not a `submitted_by` text
+  field. A name string cannot enforce permissions.
+- SEO title and description belong to the immutable revision. A focus keyword
+  is an internal writing aid, not a meta tag for search engines.
+- Featured images will reference validated media assets. Arbitrary external
+  image URLs are not accepted into the first model.
+- Rank Math, Content AI, Link Whisper, LiteSpeed, and WordPress editor controls
+  are plugin state and are not migrated.
+- Intentional OMDN layout/template selections are separate allowlisted
+  presentation fields on the revision. They are not recipe source and cannot
+  contain executable component paths.
+
+The current recipe proof uses source-schema version 1. Difficulty is a genuine
+missing requirement, so the persisted format will introduce version 2 and a
+tested restoration path. Changing a versioned schema without changing its
+version would make old stored documents ambiguous.
+
+References that describe historical actors, such as “created by,” become null
+if that user is permanently purged; the recipe history remains. The ownership
+foreign key is stricter: account cleanup must explicitly delete the user's owned
+content first. This distinction prevents an innocent foreign-key cascade from
+changing published content while still honoring the one-year account purge.
 
 `AdminPage` receives its initial principal and permission result from server
 loader data, so it does not need a browser effect or an unmount guard for that
@@ -801,33 +912,39 @@ Never rely on a hidden frontend button as authorization. Never store a plain pas
 
 ## 22. Glossary
 
-| Term                 | Plain-language meaning                                                             |
-| -------------------- | ---------------------------------------------------------------------------------- |
-| API                  | The HTTP interface used by the frontend to ask the backend for work                |
-| Middleware           | A function that inspects or changes a request before the final handler             |
-| Session              | Server-side data that remembers a browser across requests                          |
-| Cookie               | A small browser value automatically sent with matching requests                    |
-| Authentication       | Proving who a user is                                                              |
-| Authorization        | Deciding what that user may do                                                     |
-| CSRF                 | A cross-site attempt to make a logged-in browser perform an unwanted action        |
-| TOTP                 | A short-lived authenticator-app code based on a shared secret and current time     |
-| Hash                 | A one-way representation used for comparison without storing the original secret   |
-| Encryption           | Reversible protection using a secret key                                           |
-| Transaction          | A group of database operations that commit or roll back together                   |
-| Repository           | Code responsible for persistence and SQL                                           |
-| Dependency injection | Passing dependencies into code instead of creating hidden globals                  |
-| Outbox               | A durable queue table used to deliver events reliably                              |
-| Worker               | Background code that repeatedly processes queued or scheduled work                 |
-| SPA                  | A browser application that changes pages using JavaScript without full reloads     |
-| SSR                  | Rendering page HTML on the server before sending it to the browser                 |
-| Hydration            | React attaching behavior to HTML that the server already rendered                  |
-| Server state         | Backend-owned data temporarily represented in the browser                          |
-| Query cache          | Stored server-state responses indexed by query keys                                |
-| Query key            | A stable, serializable address identifying one cached response                     |
-| Stale                | Cached data that is eligible to be fetched again                                   |
-| Invalidation         | Marking cached data stale because it may no longer match the backend               |
-| Deduplication        | Sharing one in-flight request between consumers asking for the same data           |
-| React context        | A way for descendants to access a shared value without passing every prop manually |
+| Term                   | Plain-language meaning                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| API                    | The HTTP interface used by the frontend to ask the backend for work                |
+| Middleware             | A function that inspects or changes a request before the final handler             |
+| Session                | Server-side data that remembers a browser across requests                          |
+| Cookie                 | A small browser value automatically sent with matching requests                    |
+| Authentication         | Proving who a user is                                                              |
+| Authorization          | Deciding what that user may do                                                     |
+| CSRF                   | A cross-site attempt to make a logged-in browser perform an unwanted action        |
+| TOTP                   | A short-lived authenticator-app code based on a shared secret and current time     |
+| Hash                   | A one-way representation used for comparison without storing the original secret   |
+| Encryption             | Reversible protection using a secret key                                           |
+| Transaction            | A group of database operations that commit or roll back together                   |
+| Repository             | Code responsible for persistence and SQL                                           |
+| Dependency injection   | Passing dependencies into code instead of creating hidden globals                  |
+| Outbox                 | A durable queue table used to deliver events reliably                              |
+| Worker                 | Background code that repeatedly processes queued or scheduled work                 |
+| SPA                    | A browser application that changes pages using JavaScript without full reloads     |
+| SSR                    | Rendering page HTML on the server before sending it to the browser                 |
+| Hydration              | React attaching behavior to HTML that the server already rendered                  |
+| Server state           | Backend-owned data temporarily represented in the browser                          |
+| Query cache            | Stored server-state responses indexed by query keys                                |
+| Query key              | A stable, serializable address identifying one cached response                     |
+| Stale                  | Cached data that is eligible to be fetched again                                   |
+| Invalidation           | Marking cached data stale because it may no longer match the backend               |
+| Deduplication          | Sharing one in-flight request between consumers asking for the same data           |
+| React context          | A way for descendants to access a shared value without passing every prop manually |
+| State machine          | Rules defining which changes are legal from each current state                     |
+| Immutable revision     | A saved content version that is never overwritten after insertion                  |
+| Foreign key            | A database constraint requiring a referenced row to exist                          |
+| Join table             | A table connecting both sides of a many-to-many relationship                       |
+| Optimistic concurrency | Rejecting a stale save when another writer changed the resource first              |
+| Cascade                | A configured database action applied to related rows after deletion or update      |
 
 ## 23. Recommended learning order
 
