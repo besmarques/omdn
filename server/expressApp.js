@@ -53,7 +53,7 @@ export default function createApp(db, config, services, { frontend: providedFron
 
 	if (frontend.requestHandler) {
 		app.use(
-			['/admin', '/admin.data'],
+			/^\/admin(?:$|\/.*|\.data$)/u,
 			(_req, res, next) => {
 				res.set('Cache-Control', 'private, no-store');
 				return next();
