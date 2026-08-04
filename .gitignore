@@ -43,6 +43,9 @@ test-results
 !/docs/register-login-admin-integration-path.md
 !/docs/runtimeInventory.md
 !/docs/stepByStepImplementation.md
-!/docs/logic/
-/docs/logic/*
-!/docs/logic/runtime.mmd
+!/docs/diagrams/
+!/docs/diagrams/dependency/
+!/docs/diagrams/runtime/
+!/docs/diagrams/dependency/*.svg
+!/docs/diagrams/runtime/*.svg
+/docs/diagrams/*/source/

@@ -1,7 +1,12 @@
 import fs from 'node:fs/promises';
+import fsSync from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+
+import { chromium } from '@playwright/test';
 
 if (process.env.APP_ENV === 'production' || process.env.NODE_ENV === 'production') {
 	throw new Error('Logic maps are disabled in production.');
@@ -11,7 +16,9 @@ const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
 
 const serverDirectory = path.join(rootDirectory, 'server');
 const modulesDirectory = path.join(serverDirectory, 'modules');
-const outputDirectory = path.join(rootDirectory, 'docs', 'logic');
+const outputDirectory = path.join(rootDirectory, 'docs', 'diagrams', 'runtime');
+const sourceDirectory = path.join(outputDirectory, 'source');
+const mermaidCommand = path.join(rootDirectory, 'node_modules', '.bin', process.platform === 'win32' ? 'mmdc.cmd' : 'mmdc');
 
 const generatedHeader = [
 	'%% AUTO-GENERATED — DO NOT EDIT',
@@ -667,8 +674,34 @@ async function collectSharedApiFeature() {
 	}
 }
 
-async function saveDiagram(fileName, content) {
-	await fs.writeFile(path.join(outputDirectory, fileName), content, 'utf8');
+function renderDiagram(sourcePath, svgPath, puppeteerConfigPath) {
+	const result = spawnSync(
+		mermaidCommand,
+		['--input', sourcePath, '--output', svgPath, '--backgroundColor', 'white', '--puppeteerConfigFile', puppeteerConfigPath],
+		{
+			cwd: rootDirectory,
+			encoding: 'utf8',
+			stdio: ['ignore', 'pipe', 'pipe'],
+		},
+	);
+
+	if (result.error) {
+		throw new Error(`Unable to run Mermaid CLI: ${result.error.message}`);
+	}
+
+	if (result.status !== 0) {
+		const details = [result.stdout, result.stderr].filter(Boolean).join('\n').trim();
+
+		throw new Error(`Mermaid CLI exited with code ${result.status}${details ? `:\n${details}` : ''}`);
+	}
+}
+
+async function saveDiagram(fileName, content, puppeteerConfigPath) {
+	const sourcePath = path.join(sourceDirectory, `${fileName}.mmd`);
+	const svgPath = path.join(outputDirectory, `${fileName}.svg`);
+
+	await fs.writeFile(sourcePath, content, 'utf8');
+	renderDiagram(sourcePath, svgPath, puppeteerConfigPath);
 }
 
 async function main() {
@@ -677,46 +710,68 @@ async function main() {
 		force: true,
 	});
 
-	await fs.mkdir(outputDirectory, {
+	await fs.mkdir(sourceDirectory, {
 		recursive: true,
 	});
 
-	const expressAppSource = await fs.readFile(path.join(serverDirectory, 'expressApp.js'), 'utf8');
+	const browserExecutablePath = chromium.executablePath();
 
-	const mounts = readExpressMounts(expressAppSource);
-
-	await saveDiagram('application.mmd', createApplicationDiagram(mounts));
-	await saveDiagram('runtime.mmd', createRuntimeDiagram());
-
-	const moduleEntries = (
-		await fs.readdir(modulesDirectory, {
-			withFileTypes: true,
-		})
-	)
-		.filter((entry) => entry.isDirectory())
-		.sort((left, right) => left.name.localeCompare(right.name));
-
-	const features = [];
-
-	for (const moduleEntry of moduleEntries) {
-		features.push(await collectFeature(moduleEntry, mounts));
+	if (!fsSync.existsSync(browserExecutablePath)) {
+		throw new Error('Playwright Chromium is required to render Mermaid SVGs. Run: npx playwright install chromium');
 	}
 
-	const apiFeature = await collectSharedApiFeature();
+	const temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'omdn-mermaid-'));
+	const puppeteerConfigPath = path.join(temporaryDirectory, 'puppeteer.json');
 
-	if (apiFeature) {
-		features.push(apiFeature);
+	await fs.writeFile(
+		puppeteerConfigPath,
+		JSON.stringify({
+			args: ['--no-sandbox'],
+			executablePath: browserExecutablePath,
+		}),
+		'utf8',
+	);
+
+	try {
+		const expressAppSource = await fs.readFile(path.join(serverDirectory, 'expressApp.js'), 'utf8');
+
+		const mounts = readExpressMounts(expressAppSource);
+
+		await saveDiagram('application', createApplicationDiagram(mounts), puppeteerConfigPath);
+		await saveDiagram('overview', createRuntimeDiagram(), puppeteerConfigPath);
+
+		const moduleEntries = (
+			await fs.readdir(modulesDirectory, {
+				withFileTypes: true,
+			})
+		)
+			.filter((entry) => entry.isDirectory())
+			.sort((left, right) => left.name.localeCompare(right.name));
+
+		const features = [];
+
+		for (const moduleEntry of moduleEntries) {
+			features.push(await collectFeature(moduleEntry, mounts));
+		}
+
+		const apiFeature = await collectSharedApiFeature();
+
+		if (apiFeature) {
+			features.push(apiFeature);
+		}
+
+		for (const feature of features) {
+			await saveDiagram(feature.name, createFeatureDiagram(feature), puppeteerConfigPath);
+		}
+
+		await saveDiagram('routes', createRoutesIndex(features), puppeteerConfigPath);
+
+		const routeCount = features.reduce((total, feature) => total + feature.routes.length, 0);
+
+		console.log(`Generated ${routeCount} routes and ${features.length + 3} runtime SVGs in ${outputDirectory}`);
+	} finally {
+		await fs.rm(temporaryDirectory, { recursive: true, force: true });
 	}
-
-	for (const feature of features) {
-		await saveDiagram(`${feature.name}.mmd`, createFeatureDiagram(feature));
-	}
-
-	await saveDiagram('routes.mmd', createRoutesIndex(features));
-
-	const routeCount = features.reduce((total, feature) => total + feature.routes.length, 0);
-
-	console.log(`Generated ${routeCount} routes across ${features.length} diagrams in ${outputDirectory}`);
 }
 
 main().catch((error) => {

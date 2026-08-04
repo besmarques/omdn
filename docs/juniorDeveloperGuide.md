@@ -316,7 +316,7 @@ Roles group permissions. Users receive roles through `user_roles`; roles receive
 
 The frontend checks permissions to decide where to navigate and what to display. This is only a user-experience decision. The backend always checks permissions again because users can bypass frontend code and call an API directly.
 
-The frontend and backend deliberately do not import one another. Browser pages call functions in `src/api/authApi.js`, and those functions use HTTP requests under `/api/*`. Express receives those requests and forwards them through API middleware and feature modules to services, repositories, and MariaDB. Because an import graph cannot detect a URL string as a code dependency, this runtime connection is shown separately in `docs/logic/runtime.mmd`.
+The frontend and backend deliberately do not import one another. Browser pages call functions in `src/api/authApi.js`, and those functions use HTTP requests under `/api/*`. Express receives those requests and forwards them through API middleware and feature modules to services, repositories, and MariaDB. Because an import graph cannot detect a URL string as a code dependency, this runtime connection is shown separately in `docs/diagrams/runtime/overview.svg`.
 
 ## 11. Why `/me` exists
 

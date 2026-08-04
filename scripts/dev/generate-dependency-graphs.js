@@ -7,7 +7,8 @@ if (process.env.APP_ENV === 'production' || process.env.NODE_ENV === 'production
 	throw new Error('Dependency graph generation is disabled in production');
 }
 
-const outputDirectory = path.resolve('docs');
+const outputDirectory = path.resolve('docs', 'diagrams', 'dependency');
+const sourceDirectory = path.join(outputDirectory, 'source');
 const dependencyCruiserCommand = process.platform === 'win32' ? 'depcruise.cmd' : 'depcruise';
 const graphvizCommand = process.platform === 'win32' ? 'dot.exe' : 'dot';
 const commonExclude = '([.]test[.]|^src/components/ui/|^src/hooks/use-mobile[.]js$|^src/lib/utils[.]js$|^src/pages/dev/)';
@@ -18,20 +19,20 @@ const graphs = [
 		sources: ['src', 'server'],
 		includeOnly: '^(src|server)',
 		collapse: '^(server/modules/[^/]+|server/(config|dbConnect|middleware|routes)|src/(api|pages|router))',
-		outputBaseName: 'dependency-graph',
+		outputBaseName: 'application',
 	},
 	{
 		name: 'Server domains',
 		sources: ['server'],
 		includeOnly: '^server',
 		collapse: '^(server/modules/[^/]+|server/(config|dbConnect|middleware|routes))',
-		outputBaseName: 'dependency-server',
+		outputBaseName: 'backend',
 	},
 	{
 		name: 'Frontend core',
 		sources: ['src'],
 		includeOnly: '^src',
-		outputBaseName: 'dependency-frontend',
+		outputBaseName: 'frontend',
 	},
 ];
 
@@ -56,7 +57,7 @@ function run(command, args) {
 }
 
 function generateGraph(graph) {
-	const dotPath = path.join(outputDirectory, `${graph.outputBaseName}.dot`);
+	const dotPath = path.join(sourceDirectory, `${graph.outputBaseName}.dot`);
 	const svgPath = path.join(outputDirectory, `${graph.outputBaseName}.svg`);
 	const dependencyCruiserArguments = [
 		...graph.sources,
@@ -72,12 +73,17 @@ function generateGraph(graph) {
 	];
 
 	run(dependencyCruiserCommand, dependencyCruiserArguments);
+
+	const dotSource = fs.readFileSync(dotPath, 'utf8').replaceAll(/URL="((?:src|server)\/)/g, 'URL="../../../$1');
+
+	fs.writeFileSync(dotPath, dotSource, 'utf8');
 	run(graphvizCommand, ['-Tsvg', dotPath, '-o', svgPath]);
 
 	console.log(`✓ ${graph.name}: ${path.relative(process.cwd(), svgPath)}`);
 }
 
-fs.mkdirSync(outputDirectory, { recursive: true });
+fs.rmSync(outputDirectory, { recursive: true, force: true });
+fs.mkdirSync(sourceDirectory, { recursive: true });
 
 for (const graph of graphs) {
 	generateGraph(graph);

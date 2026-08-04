@@ -52,6 +52,7 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | Package                       | Version range | Purpose                                                    |
 | ----------------------------- | ------------- | ---------------------------------------------------------- |
 | `@eslint/js`                  | `^10.0.1`     | ESLint's recommended JavaScript rules                      |
+| `@mermaid-js/mermaid-cli`     | `11.16.0`     | Offline rendering of Mermaid request flows to SVG          |
 | `@react-router/dev`           | `8.3.0`       | React Router Framework Vite plugin and CLI                 |
 | `@types/react`                | `^19.2.17`    | React editor/tooling types                                 |
 | `@types/react-dom`            | `^19.2.3`     | React DOM editor/tooling types                             |
@@ -77,19 +78,19 @@ omdn/
 |   |-- frameworkPackageMatrix.md
 |   |-- implementationPlan.md
 |   |-- juniorDeveloperGuide.md
-|   |-- logic/
-|   |   |-- account.mmd
-|   |   |-- admin.mmd
-|   |   |-- api.mmd
-|   |   |-- application.mmd
-|   |   |-- auth.mmd
-|   |   |-- runtime.mmd
-|   |   `-- routes.mmd
+|   |-- diagrams/
+|   |   |-- dependency/
+|   |   |   |-- application.svg
+|   |   |   |-- backend.svg
+|   |   |   `-- frontend.svg
+|   |   `-- runtime/
+|   |       |-- overview.svg
+|   |       |-- application.svg
+|   |       |-- routes.svg
+|   |       `-- feature-flow SVGs
 |   |-- pingPong.md
 |   |-- runtimeInventory.md
 |   |-- stepByStepImplementation.md
-|   |-- dependency-graph.dot
-|   `-- dependency-graph.svg
 |-- scripts/
 |   `-- dev/generate-logic-map.js
 |-- public/favicon.svg
@@ -261,9 +262,9 @@ npm run dev:server
 | `npm run build`            | Builds Framework client and server bundles                  |
 | `npm start`                | Builds the frontend through `prestart`, then starts Express |
 | `npm run lint`             | Runs ESLint                                                 |
-| `npm run diagram`          | Generates focused dependency graphs under `docs/`           |
+| `npm run diagram`          | Generates dependency SVGs under `docs/diagrams/dependency/` |
 | `npm run diagram:validate` | Checks dependency rules without generating diagrams         |
-| `npm run logic-map`        | Regenerates Mermaid logic maps under `docs/logic/`          |
+| `npm run logic-map`        | Generates runtime SVGs under `docs/diagrams/runtime/`       |
 | `npm run maps`             | Regenerates dependency and logic maps                       |
 | `npm run diagram:all`      | Alias for regenerating both map sets                        |
 | `npm run format`           | Formats the repository with Prettier                        |
@@ -284,18 +285,27 @@ and preservation of the JSON API boundary.
 
 ## Architecture maps
 
-`npm run diagram` generates three views while excluding tests, generated shadcn
-components, and development-only pages:
+All diagrams intended for reading are SVG files under `docs/diagrams/`. Open
+those files in a browser; the DOT and Mermaid generator sources are kept in
+each output directory's ignored `source/` subdirectory.
 
-- `docs/dependency-graph.svg`: collapsed application architecture overview.
-- `docs/dependency-server.svg`: collapsed backend domain overview.
-- `docs/dependency-frontend.svg`: file-level frontend core dependencies.
+`npm run diagram` generates three dependency views while excluding tests,
+generated shadcn components, and development-only pages:
+
+- [`application.svg`](docs/diagrams/dependency/application.svg): collapsed application architecture overview.
+- [`backend.svg`](docs/diagrams/dependency/backend.svg): collapsed backend domain overview.
+- [`frontend.svg`](docs/diagrams/dependency/frontend.svg): file-level frontend dependencies.
 
 Each SVG has a matching DOT source. Use `npm run diagram:validate` for circular,
 orphan, resolution, and dependency-policy checks; those checks intentionally scan
 the complete source tree independently from the presentation-focused diagrams.
 
-`npm run logic-map` recreates `docs/logic/` with Mermaid diagrams for application, routing, API, auth, account, and admin flows. The tracked [`docs/logic/runtime.mmd`](docs/logic/runtime.mmd) diagram explicitly shows the boundary that import graphs cannot infer: React calls `src/api/authApi.js`, which sends HTTP requests to Express `/api/*`, while document requests use the separate React Router SSR path.
+`npm run logic-map` generates rendered runtime and request-flow SVGs. Its
+[`overview.svg`](docs/diagrams/runtime/overview.svg) explicitly shows the
+boundary that import graphs cannot infer: React calls `src/api/authApi.js`,
+which sends HTTP requests to Express `/api/*`, while document requests use the
+separate React Router SSR path. Rendering reuses Playwright Chromium; install it
+once with `npx playwright install chromium`.
 
 ## Environment variables
 
