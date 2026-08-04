@@ -315,8 +315,12 @@ the complete source tree independently from the presentation-focused diagrams.
 [`overview.svg`](docs/diagrams/runtime/overview.svg) explicitly shows the
 boundary that import graphs cannot infer: React calls `src/api/authApi.js`,
 which sends HTTP requests to Express `/api/*`, while document requests use the
-separate React Router SSR path. Rendering reuses Playwright Chromium; install it
-once with `npx playwright install chromium`.
+separate React Router SSR path.
+[`navigation.svg`](docs/diagrams/runtime/navigation.svg) shows registration,
+email verification, password/TOTP login, permission-based landing pages,
+authenticated auth-page redirects, private-route protection, and logout.
+Rendering reuses Playwright Chromium; install it once with
+`npx playwright install chromium`.
 
 ## Environment variables
 

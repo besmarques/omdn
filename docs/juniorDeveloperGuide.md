@@ -630,5 +630,7 @@ Only two maintained prose documents exist:
 
 The SVG files under `docs/diagrams/` are generated views of code dependencies
 and runtime request flows; they are not separate sources of architecture policy.
+Use `docs/diagrams/runtime/navigation.svg` for the current guest, TOTP,
+subscriber, administrator, redirect, and logout paths.
 When code and prose disagree, verify the code and tests, then update both of
 these documents and regenerate the diagrams.

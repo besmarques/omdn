@@ -590,6 +590,51 @@ function createRuntimeDiagram() {
 	].join('\n');
 }
 
+function createNavigationDiagram() {
+	return [
+		generatedHeader,
+		mermaidInit,
+		'flowchart TB',
+		'\tvisitor([Visitor]):::actor',
+		'\thome["/ Home"]:::publicPage',
+		'\tregister["/register"]:::authPage',
+		'\tverify["/verify-email"]:::authPage',
+		'\tlogin["/login Password"]:::authPage',
+		'\ttotp{"TOTP enabled?"}:::decision',
+		'\tchallenge["/login TOTP challenge"]:::authPage',
+		'\tpermissions{"users.manage?"}:::decision',
+		'\tsecurity["/account/security"]:::privatePage',
+		'\tadmin["/admin"]:::privatePage',
+		'\tlogout["Logout"]:::action',
+		'\tauthGuard["Authenticated visit to /login, /register, or /verify-email"]:::guard',
+		'\tprivateGuard["Guest visit to /admin or /account/security"]:::guard',
+		'',
+		'\tvisitor --> home',
+		'\thome -->|Register| register -->|Activation email| verify -->|Verified| login',
+		'\thome -->|Login| login',
+		'\tlogin -->|Password accepted| totp',
+		'\ttotp -->|No| permissions',
+		'\ttotp -->|Yes| challenge',
+		'\tchallenge -->|Valid authenticator or recovery code| permissions',
+		'\tchallenge -->|Invalid / pending| challenge',
+		'\tpermissions -->|No| security',
+		'\tpermissions -->|Yes| admin',
+		'\tadmin <-->|Header navigation| security',
+		'\tadmin --> logout --> login',
+		'\tsecurity --> logout',
+		'\tauthGuard -. "Redirect by permission" .-> permissions',
+		'\tprivateGuard -. "Redirect" .-> login',
+		'',
+		'\tclassDef actor fill:#E2DDD5,stroke:#204E4A,color:#204E4A;',
+		'\tclassDef publicPage fill:#3A8BC1,stroke:#216182,color:#fff;',
+		'\tclassDef authPage fill:#CCA300,stroke:#A28100,color:#204E4A;',
+		'\tclassDef privatePage fill:#204E4A,stroke:#204E4A,color:#fff;',
+		'\tclassDef decision fill:#fff,stroke:#843145,color:#843145;',
+		'\tclassDef action fill:#C43A47,stroke:#843145,color:#fff;',
+		'\tclassDef guard fill:#F4F1EC,stroke:#765898,color:#513C69;',
+	].join('\n');
+}
+
 function createRoutesIndex(features) {
 	const lines = [generatedHeader, mermaidInit, 'flowchart LR'];
 
@@ -739,6 +784,7 @@ async function main() {
 
 		await saveDiagram('application', createApplicationDiagram(mounts), puppeteerConfigPath);
 		await saveDiagram('overview', createRuntimeDiagram(), puppeteerConfigPath);
+		await saveDiagram('navigation', createNavigationDiagram(), puppeteerConfigPath);
 
 		const moduleEntries = (
 			await fs.readdir(modulesDirectory, {
@@ -768,7 +814,7 @@ async function main() {
 
 		const routeCount = features.reduce((total, feature) => total + feature.routes.length, 0);
 
-		console.log(`Generated ${routeCount} routes and ${features.length + 3} runtime SVGs in ${outputDirectory}`);
+		console.log(`Generated ${routeCount} routes and ${features.length + 4} runtime SVGs in ${outputDirectory}`);
 	} finally {
 		await fs.rm(temporaryDirectory, { recursive: true, force: true });
 	}
