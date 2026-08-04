@@ -504,13 +504,97 @@ Evaluate `sharp` when implementing the worker, not during the router migration.
 
 ## 11. Publication workflow and scheduling
 
-Provisional lifecycle:
+### Approved lifecycle
 
 ```text
-draft → review → scheduled → published → archived → trashed
+draft ⇄ in_review
+draft or in_review → scheduled → published ⇄ archived
+any non-trashed state → trashed
 ```
 
-Before implementation, confirm role transitions, review requirements, restoration, and trash retention.
+The lifecycle applies to the post as an editorial resource. Immutable revisions
+record content history; pointers on the post identify the current working and
+currently published revisions. Creating a new draft revision must not silently
+change the public page.
+
+| State       | Meaning                                                                   |
+| ----------- | ------------------------------------------------------------------------- |
+| `draft`     | Editable working content that is not waiting for editorial approval       |
+| `in_review` | A specific current revision has been submitted for editorial review       |
+| `scheduled` | One exact immutable revision is queued for a future publication time      |
+| `published` | The post has an exact published revision visible on its canonical URL     |
+| `archived`  | The public post is intentionally unavailable but its history is retained  |
+| `trashed`   | Soft-deleted editorial content awaiting restore or eventual hard deletion |
+
+Approved transition rules:
+
+- A creator starts a post in `draft` and becomes its owner.
+- An owner may submit an owned draft for review. Submission records the exact
+  current revision; later edits return the post to `draft` and require a new
+  submission.
+- An owner may withdraw their own `in_review` post to `draft`. A reviewer may
+  return any review to `draft` with a reason.
+- A user allowed to publish the resource may publish immediately from `draft`
+  or `in_review`; review is supported but is not mandatory for trusted authors
+  and editors.
+- Scheduling and immediate publication select one exact immutable revision.
+- Editing a scheduled or published post creates a new working revision without
+  changing the scheduled or published revision.
+- Cancelling a schedule returns the post to `draft` and never publishes it.
+- Archiving removes the canonical page from public availability while retaining
+  its slug and history. Republish selects an explicit revision rather than
+  assuming the newest draft.
+- Trashing cancels any active schedule and removes public availability. Restore
+  returns the post to `draft`; it does not silently republish old content.
+- Permanent deletion is a separate privileged operation after the configured
+  trash-retention period. Its transaction must satisfy the revision foreign-key
+  rules described in section 8.
+
+Invalid transitions return `409 Conflict`. Stale editor versions return
+`412 Precondition Failed`. Every submit, return, schedule, publish, archive,
+trash, restore, and permanent-delete transition records the actor and appends
+the required audit/outbox event in the same transaction.
+
+### Approved permission model
+
+Authorization combines a capability with resource ownership. The backend must
+load the post and decide whether an `_own` or `_all` permission applies; frontend
+visibility is never sufficient enforcement.
+
+| Permission               | Capability                                                     |
+| ------------------------ | -------------------------------------------------------------- |
+| `posts.create`           | Create a post owned by the current user                        |
+| `posts.edit_own`         | Edit an owned post while its state permits editing             |
+| `posts.edit_all`         | Edit posts owned by any user                                   |
+| `posts.submit_own`       | Submit or withdraw an owned post for or from review            |
+| `posts.review_all`       | Review any submitted post and return it to draft with a reason |
+| `posts.publish_own`      | Publish, schedule, cancel, archive, or republish owned content |
+| `posts.publish_all`      | Perform publication transitions for any owner's content        |
+| `posts.delete_own`       | Trash and restore owned posts                                  |
+| `posts.delete_all`       | Trash and restore any post                                     |
+| `posts.delete_permanent` | Permanently delete eligible trashed posts                      |
+
+Initial role grants:
+
+| Role          | Grants                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| Administrator | Every post permission, including permanent deletion                                               |
+| Editor        | Create plus edit, review, publish, trash, and restore all posts; no permanent deletion by default |
+| Author        | Create plus edit, submit, publish, schedule, archive, trash, and restore owned posts              |
+| Contributor   | Create plus edit, submit, withdraw, trash, and restore owned drafts; cannot publish               |
+| Subscriber    | No editorial permissions                                                                          |
+
+An editor may publish an author's or contributor's content. An author may
+self-publish only owned content. A contributor always needs an editor or
+administrator to publish. Ownership is the immutable `posts.author_id` for
+authorization purposes; changing the displayed byline does not transfer
+ownership. A dedicated ownership-transfer operation may be added later and must
+require `posts.edit_all` plus an audit event.
+
+The current authentication seed predates this decision and contains the coarse
+`posts.publish` permission. Replace it with the approved scoped permissions in
+the content-foundation migration/seed update. Do not reinterpret that code in
+place before the post tables and ownership checks exist.
 
 ### Scheduling
 
@@ -808,7 +892,7 @@ responses remove private query data.
 ### Phase 4: content decisions and schema
 
 1. [ ] Complete the editor/source-format proof of concept (recipe slice complete; general rich content remains).
-2. Approve the publication lifecycle and permissions.
+2. [x] Approve the publication lifecycle and permissions (2026-08-04).
 3. Finalize corrected post/revision/category/slug schema.
 4. Select migration tooling.
 5. Apply content migrations with real MariaDB integration tests.

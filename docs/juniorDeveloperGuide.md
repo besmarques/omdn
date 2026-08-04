@@ -585,6 +585,72 @@ validates its size and recipe schema, sanitizes the HTML with
 Never render raw editor output before that server boundary. The future database
 service must run the same sanitization before persisting an immutable revision.
 
+### Recipe publication is a controlled state machine
+
+A recipe will not be represented by a single database row that anyone can
+overwrite and expose immediately. It has an editorial state and immutable
+revisions. “Immutable” means an existing revision is never edited in place. A
+new save creates a new revision, which preserves history and lets publication
+point to an exact known version.
+
+The approved states are:
+
+```text
+draft ⇄ in review
+draft or in review → scheduled → published ⇄ archived
+any non-trashed state → trashed
+```
+
+- A **draft** is working content.
+- **In review** means an editor has been asked to examine a particular revision.
+- **Scheduled** means a particular revision should become public at a future
+  time.
+- **Published** means a particular revision is currently public.
+- **Archived** preserves the post and slug but removes it from public access.
+- **Trashed** is a reversible soft deletion before eventual permanent deletion.
+
+The arrows are not merely a diagram for the interface. They describe allowed
+domain operations. For example, restoring a trashed recipe returns it to draft;
+it must not unexpectedly make an old version public. Editing a published recipe
+creates a new working revision while visitors keep seeing the existing published
+revision. A scheduled publication also remembers an exact revision, so later
+draft edits cannot silently change what the worker publishes.
+
+This pattern is called a **state machine**: the current state and requested
+operation determine whether a transition is legal. The service layer enforces
+it. An impossible transition returns HTTP `409 Conflict`, while editing an old
+version after somebody else saved changes returns `412 Precondition Failed`.
+
+### Recipe roles, permissions, and ownership
+
+A role is a named collection of permissions; a permission is one capability.
+Ownership adds another condition. `posts.edit_own` does not mean “edit every
+post”—the backend must load the post and verify that its author ID matches the
+current user. Permissions ending in `_all` deliberately bypass that ownership
+restriction.
+
+The initial editorial model behaves like this:
+
+- Administrators can perform every editorial operation, including eligible
+  permanent deletion.
+- Editors can edit, review, publish, archive, trash, and restore anyone's posts.
+- Authors can create and publish their own posts, including scheduling and
+  archiving them.
+- Contributors can create, edit, and submit their own drafts, but an editor or
+  administrator must publish them.
+- Subscribers cannot access editorial operations.
+
+Publication uses separate `posts.publish_own` and `posts.publish_all`
+permissions. This is more precise than the current temporary `posts.publish`
+seed. That old permission will be replaced when the real content migration is
+created; changing the seed before the post tables exist would create a permission
+contract that no service can enforce yet.
+
+The browser can use these permissions to hide or disable controls, but requests
+remain hostile input. A user can modify JavaScript or call the API manually, so
+the backend repeats the capability, ownership, lifecycle, and optimistic-
+concurrency checks inside the operation's transaction.
+
 `AdminPage` receives its initial principal and permission result from server
 loader data, so it does not need a browser effect or an unmount guard for that
 initial check. The `verificationStarted` ref in the verification page prevents
