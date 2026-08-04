@@ -3,13 +3,13 @@ import request from 'supertest';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { apiErrorHandler, apiRequestContext } from '#server/middleware/apiErrorMiddleware';
+import { apiErrorHandler, requestContext } from '#server/middleware/apiErrorMiddleware';
 import createApiRoutes from '#server/routes/apiRoutes';
 
 function createTestApp(db) {
 	const app = express();
 
-	app.use('/api', apiRequestContext);
+	app.use('/api', requestContext);
 	app.use(express.json());
 	app.use('/api', createApiRoutes(db));
 	app.use('/api', apiErrorHandler);
