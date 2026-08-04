@@ -11,6 +11,12 @@ This document defines what OMDN should actually implement based on:
 
 It deliberately separates immediate work from later production improvements. Optional technologies are not treated as decisions until their costs and migration paths have been reviewed.
 
+Implementation checkpoint (2026-08-04): Phases 0 through 2 are complete,
+including React Router Framework SSR, the combined Express/Vite development
+server, public/authentication/private layouts, and principal resolution for the
+entire `/admin` document and `.data` route family. Detailed completion evidence
+is maintained in `stepByStepImplementation.md`.
+
 ## 2. Current baseline
 
 OMDN is already a modular Express application with controllers, services, repositories, and transactional operations.

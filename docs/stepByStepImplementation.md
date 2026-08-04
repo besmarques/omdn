@@ -278,8 +278,9 @@ Release gate:
 
 Completed on 2026-08-04. `server/application/` now constructs the database,
 process-level services, Express application, and a single worker-lifecycle
-boundary. `expressApp.js` only composes HTTP behavior, while `server.js` alone
-starts the listener and registers process signals. Focused tests prove that both
+boundary. `expressApp.js` only composes HTTP behavior, while the production
+`server.js` and development `developmentServer.js` entry points own their
+respective listeners and process signals. Focused tests prove that both
 the application graph and the real Express application can be constructed
 without opening a network listener.
 
@@ -311,8 +312,9 @@ correlation IDs, applies baseline security headers, serves production assets,
 and only then enters the `/api` parser/session/CSRF pipeline. API feature routes
 remain ahead of the generic API 404, the frontend boundary follows the API, and
 the API error handler is registered last. Tests prove immutable caching, session
-bypass for assets and non-API pages, scoped JSON parsing, security headers, and
-correlation-ID preservation on failures.
+bypass for assets and public/authentication pages, private-route session
+resolution, scoped JSON parsing, security headers, and correlation-ID
+preservation on failures.
 
 Implement and test the final ordering contract:
 
@@ -335,10 +337,10 @@ Exit criteria:
 - [x] Static asset requests do not touch the session store.
 - [x] API errors preserve the correlation-ID contract.
 
-The baseline headers intentionally omit Content Security Policy for now. The
-Framework SPA document contains generated inline scripts; Step 2.4 must add a
-nonce-aware CSP alongside the server request handler instead of weakening the
-policy with a permanent `unsafe-inline` allowance.
+At this step, baseline headers intentionally omitted Content Security Policy
+because the Framework SPA document contained generated inline scripts. Step
+2.4 subsequently added a nonce-aware production CSP alongside the server
+request handler instead of using a permanent inline-script allowance.
 
 ### Step 2.3 — Create request-scoped Framework context
 
@@ -395,7 +397,10 @@ session middleware; authentication and private pages use `private, no-store`;
 and the private loader redirects guests after Express resolves the session and
 principal. Development now runs Vite in Express middleware mode so the same
 loader contract works in both environments. The earlier recipe and gift-ideas
-examples remain the separate presentation-layout layer.
+examples remain the separate presentation-layout layer. Express applies this
+private boundary to `/admin`, all nested `/admin/*` documents, and their
+Framework `.data` requests; similarly named public paths such as
+`/administrator` do not enter the private session pipeline.
 
 Create separate route layouts:
 
@@ -416,6 +421,7 @@ Exit criteria:
 
 - [x] Public response bodies are identical across anonymous sessions, except for the required per-response CSP nonce.
 - [x] Private responses cannot be cached publicly.
+- [x] Future nested admin document and data requests cannot bypass principal resolution.
 
 Release gate:
 

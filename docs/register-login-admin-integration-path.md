@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add the smallest functional frontend flow for:
+Document the smallest functional frontend flow now implemented for:
 
 1. Registering an account.
 2. Verifying its email address.
@@ -10,7 +10,7 @@ Add the smallest functional frontend flow for:
 4. Opening an admin-only page.
 5. Logging out.
 
-The first implementation will use plain HTML elements. Styling, layout systems, reusable visual components, and design-system integration are out of scope.
+The current implementation uses plain HTML elements. Styling, reusable visual components, and final design-system integration remain out of scope.
 
 ## Existing backend contract
 
@@ -70,14 +70,14 @@ WHERE users.email = 'replace-with-test-email@example.com';
 
 This is test setup, not part of the public registration endpoint. The frontend must never grant roles or infer admin access merely from a successful login.
 
-## Proposed frontend routes
+## Current frontend routes
 
-| Frontend route  | Purpose                                                 | Access behavior                                                                      |
-| --------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `/register`     | Submit `displayName`, `email`, and `password`           | If already authenticated, offer navigation to `/admin` or logout                     |
-| `/verify-email` | Submit the `token` query parameter                      | On success, link or navigate to `/login`                                             |
-| `/login`        | Submit `email` and `password`                           | On success, load `/api/account/me` and navigate according to permissions             |
-| `/admin`        | Resolve the session principal in private server loaders | Redirect guests to `/login`; render a plain forbidden message without `users.manage` |
+| Frontend route                 | Purpose                                                 | Access behavior                                                                                                                          |
+| ------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `/register`                    | Submit `displayName`, `email`, and `password`           | If already authenticated, offer navigation to `/admin` or logout                                                                         |
+| `/verify-email`                | Submit the `token` query parameter                      | On success, link or navigate to `/login`                                                                                                 |
+| `/login`                       | Submit `email` and `password`                           | On success, load `/api/account/me` and navigate according to permissions                                                                 |
+| `/admin` and future `/admin/*` | Resolve the session principal in private server loaders | Redirect guests to `/login`; render a plain forbidden message without `users.manage`; never publicly cache document or `.data` responses |
 
 The existing `/` and development-only routes remain unchanged. This document
 originally preceded the Framework migration; the file layout below reflects the
@@ -165,14 +165,14 @@ The request helper should:
 4. Throw only for network failures or unreadable/unexpected server responses.
 5. Surface the generic server message and correlation ID for unexpected `5xx` responses when available.
 
-## Implementation order
+## Completed implementation order
 
 1. Add the API request helper and operation functions.
 2. Add the registration page and route.
 3. Add email verification and confirm that a newly registered account can become active.
 4. Add login and confirm the session cookie authenticates `/api/account/me`.
 5. Assign the development user the administrator role using the SQL above.
-6. Add the admin page, permission handling, and `/api/admin/test` call.
+6. Add the admin page and server-loader permission handling; keep `/api/admin/test` as an independently protected API diagnostic.
 7. Add logout.
 8. Add focused component/route tests, then run the production build and the existing backend suite.
 
@@ -184,8 +184,9 @@ The request helper should:
 - An unverified account cannot log in.
 - Valid credentials establish a cookie-backed session.
 - A subscriber cannot use the admin API or admin page.
-- A user with `users.manage` can open `/admin` and see the admin API response.
+- A user with `users.manage` can open `/admin` and see the server-rendered authorized state.
 - Refreshing `/admin` preserves access through the server session.
+- Future `/admin/*` documents and `.data` requests enter the same private session pipeline.
 - Logging out removes access and returns the user to `/login`.
 - No role, permission, password, or verification token is stored in `localStorage` or `sessionStorage`.
 

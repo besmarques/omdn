@@ -344,6 +344,9 @@ For a production page request, the current frontend works like this:
 SSR is enabled for the Framework application. Public, authentication, and
 private route layouts now own cache policy and account-loading boundaries. Only
 private document/data requests load the MariaDB session; public pages do not.
+The Express boundary covers `/admin`, future nested routes such as
+`/admin/posts`, and their `.data` requests. It deliberately does not match a
+different public name such as `/administrator`.
 
 In production, the security middleware creates a new Content Security Policy nonce for every response. It replaces any client-supplied internal nonce header, and the server entry applies that trusted value to React Router's inline scripts. This lets the browser run the generated scripts without allowing arbitrary inline scripts.
 
@@ -370,7 +373,10 @@ page configuration
 
 `src/features/pageRendering/PageRenderer.jsx` performs that composition. The layout controls the available structural regions, while the template renders the content fields. This allows the same recipe template to use different layouts and headers without duplicating the recipe implementation. The trusted registries translate identifiers into components; stored page data must never contain executable JSX, JavaScript, or arbitrary import paths.
 
-The `active` flag in `AdminPage` prevents an asynchronous request from updating state after the component unmounts. The `verificationStarted` ref prevents React StrictMode from submitting an email token twice during development.
+`AdminPage` receives its initial principal and permission result from server
+loader data, so it does not need a browser effect or an unmount guard for that
+initial check. The `verificationStarted` ref in the verification page prevents
+React StrictMode from submitting an email token twice during development.
 
 ## 13. Rate limiting
 

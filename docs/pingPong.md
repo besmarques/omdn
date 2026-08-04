@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This file records our ongoing discussion about application architecture and package choices. It distinguishes confirmed decisions from proposals and open questions so exploratory conversation does not accidentally become architecture policy.
+This file records the architecture and package discussion that led to the implementation plan. It is a historical decision log, not the current runtime reference. It distinguishes confirmed decisions from proposals and open questions so exploratory conversation does not accidentally become architecture policy; current implementation status lives in `stepByStepImplementation.md`, `runtimeInventory.md`, and the repository `README.md`.
 
 ## Current context
 

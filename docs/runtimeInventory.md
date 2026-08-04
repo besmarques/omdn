@@ -47,15 +47,16 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
   `.env.development` and Node watch mode. Express owns the listener and Vite
   runs in middleware mode for SSR, assets, and HMR.
 - `server/application/createApplication.js` constructs shared services and the
-  Express application without opening a listener; only `server/server.js`
-  starts listening and owns process signals.
+  Express application without opening a listener. `server/developmentServer.js`
+  owns the development listener and signals; `server/server.js` does so in
+  production.
 - `server/framework/createFrameworkRequestContext.js` creates a fresh React
   Router context for each page request using public React Router 8.3 APIs. The
   official Express adapter passes it to loaders and actions through
   `getLoadContext`.
 - Page, asset, and `/api` requests share the Express origin. No development API
   proxy or second server is required.
-- Express listens on `PORT` (normally `3000`).
+- Express listens on `PORT` (normally `3000`) and is the single HTTP origin.
 - The development database is MariaDB at `127.0.0.1:3306`, database `omdn`.
 
 ### Production
@@ -66,9 +67,11 @@ npm ls react react-dom react-router vite express mysql2 --depth=0
   directory and delegates document requests to the React Router server bundle
   in `build/server`, in addition to serving `/api`.
 - Fingerprinted `/assets` responses are served before the `/api` session pipeline
-  with immutable one-year caching. JSON parsing, MariaDB sessions, and CSRF
-  checks do not run for static or page requests. Production pages receive a
-  per-response CSP nonce and are server-rendered before browser hydration.
+  with immutable one-year caching. JSON parsing and API CSRF checks do not run
+  for static or document requests. MariaDB sessions also stay out of public and
+  authentication documents; they run only for `/api` and the private `/admin`
+  route family. Production pages receive a per-response CSP nonce and are
+  server-rendered before browser hydration.
 - The intended platform is Hostinger Cloud Startup with the Node application
   and MariaDB in the same hosting environment.
 - The actual Hostinger start command, Node version, MariaDB version, environment
@@ -84,7 +87,10 @@ only repository-level runtime version contract.
 Development topology:
 
 ```text
-Browser -> Vite development server -> /api proxy -> Express :3000 -> MariaDB :3306
+Browser -> Express :PORT
+                |-> Vite middleware (SSR, assets, HMR)
+                |-> /api and private-route middleware
+                `-> MariaDB :3306 when the selected boundary requires it
 ```
 
 Intended production topology:

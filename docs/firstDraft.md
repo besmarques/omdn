@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-This document consolidates the initial architecture and package discussions for OMDN. It is a working draft: confirmed decisions are identified explicitly, while unresolved choices remain marked as provisional.
+This document consolidates the initial architecture and package discussions for OMDN. It is a historical working draft: confirmed decisions are identified explicitly, while unresolved choices remain marked as provisional. For current implementation status, use `stepByStepImplementation.md`, `runtimeInventory.md`, and the repository `README.md`.
 
 The platform is expected to grow from its authentication foundation into a public, SEO-oriented blog with an authenticated editorial and administration application.
 
@@ -41,7 +41,7 @@ The platform is expected to grow from its authentication foundation into a publi
 ### Rendering
 
 - React remains the frontend component model.
-- React Router will move from Declarative Mode to Framework Mode.
+- React Router was selected to move from Declarative Mode to Framework Mode; that migration and the first SSR/private-route boundary are now implemented.
 - Dynamic public content will use server-side rendering.
 - Stable public pages may be pre-rendered.
 - Authenticated administration remains interactive and hydrates on the client.

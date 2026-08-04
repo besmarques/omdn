@@ -171,7 +171,10 @@ The handler must be mounted after `/api` routes and the API 404/error boundary, 
 Phase 2 now uses Vite middleware mode and the official virtual server-build
 pattern in `server/developmentServer.js`. Express owns the development listener,
 so loaders receive the same request context in development and production and
-`/api` no longer needs a cross-process Vite proxy.
+`/api` no longer needs a cross-process Vite proxy. The implemented route tree
+uses public, authentication, and private layouts. Express resolves MariaDB
+sessions and principals for `/admin`, nested `/admin/*` documents, and their
+`.data` requests before the Framework handler runs.
 
 ## 9. Testing implications
 
