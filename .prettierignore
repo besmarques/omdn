@@ -3,3 +3,5 @@ dist
 coverage
 public
 package-lock.json
+src/components/ui
+src/hooks/use-mobile.js
