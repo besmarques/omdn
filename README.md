@@ -376,7 +376,7 @@ in MariaDB's `schema_migrations` table:
 3. `server/database/migrations/003_create_auth_event_outbox.sql`
 4. `server/database/migrations/004_simplify_sessions.sql`
 5. `server/database/migrations/005_add_deleted_user_retention_index.sql`
-6. `server/database/migrations/20260805010000_create_content_foundation.sql`
+6. `server/database/migrations/006_create_content_foundation.sql`
 
 The role/permission seed remains a separate explicit step:
 
