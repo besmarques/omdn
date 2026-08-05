@@ -11,10 +11,10 @@ export default function AdminPage({ authorized }) {
 			{authorized && account.authenticated && <p>Signed in as {account.user.email}</p>}
 			{authorized && (
 				<>
-					<Link prefetch="intent" to="/admin/recipes/new">
+					<Link prefetch="render" to="/admin/recipes/new">
 						Add recipe
 					</Link>{' '}
-					<Link prefetch="intent" to="/admin/articles/new">
+					<Link prefetch="render" to="/admin/articles/new">
 						Add article
 					</Link>
 				</>

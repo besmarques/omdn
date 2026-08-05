@@ -163,6 +163,7 @@ test('edits and restores a recipe description with the Tiptap proof', async ({ p
 });
 
 test('characterizes registration, authentication, TOTP, and admin access', async ({ page }) => {
+	test.setTimeout(60_000);
 	const database = await createTestDatabaseConnection();
 	let currentAccountRequestCount = 0;
 	const browserErrors = [];

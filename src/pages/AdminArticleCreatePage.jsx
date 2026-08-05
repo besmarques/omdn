@@ -1,9 +1,10 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useState } from 'react';
 import PostEditor from '../content/posts/PostEditor';
 import PostEditorFields from '../content/posts/PostEditorFields';
 import SeoEditor from '../content/seo/SeoEditor';
 import { useCreateArticleMutation } from '../content/articles/queries/articleQueries';
 import useAsyncAction from '../hooks/useAsyncAction';
+import useHydrated from '../hooks/useHydrated';
 
 function textFromHtml(value) {
 	const element = document.createElement('div');
@@ -20,11 +21,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 	const [description, setDescription] = useState('');
 	const [descriptionHtml, setDescriptionHtml] = useState('');
 	const [excerpt, setExcerpt] = useState('');
-	const ready = useSyncExternalStore(
-		() => () => {},
-		() => true,
-		() => false,
-	);
+	const ready = useHydrated();
 	async function handleSubmit(event) {
 		event.preventDefault();
 		const formElement = event.currentTarget;

@@ -9,6 +9,12 @@ const combinedDevelopmentServer = process.env.OMDN_COMBINED_DEV === 'true';
 // https://vite.dev/config/
 export default defineConfig({
 	plugins: [reactRouter(), tailwindcss()],
+	optimizeDeps: {
+		// The post editors are lazy routes. Pre-bundle their browser-only editor
+		// dependencies at startup so the first navigation does not invalidate the
+		// active route graph while Vite discovers Tiptap.
+		include: ['@tiptap/extension-link', '@tiptap/react', '@tiptap/starter-kit'],
+	},
 	server: {
 		...(combinedDevelopmentServer
 			? {}

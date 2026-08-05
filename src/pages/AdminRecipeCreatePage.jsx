@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useState } from 'react';
 
 import PostEditor from '../content/posts/PostEditor';
 import PostEditorFields from '../content/posts/PostEditorFields';
@@ -6,6 +6,7 @@ import RecipeFields from '../content/recipes/RecipeFields';
 import { useCreateRecipeMutation } from '../content/recipes/queries/recipeQueries';
 import SeoEditor from '../content/seo/SeoEditor';
 import useAsyncAction from '../hooks/useAsyncAction';
+import useHydrated from '../hooks/useHydrated';
 
 function parseIngredients(value) {
 	return value
@@ -50,11 +51,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 	const [ingredients, setIngredients] = useState('');
 	const [instructions, setInstructions] = useState('');
 	const [formVersion, setFormVersion] = useState(0);
-	const ready = useSyncExternalStore(
-		() => () => {},
-		() => true,
-		() => false,
-	);
+	const ready = useHydrated();
 
 	async function handleSubmit(event) {
 		event.preventDefault();
