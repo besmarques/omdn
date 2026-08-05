@@ -2,14 +2,25 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 
 import { registerAccount } from '@/api/authApi';
+import useHydrated from '@/hooks/useHydrated';
 
 export default function RegisterPage() {
+	const ready = useHydrated();
 	const [displayName, setDisplayName] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [message, setMessage] = useState('');
 	const [errors, setErrors] = useState({});
 	const [submitting, setSubmitting] = useState(false);
+
+	if (!ready) {
+		return (
+			<main>
+				<h1>Register</h1>
+				<p>Loading registration form…</p>
+			</main>
+		);
+	}
 
 	async function handleSubmit(event) {
 		event.preventDefault();

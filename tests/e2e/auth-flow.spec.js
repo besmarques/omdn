@@ -243,8 +243,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		await test.step('create and publish a recipe from the admin page', async () => {
 			await page.getByRole('link', { name: 'Add recipe' }).click();
 			await expect(page).toHaveURL(/\/admin\/recipes\/new$/u);
-			await page.getByLabel('Title', { exact: true }).fill('Playwright Christmas cake');
 			await fillPostDescription(page, '<p>A cake created through the protected administration workflow.</p>');
+			await page.getByLabel('Title', { exact: true }).fill('Playwright Christmas cake');
 			await page.getByLabel('Excerpt').fill('A short festive cake summary.');
 			await page.getByLabel('Ingredients').fill('250 | g | flour\n100 | g | butter');
 			await page.getByLabel('Instructions').fill('Mix the ingredients.\nBake the cake.');
@@ -293,8 +293,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		await test.step('create and publish an article through the shared post editor', async () => {
 			await page.getByRole('link', { name: 'Add article' }).click();
 			await expect(page).toHaveURL(/\/admin\/articles\/new$/u);
-			await page.getByLabel('Title', { exact: true }).fill('Playwright Christmas traditions');
 			await fillPostDescription(page, '<p>An article created through the shared Tiptap post editor.</p>');
+			await page.getByLabel('Title', { exact: true }).fill('Playwright Christmas traditions');
 			await page.getByLabel('Excerpt').fill('A short traditions article.');
 			await page.getByLabel('SEO title').fill('Christmas traditions | O Melhor do Natal');
 			await page.getByLabel('Meta description').fill('Discover Christmas traditions in this tested article workflow.');
@@ -313,16 +313,48 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.goto('/admin');
 		});
 
+		await test.step('manage typed content, categories, and archive SEO', async () => {
+			await page.getByRole('link', { name: 'Recipes', exact: true }).click();
+			await expect(page.getByRole('heading', { name: 'Recipes', exact: true })).toBeVisible();
+			await expect(page.getByText('Playwright Christmas cake')).toBeVisible();
+			await expect(page.getByText('Playwright Christmas traditions')).toHaveCount(0);
+
+			await page.getByLabel('SEO title').fill('Tested Christmas recipe archive');
+			await page.getByLabel('Meta description').fill('A database-backed description for the complete Christmas recipe archive.');
+			const seoResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith('/archive-seo'));
+			await page.getByRole('button', { name: 'Save archive SEO' }).click();
+			expect((await seoResponse).status()).toBe(200);
+
+			await page.getByRole('link', { name: 'Categories' }).click();
+			const recipeCategories = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Recipe categories' }) });
+			await recipeCategories.getByLabel('Name').fill('Christmas cakes');
+			await recipeCategories.getByLabel('Slug').fill('christmas-cakes');
+			await recipeCategories.getByLabel('Description').fill('Cake recipes for Christmas.');
+			const categoryResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith('/recipe/categories'));
+			await recipeCategories.getByRole('button', { name: 'Create category' }).click();
+			expect((await categoryResponse).status()).toBe(201);
+			await expect(recipeCategories.getByText('christmas-cakes')).toBeVisible();
+
+			await page.goto('/recipes');
+			await expect(page).toHaveTitle('Tested Christmas recipe archive');
+			await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+				'content',
+				'A database-backed description for the complete Christmas recipe archive.',
+			);
+			await page.goto('/admin');
+		});
+
 		await test.step('schedule a recipe from the admin page', async () => {
 			await page.getByRole('link', { name: 'Add recipe' }).click();
-			await page.getByLabel('Title', { exact: true }).fill('Scheduled Playwright pudding');
 			await fillPostDescription(page, '<p>A recipe that should remain private until its scheduled time.</p>');
+			await page.getByLabel('Title', { exact: true }).fill('Scheduled Playwright pudding');
 			await page.getByLabel('Ingredients').fill('500 | ml | milk');
 			await page.getByLabel('Instructions').fill('Cook the pudding.');
 			await page.getByLabel('Preparation minutes').fill('10');
 			await page.getByLabel('Cooking minutes').fill('30');
 			await page.getByLabel('Yield quantity').fill('6');
 			await page.getByLabel('Yield unit').fill('servings');
+			await page.getByLabel('Category').selectOption({ label: 'Christmas cakes' });
 			await page.getByLabel('Publication').selectOption('schedule');
 			const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
 			await page.getByLabel('Publication date and time').fill(tomorrow);
@@ -337,15 +369,17 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			});
 			await expect(page.getByRole('status')).toContainText('Recipe scheduled for');
 			const [[scheduled]] = await database.execute(
-				`SELECT posts.status, publication_schedules.status AS schedule_status
+				`SELECT posts.status, publication_schedules.status AS schedule_status, categories.name AS category_name
 				 FROM posts
 				 INNER JOIN route_slugs ON route_slugs.resource_id = posts.id AND route_slugs.resource_type = 'post'
 				 INNER JOIN publication_schedules ON publication_schedules.post_id = posts.id
+				 INNER JOIN categories ON categories.id = posts.primary_category_id
 				 WHERE route_slugs.slug = 'scheduled-playwright-pudding'`,
 			);
 
 			expect(scheduled.status).toBe('scheduled');
 			expect(scheduled.schedule_status).toBe('pending');
+			expect(scheduled.category_name).toBe('Christmas cakes');
 			const privateRecipeResponse = await page.request.get('/api/recipes/scheduled-playwright-pudding');
 			expect(privateRecipeResponse.status()).toBe(404);
 			await database.execute(

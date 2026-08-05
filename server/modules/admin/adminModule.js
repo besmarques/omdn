@@ -7,6 +7,8 @@ import createRecipeService from '#server/modules/admin/recipes/createRecipeServi
 import createArticleController from '#server/modules/admin/articles/createArticleController';
 import createArticleRepository from '#server/modules/admin/articles/createArticleRepository';
 import createArticleService from '#server/modules/admin/articles/createArticleService';
+import createAdminContentTypeController from '#server/modules/admin/contentTypes/adminContentTypeController';
+import createAdminContentTypeRepository from '#server/modules/admin/contentTypes/adminContentTypeRepository';
 
 export default function createAdminModule(db) {
 	const testAdminAccessService = createTestAdminAccessService();
@@ -14,9 +16,11 @@ export default function createAdminModule(db) {
 	const testAdminAccessController = createTestAdminAccessController(testAdminAccessService);
 	const recipeController = createRecipeController(createRecipeService(createRecipeRepository(db)));
 	const articleController = createArticleController(createArticleService(createArticleRepository(db)));
+	const contentTypeController = createAdminContentTypeController(createAdminContentTypeRepository(db));
 
 	return createAdminRoutes({
 		articleController,
+		contentTypeController,
 		recipeController,
 		testAdminAccessController,
 	});

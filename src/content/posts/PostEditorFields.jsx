@@ -7,6 +7,7 @@ import { Textarea } from '../../components/ui/textarea';
 
 export default function PostEditorFields({
 	canPublish,
+	categories = [],
 	description,
 	descriptionHtml,
 	excerpt,
@@ -49,6 +50,16 @@ export default function PostEditorFields({
 					value={excerpt}
 					onChange={onExcerptChange}
 				/>
+			</FormField>
+			<FormField label="Category" name="categoryId">
+				<NativeSelect id="categoryId" name="categoryId" defaultValue="">
+					<NativeSelectOption value="">No category</NativeSelectOption>
+					{categories.map((category) => (
+						<NativeSelectOption key={category.id} value={String(category.id)}>
+							{category.name}
+						</NativeSelectOption>
+					))}
+				</NativeSelect>
 			</FormField>
 			<section aria-labelledby="featured-image-heading">
 				<h2 id="featured-image-heading">Featured image</h2>

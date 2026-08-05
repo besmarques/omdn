@@ -4,6 +4,13 @@ export default function createRecipeRepository(db, { contentType = 'recipe', tem
 
 		try {
 			await connection.beginTransaction();
+			if (record.categoryId) {
+				const [[category]] = await connection.execute(`SELECT id FROM categories WHERE id = ? AND content_type = ?`, [
+					record.categoryId,
+					contentType,
+				]);
+				if (!category) throw new RangeError(`The selected category does not belong to this ${contentType}`);
+			}
 			const published = record.publication === 'publish';
 			const scheduled = record.publication === 'schedule';
 			const [authorResult] = await connection.execute(
@@ -14,17 +21,24 @@ export default function createRecipeRepository(db, { contentType = 'recipe', tem
 			);
 			const [postResult] = await connection.execute(
 				`INSERT INTO posts (
-					owner_user_id, author_id, content_type, status, visibility, is_pillar_content, published_at
-				 ) VALUES (?, ?, ?, ?, 'public', ?, ?)`,
+					owner_user_id, author_id, content_type, status, visibility, is_pillar_content, primary_category_id, published_at
+				 ) VALUES (?, ?, ?, ?, 'public', ?, ?, ?)`,
 				[
 					record.actor.id,
 					authorResult.insertId,
 					contentType,
 					published ? 'published' : scheduled ? 'scheduled' : 'draft',
 					record.isPillar,
+					record.categoryId || null,
 					published ? record.createdAt : null,
 				],
 			);
+			if (record.categoryId) {
+				await connection.execute(`INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)`, [
+					postResult.insertId,
+					record.categoryId,
+				]);
+			}
 			const [revisionResult] = await connection.execute(
 				`INSERT INTO post_revisions (
 					post_id, revision_number, created_by_user_id, title, excerpt,

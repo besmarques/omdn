@@ -1,5 +1,5 @@
 import { redirect } from 'react-router';
-import AdminSectionPage from '../pages/AdminSectionPage';
+import AdminContentTypePage from '../pages/AdminContentTypePage';
 import { principalContext } from '#framework/contexts';
 
 export function loader({ context }) {
@@ -8,6 +8,6 @@ export function loader({ context }) {
 		throw redirect('/admin');
 	return null;
 }
-export default function AdminPostsRoute() {
-	return <AdminSectionPage title="Posts" description="Your editable recipes and articles will be listed here." />;
+export default function AdminRecipesRoute() {
+	return <AdminContentTypePage contentType="recipe" createPath="/admin/recipes/new" pluralLabel="Recipes" />;
 }

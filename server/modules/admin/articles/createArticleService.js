@@ -20,6 +20,7 @@ export default function createArticleService(repository, { now = () => new Date(
 		if (publishAt && publishAt <= now()) throw new RangeError('Scheduled publication must be in the future');
 		return repository({
 			actor,
+			categoryId: input.categoryId,
 			createdAt: now(),
 			excerpt: input.excerpt || source.description,
 			isPillar: input.isPillar,

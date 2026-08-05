@@ -9,6 +9,7 @@ const slug = z
 
 export const createArticleSchema = z
 	.object({
+		categoryId: z.number().int().positive().optional(),
 		description: z.string().trim().min(1).max(5000),
 		descriptionHtml: z.string().trim().min(1).max(20000),
 		excerpt: z.string().trim().max(1000).optional(),

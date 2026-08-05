@@ -15,6 +15,7 @@ import createPublicArticleRepository from '#server/modules/content/articles/publ
 import createPublicArticleService from '#server/modules/content/articles/publicArticleService';
 import createPublicationScheduleRepository from '#server/modules/content/publication/publicationScheduleRepository';
 import createPublicationScheduleWorker from '#server/modules/content/publication/publicationScheduleWorker';
+import createContentTypeSettingsRepository from '#server/modules/content/contentTypeSettingsRepository';
 
 export default function createApplicationServices(db, config) {
 	const session = createSessionMiddleware(db, config.session);
@@ -32,10 +33,12 @@ export default function createApplicationServices(db, config) {
 	const mail = createMailService(config);
 	const publicRecipes = createPublicRecipeService(createPublicRecipeRepository(db));
 	const publicArticles = createPublicArticleService(createPublicArticleRepository(db));
+	const contentTypeSettings = createContentTypeSettingsRepository(db);
 	const publicationScheduleWorker = createPublicationScheduleWorker({ repository: createPublicationScheduleRepository(db) });
 	const framework = Object.freeze({
 		publicBaseUrl: config.publicBaseUrl,
 		publicArticles,
+		contentTypeSettings,
 		publicRecipes,
 	});
 

@@ -2,7 +2,7 @@ import { data, Link, redirect } from 'react-router';
 import { applicationServicesContext } from '#framework/contexts';
 import { useArticleArchive } from '../content/articles/queries/articleQueries';
 
-const description = 'Artigos para inspirar e preparar um Natal especial.';
+const fallbackDescription = 'Artigos para inspirar e preparar um Natal especial.';
 function path(page) {
 	return page === 1 ? '/articles' : `/articles?page=${page}`;
 }
@@ -16,11 +16,15 @@ function parsePage(request) {
 export async function loader({ context, request }) {
 	const page = parsePage(request);
 	if (page === 1 && new URL(request.url).searchParams.has('page')) throw redirect('/articles', 301);
-	const { publicArticles, publicBaseUrl } = context.get(applicationServicesContext);
-	const archive = await publicArticles.listArchivePage(page);
+	const { contentTypeSettings, publicArticles, publicBaseUrl } = context.get(applicationServicesContext);
+	const [archive, archiveSeo] = await Promise.all([
+		publicArticles.listArchivePage(page),
+		contentTypeSettings?.getArchiveSeo ? contentTypeSettings.getArchiveSeo('article') : null,
+	]);
 	if (!archive) throw data('Article archive page not found', { status: 404 });
 	return {
 		...archive,
+		archiveSeo: archiveSeo ?? { description: fallbackDescription, title: null },
 		canonicalUrl: new URL(path(page), publicBaseUrl).href,
 		nextUrl: page < archive.totalPages ? new URL(path(page + 1), publicBaseUrl).href : null,
 		previousUrl: page > 1 ? new URL(path(page - 1), publicBaseUrl).href : null,
@@ -31,7 +35,11 @@ export function headers() {
 }
 export function meta({ loaderData }) {
 	if (!loaderData) return [{ title: 'Articles not found | O Melhor do Natal' }];
-	const title = loaderData.page === 1 ? 'Artigos de Natal | O Melhor do Natal' : `Artigos de Natal — Página ${loaderData.page}`;
+	const title =
+		loaderData.page === 1
+			? loaderData.archiveSeo.title || 'Artigos de Natal | O Melhor do Natal'
+			: `Artigos de Natal — Página ${loaderData.page}`;
+	const description = loaderData.archiveSeo.description || fallbackDescription;
 	return [
 		{ title },
 		{ name: 'description', content: description },
@@ -50,7 +58,7 @@ export default function ArticlesRoute({ loaderData }) {
 		<main className="mx-auto max-w-5xl p-6">
 			<header className="mb-8">
 				<h1 className="text-4xl font-bold">Artigos de Natal</h1>
-				<p>{description}</p>
+				<p>{archive.archiveSeo?.description || fallbackDescription}</p>
 			</header>
 			{archive.items.length ? (
 				<ul className="grid gap-6 md:grid-cols-2">

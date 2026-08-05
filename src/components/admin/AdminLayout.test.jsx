@@ -28,7 +28,8 @@ describe('admin layout navigation', () => {
 	it('shows editorial and administrative tools by permission', () => {
 		const editor = renderNavigation(['posts.create', 'posts.edit_all']);
 		const administrator = renderNavigation(['roles.manage', 'settings.manage', 'users.manage']);
-		expect(editor).toContain('Posts');
+		expect(editor).toContain('Recipes');
+		expect(editor).toContain('Articles');
 		expect(editor).toContain('Add recipe');
 		expect(editor).toContain('Add article');
 		expect(editor).not.toContain('Users');

@@ -759,6 +759,13 @@ dashboard and account-security navigation. Editorial and administrative links
 are derived from permission codes, never from hard-coded role names. Route
 loaders and API middleware independently enforce the same capabilities.
 
+The dashboard exposes concrete content types rather than the internal `posts`
+abstraction. Each type has its own management table and create action.
+Categories are scoped by `categories.content_type`, and post creation validates
+that the selected category belongs to the post type before writing both the
+primary category and many-to-many assignment. Archive SEO is stored on the
+`content_types` registry and consumed by the public archive SSR loaders.
+
 Tiptap does not control the recipe document. Normal fields continue to own the
 title, timings, yield, ingredients, instructions, media references, and
 taxonomy. The editor allowlist contains only paragraphs, bold, italic, lists,

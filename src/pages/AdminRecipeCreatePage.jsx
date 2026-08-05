@@ -7,6 +7,7 @@ import { useCreateRecipeMutation } from '../content/recipes/queries/recipeQuerie
 import SeoEditor from '../content/seo/SeoEditor';
 import useAsyncAction from '../hooks/useAsyncAction';
 import useHydrated from '../hooks/useHydrated';
+import { useAdminContentType } from '../query/adminContentTypeQuery';
 
 function parseIngredients(value) {
 	return value
@@ -41,6 +42,7 @@ function plainTextFromHtml(value) {
 
 export default function AdminRecipeCreatePage({ canPublish }) {
 	const createRecipeMutation = useCreateRecipeMutation();
+	const { data: contentTypeData } = useAdminContentType('recipe');
 	const { errors, message, run, setErrors, setMessage, submitting } = useAsyncAction();
 	const [publication, setPublication] = useState('draft');
 	const [title, setTitle] = useState('');
@@ -59,6 +61,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		const form = new FormData(formElement);
 		const result = await run(() =>
 			createRecipeMutation.mutateAsync({
+				...(form.get('categoryId') ? { categoryId: Number(form.get('categoryId')) } : {}),
 				cookMinutes: Number(form.get('cookMinutes')),
 				description: form.get('description'),
 				descriptionHtml: form.get('descriptionHtml'),
@@ -123,6 +126,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		>
 			<PostEditorFields
 				canPublish={canPublish}
+				categories={contentTypeData?.categories ?? []}
 				description={description}
 				descriptionHtml={descriptionHtml}
 				excerpt={excerpt}

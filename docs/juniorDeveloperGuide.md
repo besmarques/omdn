@@ -391,6 +391,12 @@ post, user, role, and settings navigation appears only when the cached account
 snapshot contains the corresponding permission. That cache controls
 presentation only; loaders and APIs remain the authorization boundary.
 
+Do not expose a generic “post” type in the dashboard. `posts` is the shared
+storage model; editors work with Recipes, Articles, and future concrete types.
+Their management pages filter by `content_type`. Categories carry the same
+type discriminator, and archive SEO lives on the content-type registry so a
+new type can provide editable archive metadata without hard-coding route text.
+
 For a production page request, the current frontend works like this:
 
 - Express serves fingerprinted assets itself and sends document requests to React Router.

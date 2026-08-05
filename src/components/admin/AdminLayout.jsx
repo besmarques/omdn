@@ -54,14 +54,16 @@ export default function AdminLayout({ account }) {
 				<aside className="border-r bg-background p-4">
 					<nav aria-label="Dashboard navigation" className="grid gap-2">
 						<Link to="/admin">Dashboard</Link>
-						{canManagePosts && <Link to="/admin/posts">Posts</Link>}
+						{canManagePosts && <Link to="/admin/recipes">Recipes</Link>}
+						{canManagePosts && <Link to="/admin/articles">Articles</Link>}
+						{account.permissions.includes('posts.edit_all') && <Link to="/admin/categories">Categories</Link>}
 						{canCreatePosts && (
-							<Link prefetch="intent" to="/admin/recipes/new">
+							<Link reloadDocument to="/admin/recipes/new">
 								Add recipe
 							</Link>
 						)}
 						{canCreatePosts && (
-							<Link prefetch="intent" to="/admin/articles/new">
+							<Link reloadDocument to="/admin/articles/new">
 								Add article
 							</Link>
 						)}

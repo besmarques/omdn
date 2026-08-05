@@ -30,6 +30,10 @@ const vite = await createViteServer({
 	},
 });
 
+await Promise.all(
+	['/src/entry.client.jsx', '/src/routes/admin-recipe-new.jsx', '/src/routes/admin-article-new.jsx'].map((url) => vite.warmupRequest(url)),
+);
+
 const { app, db, services, workerLifecycle } = createApplication(config, {
 	createFrontend: ({ services: frameworkServices }) => ({
 		publicFiles: vite.middlewares,

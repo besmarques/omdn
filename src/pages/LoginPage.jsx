@@ -4,8 +4,10 @@ import { Link, useNavigate } from 'react-router';
 
 import { login, verifyTotpLogin } from '@/api/authApi';
 import { currentAccountQueryKey, currentAccountQueryOptions } from '@/query/currentAccountQuery';
+import useHydrated from '@/hooks/useHydrated';
 
 export default function LoginPage() {
+	const ready = useHydrated();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [email, setEmail] = useState('');
@@ -15,6 +17,15 @@ export default function LoginPage() {
 	const [challenge, setChallenge] = useState(null);
 	const [message, setMessage] = useState('');
 	const [submitting, setSubmitting] = useState(false);
+
+	if (!ready) {
+		return (
+			<main>
+				<h1>Login</h1>
+				<p>Loading login form…</p>
+			</main>
+		);
+	}
 
 	async function finishAuthenticatedLogin() {
 		queryClient.removeQueries({ queryKey: currentAccountQueryKey, exact: true });

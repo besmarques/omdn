@@ -5,6 +5,7 @@ import SeoEditor from '../content/seo/SeoEditor';
 import { useCreateArticleMutation } from '../content/articles/queries/articleQueries';
 import useAsyncAction from '../hooks/useAsyncAction';
 import useHydrated from '../hooks/useHydrated';
+import { useAdminContentType } from '../query/adminContentTypeQuery';
 
 function textFromHtml(value) {
 	const element = document.createElement('div');
@@ -14,6 +15,7 @@ function textFromHtml(value) {
 
 export default function AdminArticleCreatePage({ canPublish }) {
 	const mutation = useCreateArticleMutation();
+	const { data: contentTypeData } = useAdminContentType('article');
 	const { errors, message, run, setErrors, setMessage, submitting } = useAsyncAction();
 	const [publication, setPublication] = useState('draft');
 	const [title, setTitle] = useState('');
@@ -28,6 +30,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 		const form = new FormData(formElement);
 		const result = await run(() =>
 			mutation.mutateAsync({
+				...(form.get('categoryId') ? { categoryId: Number(form.get('categoryId')) } : {}),
 				description,
 				descriptionHtml,
 				excerpt,
@@ -74,6 +77,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 		>
 			<PostEditorFields
 				canPublish={canPublish}
+				categories={contentTypeData?.categories ?? []}
 				description={description}
 				descriptionHtml={descriptionHtml}
 				excerpt={excerpt}

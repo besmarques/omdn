@@ -4,7 +4,7 @@ import { applicationServicesContext } from '#framework/contexts';
 
 import { useRecipeArchive } from '../content/recipes/queries/recipeQueries';
 
-const archiveDescription = 'Receitas de Natal para preparar, partilhar e celebrar.';
+const fallbackArchiveDescription = 'Receitas de Natal para preparar, partilhar e celebrar.';
 
 function archivePath(page) {
 	return page === 1 ? '/recipes' : `/recipes?page=${page}`;
@@ -64,8 +64,11 @@ export async function loader({ context, request }) {
 		throw redirect('/recipes', 301);
 	}
 
-	const { publicBaseUrl, publicRecipes } = context.get(applicationServicesContext);
-	const archive = await publicRecipes.listArchivePage(page);
+	const { contentTypeSettings, publicBaseUrl, publicRecipes } = context.get(applicationServicesContext);
+	const [archive, archiveSeo] = await Promise.all([
+		publicRecipes.listArchivePage(page),
+		contentTypeSettings?.getArchiveSeo ? contentTypeSettings.getArchiveSeo('recipe') : null,
+	]);
 
 	if (!archive) {
 		throw data('Recipe archive page not found', { status: 404 });
@@ -73,6 +76,7 @@ export async function loader({ context, request }) {
 
 	return {
 		...archive,
+		archiveSeo: archiveSeo ?? { description: fallbackArchiveDescription, title: null },
 		canonicalUrl: absoluteArchiveUrl(publicBaseUrl, page),
 		nextUrl: page < archive.totalPages ? absoluteArchiveUrl(publicBaseUrl, page + 1) : null,
 		previousUrl: page > 1 ? absoluteArchiveUrl(publicBaseUrl, page - 1) : null,
@@ -88,7 +92,11 @@ export function meta({ loaderData }) {
 		return [{ title: 'Recipes not found | O Melhor do Natal' }];
 	}
 
-	const title = loaderData.page === 1 ? 'Receitas de Natal | O Melhor do Natal' : `Receitas de Natal — Página ${loaderData.page}`;
+	const title =
+		loaderData.page === 1
+			? loaderData.archiveSeo.title || 'Receitas de Natal | O Melhor do Natal'
+			: `Receitas de Natal — Página ${loaderData.page}`;
+	const archiveDescription = loaderData.archiveSeo.description || fallbackArchiveDescription;
 
 	return [
 		{ title },
@@ -111,7 +119,7 @@ export default function RecipesRoute({ loaderData }) {
 		<main className="mx-auto max-w-5xl p-6">
 			<header className="mb-8">
 				<h1 className="text-4xl font-bold">Receitas de Natal</h1>
-				<p>{archiveDescription}</p>
+				<p>{archive.archiveSeo?.description || fallbackArchiveDescription}</p>
 			</header>
 
 			{items.length === 0 ? (
