@@ -1,4 +1,4 @@
-import { data } from 'react-router';
+import { redirect } from 'react-router';
 
 import AdminRecipeCreatePage from '../pages/AdminRecipeCreatePage';
 
@@ -8,7 +8,7 @@ export function loader({ context }) {
 	const principal = context.get(principalContext);
 
 	if (!principal.permissions.includes('posts.create')) {
-		throw data('Forbidden', { status: 403 });
+		throw redirect('/');
 	}
 
 	return {

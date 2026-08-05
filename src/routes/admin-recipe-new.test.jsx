@@ -20,13 +20,16 @@ describe('admin recipe creation route', () => {
 		expect(loader({ context: contextWithPermissions(['posts.create', 'posts.publish_all']) })).toEqual({ canPublish: true });
 	});
 
-	it('returns forbidden for an account without recipe creation permission', () => {
-		expect(() => loader({ context: contextWithPermissions(['users.manage']) })).toThrow();
-
-		try {
-			loader({ context: contextWithPermissions([]) });
-		} catch (error) {
-			expect(error).toMatchObject({ init: { status: 403 } });
+	it('redirects an account without recipe creation permission to the homepage', () => {
+		for (const permissions of [[], ['users.manage']]) {
+			try {
+				loader({ context: contextWithPermissions(permissions) });
+				expect.unreachable('Expected the loader to redirect');
+			} catch (error) {
+				expect(error).toBeInstanceOf(Response);
+				expect(error.status).toBe(302);
+				expect(error.headers.get('Location')).toBe('/');
+			}
 		}
 	});
 });
