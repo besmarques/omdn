@@ -27,6 +27,7 @@ describe('create recipe service', () => {
 			expect.objectContaining({
 				actor,
 				createdAt,
+				excerpt: input.description,
 				plainText: expect.stringContaining('200 g flour'),
 				publication: 'publish',
 				publishAt: null,
@@ -41,6 +42,15 @@ describe('create recipe service', () => {
 			}),
 		);
 		expect(repository.mock.calls[0][0].sourceHash).toHaveLength(32);
+	});
+
+	it('preserves a shared post excerpt separately from the description', async () => {
+		const repository = vi.fn().mockResolvedValue({ id: 14 });
+		const service = createRecipeService(repository);
+
+		await service({ ...input, excerpt: 'Short archive summary.' }, { displayName: 'Admin', id: 7 });
+
+		expect(repository).toHaveBeenCalledWith(expect.objectContaining({ excerpt: 'Short archive summary.' }));
 	});
 
 	it('preserves shared SEO overrides independently from recipe content', async () => {

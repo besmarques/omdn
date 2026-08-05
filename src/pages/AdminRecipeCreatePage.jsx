@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { createRecipe } from '../api/adminRecipeApi';
+import PostEditorFields from '../content/posts/PostEditorFields';
 import SeoEditor from '../content/seo/SeoEditor';
 
 function parseIngredients(value) {
@@ -53,6 +54,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				cookMinutes: Number(form.get('cookMinutes')),
 				description: form.get('description'),
 				difficulty: form.get('difficulty'),
+				excerpt: form.get('excerpt'),
 				ingredients: parseIngredients(form.get('ingredients')),
 				instructions: parseInstructions(form.get('instructions')),
 				prepMinutes: Number(form.get('prepMinutes')),
@@ -102,26 +104,16 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		<main className="mx-auto max-w-3xl p-6">
 			<h1 className="text-4xl font-bold">Add recipe</h1>
 			<form className="grid gap-4" onSubmit={handleSubmit}>
-				<label htmlFor="title">Title</label>
-				<input id="title" name="title" required maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} />
-				<label htmlFor="slug">Slug</label>
-				<input
-					id="slug"
-					name="slug"
-					maxLength={200}
-					pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-					placeholder="Generated from the title when left blank"
-					value={slug}
-					onChange={(event) => setSlug(event.target.value)}
-				/>
-				<label htmlFor="description">Description</label>
-				<textarea
-					id="description"
-					name="description"
-					required
-					maxLength={5000}
-					value={description}
-					onChange={(event) => setDescription(event.target.value)}
+				<PostEditorFields
+					canPublish={canPublish}
+					description={description}
+					onDescriptionChange={(event) => setDescription(event.target.value)}
+					onPublicationChange={(event) => setPublication(event.target.value)}
+					onSlugChange={(event) => setSlug(event.target.value)}
+					onTitleChange={(event) => setTitle(event.target.value)}
+					publication={publication}
+					slug={slug}
+					title={title}
 				/>
 				<label htmlFor="ingredients">Ingredients</label>
 				<textarea id="ingredients" name="ingredients" required placeholder={'250 | g | farinha\n100 | g | manteiga'} />
@@ -144,22 +136,6 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				<label htmlFor="yieldUnit">Yield unit</label>
 				<input id="yieldUnit" name="yieldUnit" required maxLength={200} />
 				<SeoEditor key={formVersion} description={description} path={`/recipes/${slug || 'generated-slug'}`} title={title} />
-				{canPublish && (
-					<>
-						<label htmlFor="publication">Publication</label>
-						<select id="publication" name="publication" value={publication} onChange={(event) => setPublication(event.target.value)}>
-							<option value="draft">Save as draft</option>
-							<option value="publish">Publish immediately</option>
-							<option value="schedule">Schedule publication</option>
-						</select>
-						{publication === 'schedule' && (
-							<>
-								<label htmlFor="publishAt">Publication date and time</label>
-								<input id="publishAt" name="publishAt" type="datetime-local" required />
-							</>
-						)}
-					</>
-				)}
 				<button type="submit" disabled={submitting}>
 					{submitting ? 'Creating…' : 'Create recipe'}
 				</button>

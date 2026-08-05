@@ -48,6 +48,7 @@ export default function createRecipeService(repository, { now = () => new Date()
 		return repository({
 			actor,
 			createdAt: now(),
+			excerpt: input.excerpt || source.description,
 			plainText: deriveRecipePlainText(source),
 			publication: input.publication,
 			publishAt,

@@ -35,7 +35,7 @@ export default function createRecipeRepository(db) {
 					postResult.insertId,
 					record.actor.id,
 					record.source.title,
-					record.source.description,
+					record.excerpt,
 					record.seo.title,
 					record.seo.description,
 					record.seo.focusKeyword,
