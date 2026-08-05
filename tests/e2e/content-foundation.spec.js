@@ -113,9 +113,15 @@ test('enforces revision ownership, canonical slugs, active schedules, and deleti
 		const userId = userResult.insertId;
 		const [authorResult] = await database.execute('INSERT INTO authors (user_id, display_name) VALUES (?, ?)', [userId, 'Content Schema']);
 		const authorId = authorResult.insertId;
-		const [categoryResult] = await database.execute('INSERT INTO categories (name) VALUES (?)', ['Recipes']);
+		const [categoryResult] = await database.execute(
+			"INSERT INTO categories (content_type, name, normalized_name) VALUES ('recipe', ?, ?)",
+			['Recipes', 'recipes'],
+		);
 		const categoryId = categoryResult.insertId;
-		const [tagResult] = await database.execute('INSERT INTO tags (name, normalized_name) VALUES (?, ?)', ['Christmas', 'christmas']);
+		const [tagResult] = await database.execute("INSERT INTO tags (content_type, name, normalized_name) VALUES ('recipe', ?, ?)", [
+			'Christmas',
+			'christmas',
+		]);
 		const tagId = tagResult.insertId;
 		const [postResult] = await database.execute(
 			`INSERT INTO posts (owner_user_id, author_id, content_type, primary_category_id)

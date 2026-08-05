@@ -89,5 +89,75 @@ export default function createAdminContentTypeRepository(db) {
 		return { id: Number(result.insertId), name: tag.name };
 	}
 
-	return { createCategory, createTag, get, updateArchiveSeo };
+	async function updateCategory(contentType, id, category) {
+		const connection = await db.getConnection();
+		try {
+			await connection.beginTransaction();
+			const [[current]] = await connection.execute(
+				`SELECT categories.id, route_slugs.id AS slug_id, route_slugs.slug FROM categories INNER JOIN route_slugs ON route_slugs.resource_type = 'category' AND route_slugs.resource_id = categories.id AND route_slugs.kind = 'canonical' WHERE categories.id = ? AND categories.content_type = ? FOR UPDATE`,
+				[id, contentType],
+			);
+			if (!current) {
+				await connection.rollback();
+				return null;
+			}
+			await connection.execute(
+				`UPDATE categories SET name = ?, normalized_name = ?, description = ?, lock_version = lock_version + 1 WHERE id = ?`,
+				[category.name, category.name.toLocaleLowerCase(), category.description || null, id],
+			);
+			if (current.slug !== category.slug) {
+				await connection.execute(`UPDATE route_slugs SET kind = 'redirect' WHERE id = ?`, [current.slug_id]);
+				await connection.execute(
+					`INSERT INTO route_slugs (resource_type, resource_id, slug, kind) VALUES ('category', ?, ?, 'canonical')`,
+					[id, category.slug],
+				);
+			}
+			await connection.commit();
+			return { id, ...category };
+		} catch (error) {
+			await connection.rollback();
+			throw error;
+		} finally {
+			connection.release();
+		}
+	}
+
+	async function updateTag(contentType, id, tag) {
+		const [result] = await db.execute(
+			`UPDATE tags SET name = ?, normalized_name = ?, lock_version = lock_version + 1 WHERE id = ? AND content_type = ?`,
+			[tag.name, tag.name.toLocaleLowerCase(), id, contentType],
+		);
+		return result.affectedRows ? { id, name: tag.name } : null;
+	}
+
+	async function deleteTaxonomy(contentType, taxonomy, id) {
+		if (taxonomy === 'tags') {
+			const [result] = await db.execute(`DELETE FROM tags WHERE id = ? AND content_type = ?`, [id, contentType]);
+			return result.affectedRows > 0;
+		}
+
+		const connection = await db.getConnection();
+		try {
+			await connection.beginTransaction();
+			const [[category]] = await connection.execute(`SELECT id FROM categories WHERE id = ? AND content_type = ? FOR UPDATE`, [
+				id,
+				contentType,
+			]);
+			if (!category) {
+				await connection.rollback();
+				return false;
+			}
+			await connection.execute(`DELETE FROM route_slugs WHERE resource_type = 'category' AND resource_id = ?`, [id]);
+			await connection.execute(`DELETE FROM categories WHERE id = ?`, [id]);
+			await connection.commit();
+			return true;
+		} catch (error) {
+			await connection.rollback();
+			throw error;
+		} finally {
+			connection.release();
+		}
+	}
+
+	return { createCategory, createTag, deleteTaxonomy, get, updateArchiveSeo, updateCategory, updateTag };
 }

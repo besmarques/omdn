@@ -3,7 +3,7 @@ import { Input } from '../../components/ui/input';
 import { NativeSelect, NativeSelectOption } from '../../components/ui/native-select';
 import { Textarea } from '../../components/ui/textarea';
 
-export default function RecipeFields({ ingredients, instructions, onIngredientsChange, onInstructionsChange }) {
+export default function RecipeFields({ ingredients, instructions, onIngredientsChange, onInstructionsChange, values = {} }) {
 	return (
 		<fieldset className="grid gap-4">
 			<legend className="text-2xl font-semibold">Recipe</legend>
@@ -28,23 +28,23 @@ export default function RecipeFields({ ingredients, instructions, onIngredientsC
 				/>
 			</FormField>
 			<FormField label="Preparation minutes" name="prepMinutes">
-				<Input id="prepMinutes" name="prepMinutes" type="number" min="0" required />
+				<Input id="prepMinutes" name="prepMinutes" type="number" min="0" required defaultValue={values.prepMinutes} />
 			</FormField>
 			<FormField label="Cooking minutes" name="cookMinutes">
-				<Input id="cookMinutes" name="cookMinutes" type="number" min="0" required />
+				<Input id="cookMinutes" name="cookMinutes" type="number" min="0" required defaultValue={values.cookMinutes} />
 			</FormField>
 			<FormField label="Difficulty" name="difficulty">
-				<NativeSelect id="difficulty" name="difficulty" defaultValue="easy">
+				<NativeSelect id="difficulty" name="difficulty" defaultValue={values.difficulty || 'easy'}>
 					<NativeSelectOption value="easy">Easy</NativeSelectOption>
 					<NativeSelectOption value="medium">Medium</NativeSelectOption>
 					<NativeSelectOption value="hard">Hard</NativeSelectOption>
 				</NativeSelect>
 			</FormField>
 			<FormField label="Yield quantity" name="yieldQuantity">
-				<Input id="yieldQuantity" name="yieldQuantity" type="number" min="0.01" step="any" required />
+				<Input id="yieldQuantity" name="yieldQuantity" type="number" min="0.01" step="any" required defaultValue={values.yield?.quantity} />
 			</FormField>
 			<FormField label="Yield unit" name="yieldUnit">
-				<Input id="yieldUnit" name="yieldUnit" required maxLength={200} />
+				<Input id="yieldUnit" name="yieldUnit" required maxLength={200} defaultValue={values.yield?.unit} />
 			</FormField>
 		</fieldset>
 	);

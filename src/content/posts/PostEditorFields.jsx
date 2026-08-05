@@ -18,6 +18,8 @@ export default function PostEditorFields({
 	onSlugChange,
 	onTitleChange,
 	publication,
+	selectedCategoryId,
+	selectedTagIds = [],
 	slug,
 	title,
 }) {
@@ -53,7 +55,7 @@ export default function PostEditorFields({
 				/>
 			</FormField>
 			<FormField label="Category" name="categoryId">
-				<NativeSelect id="categoryId" name="categoryId" defaultValue="">
+				<NativeSelect id="categoryId" name="categoryId" defaultValue={selectedCategoryId ? String(selectedCategoryId) : ''}>
 					<NativeSelectOption value="">No category</NativeSelectOption>
 					{categories.map((category) => (
 						<NativeSelectOption key={category.id} value={String(category.id)}>
@@ -67,7 +69,7 @@ export default function PostEditorFields({
 					<legend>Tags</legend>
 					{tags.map((tag) => (
 						<label key={tag.id}>
-							<input type="checkbox" name="tagIds" value={tag.id} /> {tag.name}
+							<input type="checkbox" name="tagIds" value={tag.id} defaultChecked={selectedTagIds.includes(tag.id)} /> {tag.name}
 						</label>
 					))}
 				</fieldset>

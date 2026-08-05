@@ -82,5 +82,40 @@ export default function createAdminContentTypeController(repository) {
 		}
 	}
 
-	return { createCategory, createTag, get, updateArchiveSeo };
+	async function updateTaxonomy(req, res, next) {
+		const type = typeSchema.safeParse(req.params.contentType);
+		const categories = req.params.taxonomy === 'categories';
+		const input = (categories ? categorySchema : tagSchema).safeParse(req.body);
+		if (!type.success || !['categories', 'tags'].includes(req.params.taxonomy))
+			return res.status(404).json({ status: false, message: 'Taxonomy not found' });
+		if (!canEditAll(req)) return res.status(403).json({ status: false, message: 'Forbidden' });
+		if (!input.success)
+			return res.status(400).json({ status: false, message: 'Invalid taxonomy data', errors: input.error.flatten().fieldErrors });
+		try {
+			const result = await (categories
+				? repository.updateCategory(type.data, Number(req.params.id), input.data)
+				: repository.updateTag(type.data, Number(req.params.id), input.data));
+			return result ? res.json({ status: true, data: result }) : res.status(404).json({ status: false, message: 'Taxonomy not found' });
+		} catch (error) {
+			if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({ status: false, message: 'That name or slug is already in use' });
+			return next(error);
+		}
+	}
+
+	async function deleteTaxonomy(req, res, next) {
+		const type = typeSchema.safeParse(req.params.contentType);
+		if (!type.success || !['categories', 'tags'].includes(req.params.taxonomy))
+			return res.status(404).json({ status: false, message: 'Taxonomy not found' });
+		if (!canEditAll(req)) return res.status(403).json({ status: false, message: 'Forbidden' });
+		try {
+			const deleted = await repository.deleteTaxonomy(type.data, req.params.taxonomy, Number(req.params.id));
+			return deleted ? res.status(204).end() : res.status(404).json({ status: false, message: 'Taxonomy not found' });
+		} catch (error) {
+			if (error.code === 'ER_ROW_IS_REFERENCED_2')
+				return res.status(409).json({ status: false, message: 'Remove this taxonomy from its posts before deleting it' });
+			return next(error);
+		}
+	}
+
+	return { createCategory, createTag, deleteTaxonomy, get, updateArchiveSeo, updateTaxonomy };
 }

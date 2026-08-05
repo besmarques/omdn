@@ -1,5 +1,57 @@
 import { useState } from 'react';
-import { useAdminContentType, useCreateCategory, useCreateTag } from '../query/adminContentTypeQuery';
+import { useAdminContentType, useCreateCategory, useCreateTag, useDeleteTaxonomy, useUpdateTaxonomy } from '../query/adminContentTypeQuery';
+
+function TaxonomyRow({ categories, contentType, item, taxonomy }) {
+	const update = useUpdateTaxonomy(contentType, taxonomy);
+	const remove = useDeleteTaxonomy(contentType, taxonomy);
+	const [message, setMessage] = useState('');
+	async function save(event) {
+		event.preventDefault();
+		const form = new FormData(event.currentTarget);
+		const value = categories
+			? { description: form.get('description'), name: form.get('name'), slug: form.get('slug') }
+			: { name: form.get('name') };
+		const result = await update.mutateAsync({ id: item.id, value });
+		setMessage(result.body?.message ?? (result.ok ? 'Updated' : 'Unable to update'));
+	}
+	async function deleteItem() {
+		if (!globalThis.confirm(`Delete ${item.name}?`)) return;
+		const result = await remove.mutateAsync(item.id);
+		setMessage(result.body?.message ?? (result.ok ? 'Deleted' : 'Unable to delete'));
+	}
+	return (
+		<tr>
+			<td colSpan={categories ? 3 : 2}>
+				<form className="flex flex-wrap items-end gap-2" onSubmit={save}>
+					<label>
+						Name
+						<input name="name" defaultValue={item.name} required />
+					</label>
+					{categories && (
+						<>
+							<label>
+								Slug
+								<input name="slug" defaultValue={item.slug} required />
+							</label>
+							<label>
+								Description
+								<input name="description" defaultValue={item.description ?? ''} />
+							</label>
+						</>
+					)}
+					<span>{item.post_count} posts</span>
+					<button type="submit" disabled={update.isPending}>
+						Save
+					</button>
+					<button type="button" disabled={remove.isPending || item.post_count > 0} onClick={deleteItem}>
+						Delete
+					</button>
+					{message && <span>{message}</span>}
+				</form>
+			</td>
+		</tr>
+	);
+}
 
 export default function AdminTaxonomyPage({ contentType, pluralLabel, taxonomy }) {
 	const { data, error, isPending } = useAdminContentType(contentType);
@@ -49,11 +101,7 @@ export default function AdminTaxonomyPage({ contentType, pluralLabel, taxonomy }
 				</thead>
 				<tbody>
 					{items.map((item) => (
-						<tr key={item.id}>
-							<td>{item.name}</td>
-							{categories && <td>{item.slug}</td>}
-							<td>{item.post_count}</td>
-						</tr>
+						<TaxonomyRow categories={categories} contentType={contentType} item={item} key={item.id} taxonomy={taxonomy} />
 					))}
 					{items.length === 0 && (
 						<tr>

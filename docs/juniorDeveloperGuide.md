@@ -980,7 +980,25 @@ Never rely on a hidden frontend button as authorization. Never store a plain pas
 | React StrictMode helps expose unsafe effects                              | Production does not perform StrictMode's development remount check            |
 | Design-system reference route is available                                | Development-only route is excluded                                            |
 
-## 21. Important security rules to preserve
+## 21. Editing posts and taxonomies
+
+The recipe and article tables expose edit links backed by a shared editor route.
+Loading and saving are still authorized by the API: `posts.edit_all` can edit
+any post, while `posts.edit_own` is limited to the owner. Every successful save
+creates a new `post_revisions` row instead of overwriting content. The browser
+sends the last `lock_version`; a stale version receives HTTP 409 so one editor
+cannot silently overwrite another editor's changes. Slug changes preserve the
+old URL as a redirect, and category/tag selections are checked against the
+post's content type inside the transaction.
+
+Category and tag editing is intentionally reusable. The route receives the
+content type and taxonomy instead of having separate recipe/article
+implementations. Referenced taxonomy rows cannot be deleted; remove their post
+assignments first. Category deletion also removes its generic `route_slugs`
+rows in the same transaction because that polymorphic relation is not a normal
+foreign key.
+
+## 22. Important security rules to preserve
 
 - Keep secrets server-side and outside Git.
 - Never use `VITE_*` for private values; Vite bundles them into browser code.
@@ -996,7 +1014,7 @@ Never rely on a hidden frontend button as authorization. Never store a plain pas
 - Do not expose internal exceptions in API responses.
 - Keep rate limits and security tests when refactoring routes.
 
-## 22. Glossary
+## 23. Glossary
 
 | Term                   | Plain-language meaning                                                             |
 | ---------------------- | ---------------------------------------------------------------------------------- |
@@ -1032,7 +1050,7 @@ Never rely on a hidden frontend button as authorization. Never store a plain pas
 | Optimistic concurrency | Rejecting a stale save when another writer changed the resource first              |
 | Cascade                | A configured database action applied to related rows after deletion or update      |
 
-## 23. Recommended learning order
+## 24. Recommended learning order
 
 Do not try to understand every file at once. Use this order:
 

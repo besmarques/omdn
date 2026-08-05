@@ -10,10 +10,22 @@ function StatusIcon({ status }) {
 	);
 }
 
-export default function SeoEditor({ content = '', description, excerpt = '', hasImage = false, path, title, type = 'post' }) {
-	const [seoTitle, setSeoTitle] = useState('');
-	const [seoDescription, setSeoDescription] = useState('');
-	const [focusKeyword, setFocusKeyword] = useState('');
+export default function SeoEditor({
+	content = '',
+	description,
+	excerpt = '',
+	focusKeyword: initialFocusKeyword = '',
+	hasImage = false,
+	isPillar = false,
+	path,
+	seoDescription: initialSeoDescription = '',
+	seoTitle: initialSeoTitle = '',
+	title,
+	type = 'post',
+}) {
+	const [seoTitle, setSeoTitle] = useState(initialSeoTitle ?? '');
+	const [seoDescription, setSeoDescription] = useState(initialSeoDescription ?? '');
+	const [focusKeyword, setFocusKeyword] = useState(initialFocusKeyword ?? '');
 	const previewTitle = seoTitle || (title ? `${title} | O Melhor do Natal` : 'Post title');
 	const previewDescription = seoDescription || description || 'Add a description to preview how this page may appear in search results.';
 	const analysis = analyzeSeo({
@@ -32,7 +44,7 @@ export default function SeoEditor({ content = '', description, excerpt = '', has
 		<fieldset className="grid gap-4">
 			<legend className="text-2xl font-semibold">SEO</legend>
 			<label>
-				<input name="isPillar" type="checkbox" /> This post is pillar content
+				<input defaultChecked={isPillar} name="isPillar" type="checkbox" /> This post is pillar content
 			</label>
 			<label htmlFor="seoTitle">SEO title</label>
 			<input

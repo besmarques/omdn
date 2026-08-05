@@ -46,10 +46,14 @@ export default function AdminContentTypePage({ contentType, createPath, pluralLa
 				<tbody>
 					{data.posts.map((post) => (
 						<tr key={post.id}>
-							<td>{post.title}</td>
+							<td>
+								<Link to={`/admin/${contentType}s/${post.id}/edit`}>{post.title}</Link>
+							</td>
 							<td>{post.author}</td>
 							<td>{post.status}</td>
-							<td>{new Date(post.updated_at).toLocaleDateString()}</td>
+							<td>
+								{new Date(post.updated_at).toLocaleDateString()} <Link to={`/admin/${contentType}s/${post.id}/edit`}>Edit</Link>
+							</td>
 						</tr>
 					))}
 					{data.posts.length === 0 && (

@@ -163,7 +163,7 @@ test('edits and restores a recipe description with the Tiptap proof', async ({ p
 });
 
 test('characterizes registration, authentication, TOTP, and admin access', async ({ page }) => {
-	test.setTimeout(60_000);
+	test.setTimeout(90_000);
 	const database = await createTestDatabaseConnection();
 	let currentAccountRequestCount = 0;
 	const browserErrors = [];
@@ -332,14 +332,83 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			const categoryResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith('/recipe/categories'));
 			await page.getByRole('button', { name: 'Create category' }).click();
 			expect((await categoryResponse).status()).toBe(201);
-			await expect(page.getByText('christmas-cakes')).toBeVisible();
+			await expect(page.locator('tbody').getByLabel('Slug')).toHaveValue('christmas-cakes');
+			const categoryForm = page.locator('tbody form').first();
+			await categoryForm.getByLabel('Name').fill('Holiday cakes');
+			await categoryForm.getByLabel('Slug').fill('holiday-cakes');
+			const categoryUpdate = page.waitForResponse(
+				(response) => response.request().method() === 'PUT' && new URL(response.url()).pathname.includes('/recipe/categories/'),
+			);
+			await categoryForm.getByRole('button', { name: 'Save' }).click();
+			expect((await categoryUpdate).status()).toBe(200);
+			await expect(page.locator('tbody').getByLabel('Name')).toHaveValue('Holiday cakes');
 
 			await page.getByRole('link', { name: 'Recipe tags' }).click();
-			await page.getByLabel('Name').fill('Traditional');
+			await expect(page.getByRole('heading', { name: 'Recipes tags' })).toBeVisible();
+			await page.locator('main > form').getByLabel('Name').fill('Traditional');
 			const tagResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith('/recipe/tags'));
 			await page.getByRole('button', { name: 'Create tag' }).click();
 			expect((await tagResponse).status()).toBe(201);
-			await expect(page.getByText('Traditional')).toBeVisible();
+			await expect(page.locator('tbody').getByLabel('Name')).toHaveValue('Traditional');
+			const tagForm = page.locator('tbody form').first();
+			await tagForm.getByLabel('Name').fill('Heritage');
+			const tagUpdate = page.waitForResponse(
+				(response) => response.request().method() === 'PUT' && new URL(response.url()).pathname.includes('/recipe/tags/'),
+			);
+			await tagForm.getByRole('button', { name: 'Save' }).click();
+			expect((await tagUpdate).status()).toBe(200);
+			await expect(page.locator('tbody').getByLabel('Name')).toHaveValue('Heritage');
+
+			await page.locator('main > form').getByLabel('Name').fill('Temporary');
+			const temporaryTagResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith('/recipe/tags'));
+			await page.getByRole('button', { name: 'Create tag' }).click();
+			expect((await temporaryTagResponse).status()).toBe(201);
+			await expect(page.locator('tbody form')).toHaveCount(2);
+			const temporaryForm = page.locator('tbody form').last();
+			page.once('dialog', (dialog) => dialog.accept());
+			const tagDelete = page.waitForResponse(
+				(response) => response.request().method() === 'DELETE' && new URL(response.url()).pathname.includes('/recipe/tags/'),
+			);
+			await temporaryForm.getByRole('button', { name: 'Delete' }).click();
+			expect((await tagDelete).status()).toBe(204);
+			await expect(page.locator('tbody form')).toHaveCount(1);
+
+			await page.getByRole('link', { name: 'All recipes', exact: true }).click();
+			const recipeRow = page.getByRole('row').filter({ hasText: 'Playwright Christmas cake' });
+			await recipeRow.getByRole('link', { name: 'Edit' }).click();
+			await expect(page.getByRole('heading', { name: 'Edit recipe' })).toBeVisible();
+			await page.getByLabel('Title', { exact: true }).fill('Updated Playwright Christmas cake');
+			await page.getByLabel('Slug').fill('updated-playwright-christmas-cake');
+			await page.getByLabel('Category').selectOption({ label: 'Holiday cakes' });
+			await page.getByLabel('Heritage').check();
+			const postUpdate = page.waitForResponse(
+				(response) =>
+					response.request().method() === 'PUT' &&
+					/\/api\/admin\/content-types\/recipe\/posts\/\d+$/u.test(new URL(response.url()).pathname),
+			);
+			await page.getByRole('button', { name: 'Update recipe' }).click();
+			expect((await postUpdate).status()).toBe(200);
+			await expect(page).toHaveURL(/\/admin\/recipes$/u);
+			await expect(page.getByText('Updated Playwright Christmas cake')).toBeVisible();
+			const [[edited]] = await database.execute(
+				`SELECT posts.lock_version, COUNT(post_revisions.id) AS revision_count, categories.name AS category_name,
+				        GROUP_CONCAT(DISTINCT tags.name ORDER BY tags.name) AS tag_names
+				 FROM posts
+				 INNER JOIN route_slugs ON route_slugs.resource_id = posts.id AND route_slugs.resource_type = 'post' AND route_slugs.kind = 'canonical'
+				 INNER JOIN post_revisions ON post_revisions.post_id = posts.id
+				 INNER JOIN categories ON categories.id = posts.primary_category_id
+				 LEFT JOIN post_tags ON post_tags.post_id = posts.id
+				 LEFT JOIN tags ON tags.id = post_tags.tag_id
+				 WHERE route_slugs.slug = 'updated-playwright-christmas-cake'
+				 GROUP BY posts.id, posts.lock_version, categories.name`,
+			);
+			expect(Number(edited.lock_version)).toBe(2);
+			expect(Number(edited.revision_count)).toBe(2);
+			expect(edited.category_name).toBe('Holiday cakes');
+			expect(edited.tag_names).toBe('Heritage');
+			const oldSlugResponse = await page.request.get('/recipes/playwright-christmas-cake', { maxRedirects: 0 });
+			expect(oldSlugResponse.status()).toBe(301);
+			expect(oldSlugResponse.headers().location).toBe('/recipes/updated-playwright-christmas-cake');
 
 			await page.goto('/recipes');
 			await expect(page).toHaveTitle('Tested Christmas recipe archive');
@@ -360,8 +429,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByLabel('Cooking minutes').fill('30');
 			await page.getByLabel('Yield quantity').fill('6');
 			await page.getByLabel('Yield unit').fill('servings');
-			await page.getByLabel('Category').selectOption({ label: 'Christmas cakes' });
-			await page.getByLabel('Traditional').check();
+			await page.getByLabel('Category').selectOption({ label: 'Holiday cakes' });
+			await page.getByLabel('Heritage').check();
 			await page.getByLabel('Publication').selectOption('schedule');
 			const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
 			await page.getByLabel('Publication date and time').fill(tomorrow);
@@ -390,8 +459,8 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 
 			expect(scheduled.status).toBe('scheduled');
 			expect(scheduled.schedule_status).toBe('pending');
-			expect(scheduled.category_name).toBe('Christmas cakes');
-			expect(scheduled.tag_names).toBe('Traditional');
+			expect(scheduled.category_name).toBe('Holiday cakes');
+			expect(scheduled.tag_names).toBe('Heritage');
 			const privateRecipeResponse = await page.request.get('/api/recipes/scheduled-playwright-pudding');
 			expect(privateRecipeResponse.status()).toBe(404);
 			await database.execute(

@@ -770,6 +770,18 @@ when they do not belong to the post's content type. One parameterized taxonomy
 screen serves recipe/article category and tag routes; there is no global
 cross-type taxonomy management page.
 
+The management tables link to one parameterized post editor for recipes and
+articles. A save validates the type-specific source, locks the post, compares
+the submitted `lock_version`, inserts a new immutable revision, advances the
+revision head, replaces the type-checked category/tag assignments, and
+increments the lock version in one transaction. Changing the slug retains the
+old value as a redirect and creates a new canonical slug. Published posts move
+their published head to the edited revision; draft and scheduled posts retain
+their existing publication state. Category and tag rows use the same
+type-parameterized management screen for updates and deletion. Categories
+retain redirect history when renamed, and deleting an unused category removes
+its polymorphic slug history transactionally.
+
 Tiptap does not control the recipe document. Normal fields continue to own the
 title, timings, yield, ingredients, instructions, media references, and
 taxonomy. The editor allowlist contains only paragraphs, bold, italic, lists,
