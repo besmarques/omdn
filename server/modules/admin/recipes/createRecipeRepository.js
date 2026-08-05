@@ -26,18 +26,19 @@ export default function createRecipeRepository(db) {
 			const [revisionResult] = await connection.execute(
 				`INSERT INTO post_revisions (
 					post_id, revision_number, created_by_user_id, title, excerpt,
-					seo_title, seo_description, layout_key, template_key, header_key,
+					seo_title, seo_description, focus_keyword, layout_key, template_key, header_key,
 					footer_key, region_config, source, source_schema_version,
 					render_version, plain_text, source_sha256
-				 ) VALUES (?, 1, ?, ?, ?, ?, ?, 'full-width', 'recipe', 'minimal',
+				 ) VALUES (?, 1, ?, ?, ?, ?, ?, ?, 'full-width', 'recipe', 'minimal',
 					'standard', ?, ?, 1, 1, ?, ?)`,
 				[
 					postResult.insertId,
 					record.actor.id,
 					record.source.title,
 					record.source.description,
-					record.seoTitle,
-					record.source.description,
+					record.seo.title,
+					record.seo.description,
+					record.seo.focusKeyword,
 					JSON.stringify({ sidebar: [] }),
 					JSON.stringify(record.source),
 					record.plainText,

@@ -238,14 +238,17 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		await test.step('create and publish a recipe from the admin page', async () => {
 			await page.getByRole('link', { name: 'Add recipe' }).click();
 			await expect(page).toHaveURL(/\/admin\/recipes\/new$/u);
-			await page.getByLabel('Title').fill('Playwright Christmas cake');
-			await page.getByLabel('Description').fill('A cake created through the protected administration workflow.');
+			await page.getByLabel('Title', { exact: true }).fill('Playwright Christmas cake');
+			await page.getByLabel('Description', { exact: true }).fill('A cake created through the protected administration workflow.');
 			await page.getByLabel('Ingredients').fill('250 | g | flour\n100 | g | butter');
 			await page.getByLabel('Instructions').fill('Mix the ingredients.\nBake the cake.');
 			await page.getByLabel('Preparation minutes').fill('20');
 			await page.getByLabel('Cooking minutes').fill('40');
 			await page.getByLabel('Yield quantity').fill('8');
 			await page.getByLabel('Yield unit').fill('slices');
+			await page.getByLabel('SEO title').fill('Christmas cake recipe | O Melhor do Natal');
+			await page.getByLabel('Meta description').fill('Bake a festive Christmas cake with this tested recipe.');
+			await page.getByLabel('Focus keyword').fill('christmas cake recipe');
 			await page.getByLabel('Publication').selectOption('publish');
 			const createResponsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/admin/recipes');
 			await page.getByRole('button', { name: 'Create recipe' }).click();
@@ -259,24 +262,32 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 
 			await expect(page).toHaveURL(/\/recipes\/playwright-christmas-cake$/u);
 			await expect(page.getByRole('heading', { level: 1, name: 'Playwright Christmas cake' })).toBeVisible();
+			await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+				'content',
+				'Bake a festive Christmas cake with this tested recipe.',
+			);
+			await expect(page).toHaveTitle('Christmas cake recipe | O Melhor do Natal');
 			const [[created]] = await database.execute(
-				`SELECT posts.status, COUNT(content_events.id) AS event_count
+				`SELECT posts.status, post_revisions.focus_keyword, COUNT(content_events.id) AS event_count
 				 FROM posts
 				 INNER JOIN route_slugs ON route_slugs.resource_id = posts.id AND route_slugs.resource_type = 'post'
+				 INNER JOIN post_revision_heads ON post_revision_heads.post_id = posts.id
+				 INNER JOIN post_revisions ON post_revisions.id = post_revision_heads.published_revision_id
 				 LEFT JOIN content_events ON content_events.post_id = posts.id
 				 WHERE route_slugs.slug = 'playwright-christmas-cake'
-				 GROUP BY posts.id, posts.status`,
+				 GROUP BY posts.id, posts.status, post_revisions.focus_keyword`,
 			);
 
 			expect(created.status).toBe('published');
+			expect(created.focus_keyword).toBe('christmas cake recipe');
 			expect(Number(created.event_count)).toBe(1);
 			await page.goto('/admin');
 		});
 
 		await test.step('schedule a recipe from the admin page', async () => {
 			await page.getByRole('link', { name: 'Add recipe' }).click();
-			await page.getByLabel('Title').fill('Scheduled Playwright pudding');
-			await page.getByLabel('Description').fill('A recipe that should remain private until its scheduled time.');
+			await page.getByLabel('Title', { exact: true }).fill('Scheduled Playwright pudding');
+			await page.getByLabel('Description', { exact: true }).fill('A recipe that should remain private until its scheduled time.');
 			await page.getByLabel('Ingredients').fill('500 | ml | milk');
 			await page.getByLabel('Instructions').fill('Cook the pudding.');
 			await page.getByLabel('Preparation minutes').fill('10');

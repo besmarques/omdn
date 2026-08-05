@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { seoInputSchema } from '#content/seo/seoSchema.js';
+
 const slug = z
 	.string()
 	.trim()
@@ -36,6 +38,7 @@ export const createRecipeSchema = z
 		prepMinutes: z.number().int().nonnegative().max(10_000),
 		publication: z.enum(['draft', 'publish', 'schedule']).default('draft'),
 		publishAt: z.string().datetime({ offset: true }).optional(),
+		seo: seoInputSchema,
 		slug: slug.or(z.literal('')).optional(),
 		title: z.string().trim().min(1).max(200),
 		yield: z.object({

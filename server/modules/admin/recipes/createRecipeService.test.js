@@ -30,12 +30,36 @@ describe('create recipe service', () => {
 				plainText: expect.stringContaining('200 g flour'),
 				publication: 'publish',
 				publishAt: null,
+				seo: {
+					description: input.description,
+					focusKeyword: null,
+					title: `${input.title} | O Melhor do Natal`,
+				},
 				slug: input.slug,
 				source: expect.objectContaining({ kind: 'recipe', schemaVersion: 1, title: input.title }),
 				sourceHash: expect.any(Buffer),
 			}),
 		);
 		expect(repository.mock.calls[0][0].sourceHash).toHaveLength(32);
+	});
+
+	it('preserves shared SEO overrides independently from recipe content', async () => {
+		const repository = vi.fn().mockResolvedValue({ id: 13 });
+		const service = createRecipeService(repository);
+
+		await service(
+			{
+				...input,
+				seo: { description: 'Search description', focusKeyword: 'christmas biscuits', title: 'Search title' },
+			},
+			{ displayName: 'Admin', id: 7 },
+		);
+
+		expect(repository).toHaveBeenCalledWith(
+			expect.objectContaining({
+				seo: { description: 'Search description', focusKeyword: 'christmas biscuits', title: 'Search title' },
+			}),
+		);
 	});
 
 	it('passes a future scheduled publication instant to the repository', async () => {

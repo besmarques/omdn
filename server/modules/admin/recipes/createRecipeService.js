@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { deriveRecipePlainText, parseRecipeArticleSource, serializeRecipeArticleSource } from '#content/recipes/recipeSchema.js';
+import { normalizeSeoInput } from '#content/seo/seoSchema.js';
 
 export function slugifyRecipeTitle(title) {
 	return title
@@ -31,6 +32,10 @@ export default function createRecipeService(repository, { now = () => new Date()
 
 		const slug = input.slug || slugifyRecipeTitle(source.title);
 		const publishAt = input.publishAt ? new Date(input.publishAt) : null;
+		const seo = normalizeSeoInput(input.seo, {
+			description: source.description,
+			title: `${source.title} | O Melhor do Natal`,
+		});
 
 		if (!slug) {
 			throw new TypeError('Recipe title must contain letters or numbers when no slug is provided');
@@ -46,7 +51,7 @@ export default function createRecipeService(repository, { now = () => new Date()
 			plainText: deriveRecipePlainText(source),
 			publication: input.publication,
 			publishAt,
-			seoTitle: `${source.title} | O Melhor do Natal`,
+			seo,
 			slug,
 			source,
 			sourceHash: createHash('sha256').update(serializedSource).digest(),

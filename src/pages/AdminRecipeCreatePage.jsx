@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 
 import { createRecipe } from '../api/adminRecipeApi';
+import SeoEditor from '../content/seo/SeoEditor';
 
 function parseIngredients(value) {
 	return value
@@ -29,11 +29,14 @@ function parseInstructions(value) {
 }
 
 export default function AdminRecipeCreatePage({ canPublish }) {
-	const navigate = useNavigate();
 	const [message, setMessage] = useState('');
 	const [errors, setErrors] = useState({});
 	const [submitting, setSubmitting] = useState(false);
 	const [publication, setPublication] = useState('draft');
+	const [title, setTitle] = useState('');
+	const [slug, setSlug] = useState('');
+	const [description, setDescription] = useState('');
+	const [formVersion, setFormVersion] = useState(0);
 
 	async function handleSubmit(event) {
 		event.preventDefault();
@@ -55,6 +58,11 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				prepMinutes: Number(form.get('prepMinutes')),
 				publication: canPublish ? form.get('publication') : 'draft',
 				...(canPublish && form.get('publication') === 'schedule' ? { publishAt: new Date(form.get('publishAt')).toISOString() } : {}),
+				seo: {
+					description: form.get('seoDescription'),
+					focusKeyword: form.get('focusKeyword'),
+					title: form.get('seoTitle'),
+				},
 				slug: form.get('slug'),
 				title: form.get('title'),
 				yield: { quantity: Number(form.get('yieldQuantity')), unit: form.get('yieldUnit') },
@@ -73,7 +81,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		}
 
 		if (result.body.data.publication === 'publish') {
-			navigate(`/recipes/${result.body.data.slug}`);
+			globalThis.location.assign(`/recipes/${result.body.data.slug}`);
 			return;
 		}
 
@@ -84,6 +92,10 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		);
 		formElement.reset();
 		setPublication('draft');
+		setTitle('');
+		setSlug('');
+		setDescription('');
+		setFormVersion((version) => version + 1);
 	}
 
 	return (
@@ -91,7 +103,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 			<h1 className="text-4xl font-bold">Add recipe</h1>
 			<form className="grid gap-4" onSubmit={handleSubmit}>
 				<label htmlFor="title">Title</label>
-				<input id="title" name="title" required maxLength={200} />
+				<input id="title" name="title" required maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} />
 				<label htmlFor="slug">Slug</label>
 				<input
 					id="slug"
@@ -99,9 +111,18 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 					maxLength={200}
 					pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
 					placeholder="Generated from the title when left blank"
+					value={slug}
+					onChange={(event) => setSlug(event.target.value)}
 				/>
 				<label htmlFor="description">Description</label>
-				<textarea id="description" name="description" required maxLength={5000} />
+				<textarea
+					id="description"
+					name="description"
+					required
+					maxLength={5000}
+					value={description}
+					onChange={(event) => setDescription(event.target.value)}
+				/>
 				<label htmlFor="ingredients">Ingredients</label>
 				<textarea id="ingredients" name="ingredients" required placeholder={'250 | g | farinha\n100 | g | manteiga'} />
 				<p>One ingredient per line: quantity | unit | name</p>
@@ -122,6 +143,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				<input id="yieldQuantity" name="yieldQuantity" type="number" min="0.01" step="any" required />
 				<label htmlFor="yieldUnit">Yield unit</label>
 				<input id="yieldUnit" name="yieldUnit" required maxLength={200} />
+				<SeoEditor key={formVersion} description={description} path={`/recipes/${slug || 'generated-slug'}`} title={title} />
 				{canPublish && (
 					<>
 						<label htmlFor="publication">Publication</label>
