@@ -36,7 +36,7 @@ describe('authentication route layout', () => {
 		expectRedirect({ authenticated: true, permissions: ['users.manage'] }, '/admin');
 	});
 
-	it('redirects other authenticated users to account security', () => {
-		expectRedirect({ authenticated: true, permissions: [] }, '/account/security');
+	it('redirects every authenticated user to the dashboard', () => {
+		expectRedirect({ authenticated: true, permissions: [] }, '/admin');
 	});
 });

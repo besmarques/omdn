@@ -207,17 +207,16 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await expect(page.getByText('Email verified successfully')).toBeVisible();
 		});
 
-		await test.step('deny a subscriber access to the admin page', async () => {
+		await test.step('give a subscriber the common dashboard without editorial tools', async () => {
 			const accountRequestsBeforeLogin = currentAccountRequestCount;
 			await loginThroughPage(page);
-			await expect(page).toHaveURL(/\/account\/security$/u);
-			await expect(page.getByRole('heading', { name: 'Account security' })).toBeVisible();
+			await expect(page).toHaveURL(/\/admin$/u);
+			await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+			await expect(page.getByRole('link', { name: 'Account security' })).toBeVisible();
+			await expect(page.getByRole('link', { name: 'Add recipe' })).toHaveCount(0);
 			expect(currentAccountRequestCount).toBe(accountRequestsBeforeLogin + 1);
 			await page.goto('/login');
-			await expect(page).toHaveURL(/\/account\/security$/u);
-
-			await page.goto('/admin');
-			await expect(page.getByText('Forbidden')).toBeVisible();
+			await expect(page).toHaveURL(/\/admin$/u);
 			await page.getByRole('button', { name: 'Logout' }).click();
 			await expect(page).toHaveURL(/\/login$/u);
 		});
@@ -235,7 +234,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			const accountRequestsBeforeLogin = currentAccountRequestCount;
 			await loginThroughPage(page);
 			await expect(page).toHaveURL(/\/admin$/u);
-			await expect(page.getByText('You have access to this admin route')).toBeVisible();
+			await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 			expect(currentAccountRequestCount).toBe(accountRequestsBeforeLogin + 1);
 			await page.goto('/login');
 			await expect(page).toHaveURL(/\/admin$/u);
@@ -376,7 +375,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 
 		await test.step('enable TOTP in the authenticated browser session', async () => {
 			await page.getByRole('link', { name: 'Account security' }).click();
-			await expect(page).toHaveURL(/\/account\/security$/u);
+			await expect(page).toHaveURL(/\/admin\/security$/u);
 			await page.getByRole('button', { name: 'Set up authenticator' }).click();
 			await expect(page.getByAltText('Authenticator setup QR code')).toBeVisible();
 
@@ -418,7 +417,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByLabel('Authenticator or recovery code').fill(generateTotp(totpSecret));
 			await page.getByRole('button', { name: 'Verify and login' }).click();
 			await expect(page).toHaveURL(/\/admin$/u);
-			await expect(page.getByText('You have access to this admin route')).toBeVisible();
+			await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 			expect(currentAccountRequestCount).toBe(accountRequestsBeforeLogin + 1);
 
 			await page.getByRole('button', { name: 'Logout' }).click();
@@ -431,7 +430,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByLabel('Authenticator or recovery code').fill(recoveryCode);
 			await page.getByRole('button', { name: 'Verify and login' }).click();
 			await expect(page).toHaveURL(/\/admin$/u);
-			await expect(page.getByText('You have access to this admin route')).toBeVisible();
+			await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 			expect(currentAccountRequestCount).toBe(accountRequestsBeforeLogin + 1);
 			await page.getByRole('button', { name: 'Logout' }).click();
 			await expect(page).toHaveURL(/\/login$/u);

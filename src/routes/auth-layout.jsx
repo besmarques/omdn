@@ -14,7 +14,7 @@ export function loader({ context }) {
 	const principal = context.get(principalContext);
 
 	if (principal.authenticated) {
-		throw redirect(principal.permissions.includes('users.manage') ? '/admin' : '/account/security');
+		throw redirect('/admin');
 	}
 
 	return null;

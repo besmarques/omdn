@@ -1,24 +1,13 @@
 import { useCurrentAccount } from '@/query/currentAccountQuery';
-import { Link } from 'react-router';
 
-export default function AdminPage({ authorized }) {
+export default function AdminPage() {
 	const { data: account } = useCurrentAccount();
 
 	return (
-		<main>
-			<h1>Admin</h1>
-			<p>{authorized ? 'You have access to this admin route' : 'Forbidden'}</p>
-			{authorized && account.authenticated && <p>Signed in as {account.user.email}</p>}
-			{authorized && (
-				<>
-					<Link prefetch="render" to="/admin/recipes/new">
-						Add recipe
-					</Link>{' '}
-					<Link prefetch="render" to="/admin/articles/new">
-						Add article
-					</Link>
-				</>
-			)}
+		<main className="p-6">
+			<h1 className="text-4xl font-bold">Dashboard</h1>
+			<p>Welcome, {account.user.displayName || account.user.email}.</p>
+			<p>Your available tools are based on your account permissions.</p>
 		</main>
 	);
 }

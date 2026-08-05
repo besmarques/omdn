@@ -18,15 +18,8 @@ export default function LoginPage() {
 
 	async function finishAuthenticatedLogin() {
 		queryClient.removeQueries({ queryKey: currentAccountQueryKey, exact: true });
-		const account = await queryClient.fetchQuery(currentAccountQueryOptions());
-		const permissions = account.permissions ?? [];
-
-		if (permissions.includes('users.manage')) {
-			navigate('/admin');
-			return;
-		}
-
-		navigate('/account/security');
+		await queryClient.fetchQuery(currentAccountQueryOptions());
+		navigate('/admin');
 	}
 
 	async function handleSubmit(event) {

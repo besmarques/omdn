@@ -20,7 +20,7 @@ describe('admin recipe creation route', () => {
 		expect(loader({ context: contextWithPermissions(['posts.create', 'posts.publish_all']) })).toEqual({ canPublish: true });
 	});
 
-	it('redirects an account without recipe creation permission to the homepage', () => {
+	it('redirects an account without recipe creation permission to the dashboard', () => {
 		for (const permissions of [[], ['users.manage']]) {
 			try {
 				loader({ context: contextWithPermissions(permissions) });
@@ -28,7 +28,7 @@ describe('admin recipe creation route', () => {
 			} catch (error) {
 				expect(error).toBeInstanceOf(Response);
 				expect(error.status).toBe(302);
-				expect(error.headers.get('Location')).toBe('/');
+				expect(error.headers.get('Location')).toBe('/admin');
 			}
 		}
 	});

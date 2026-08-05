@@ -1,6 +1,6 @@
-import { Outlet, redirect } from 'react-router';
+import { redirect } from 'react-router';
 
-import SiteHeader from '../components/SiteHeader';
+import AdminLayout from '../components/admin/AdminLayout';
 import { normalizeCurrentAccount, useCurrentAccount } from '../query/currentAccountQuery';
 
 import { principalContext } from '#framework/contexts';
@@ -26,10 +26,9 @@ export default function PrivateLayout({ loaderData }) {
 		initialData: () => normalizeCurrentAccount(loaderData.principal),
 	});
 
-	return (
-		<>
-			<SiteHeader principal={account} />
-			<Outlet />
-		</>
-	);
+	if (!account.authenticated) {
+		return null;
+	}
+
+	return <AdminLayout account={account} />;
 }

@@ -8,7 +8,7 @@ export function loader({ context }) {
 	const principal = context.get(principalContext);
 
 	if (!principal.permissions.includes('posts.create')) {
-		throw redirect('/');
+		throw redirect('/admin');
 	}
 
 	return {

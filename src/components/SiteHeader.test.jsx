@@ -7,11 +7,11 @@ import { describe, expect, it } from 'vitest';
 import SiteHeader from './SiteHeader';
 import createQueryClient from '../query/createQueryClient';
 
-function renderHeader(principal) {
+function renderHeader() {
 	return renderToStaticMarkup(
 		<QueryClientProvider client={createQueryClient()}>
 			<MemoryRouter>
-				<SiteHeader principal={principal} />
+				<SiteHeader />
 			</MemoryRouter>
 		</QueryClientProvider>,
 	);
@@ -29,18 +29,13 @@ describe('site header', () => {
 		expect(html).not.toContain('Logout');
 	});
 
-	it('shows account navigation and logout to authenticated users', () => {
-		const html = renderHeader({
-			authenticated: true,
-			permissions: ['users.manage'],
-			user: { email: 'admin@example.com' },
-		});
+	it('keeps private account controls out of the public website header', () => {
+		const html = renderHeader();
 
-		expect(html).toContain('Account security');
 		expect(html).toContain('href="/recipes"');
-		expect(html).toContain('Admin');
-		expect(html).toContain('Logout');
-		expect(html).toContain('admin@example.com');
-		expect(html).not.toContain('Register');
+		expect(html).toContain('Login');
+		expect(html).toContain('Register');
+		expect(html).not.toContain('Account security');
+		expect(html).not.toContain('Logout');
 	});
 });

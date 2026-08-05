@@ -198,7 +198,7 @@ export default function AccountSecurityPage() {
 
 			{message && <p>{message}</p>}
 			<p>
-				<Link to={account.permissions.includes('users.manage') ? '/admin' : '/'}>Back</Link>
+				<Link to="/admin">Back to dashboard</Link>
 			</p>
 		</main>
 	);

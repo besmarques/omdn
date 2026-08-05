@@ -753,6 +753,12 @@ plus its application schema, editor fields, renderer, SEO analysis, and
 structured-data registration. Disabling a type prevents new application use;
 the registry row remains while posts reference it.
 
+The public website and authenticated dashboard use separate presentation
+shells. Every authenticated account lands on `/admin` and always receives the
+dashboard and account-security navigation. Editorial and administrative links
+are derived from permission codes, never from hard-coded role names. Route
+loaders and API middleware independently enforce the same capabilities.
+
 Tiptap does not control the recipe document. Normal fields continue to own the
 title, timings, yield, ingredients, instructions, media references, and
 taxonomy. The editor allowlist contains only paragraphs, bold, italic, lists,

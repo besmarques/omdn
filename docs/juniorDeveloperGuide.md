@@ -384,6 +384,13 @@ environments receive it before application code can write that type. A database
 row alone does not make a type usable: its schema, editor, renderer, SEO, and
 structured-data registrations must ship in the same deployment.
 
+The public website header is deliberately account-independent so public HTML
+can remain cacheable. Authenticated users work inside the separate `/admin`
+shell. Subscribers still receive dashboard and account-security access, while
+post, user, role, and settings navigation appears only when the cached account
+snapshot contains the corresponding permission. That cache controls
+presentation only; loaders and APIs remain the authorization boundary.
+
 For a production page request, the current frontend works like this:
 
 - Express serves fingerprinted assets itself and sends document requests to React Router.
