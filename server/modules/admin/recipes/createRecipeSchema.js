@@ -35,7 +35,7 @@ export const createRecipeSchema = z
 			.max(100),
 		prepMinutes: z.number().int().nonnegative().max(10_000),
 		publish: z.boolean().default(false),
-		slug,
+		slug: slug.or(z.literal('')).optional(),
 		title: z.string().trim().min(1).max(200),
 		yield: z.object({
 			quantity: z.number().positive().max(1_000_000),

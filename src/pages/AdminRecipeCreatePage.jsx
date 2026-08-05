@@ -87,7 +87,13 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				<label htmlFor="title">Title</label>
 				<input id="title" name="title" required maxLength={200} />
 				<label htmlFor="slug">Slug</label>
-				<input id="slug" name="slug" required maxLength={200} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+				<input
+					id="slug"
+					name="slug"
+					maxLength={200}
+					pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+					placeholder="Generated from the title when left blank"
+				/>
 				<label htmlFor="description">Description</label>
 				<textarea id="description" name="description" required maxLength={5000} />
 				<label htmlFor="ingredients">Ingredients</label>

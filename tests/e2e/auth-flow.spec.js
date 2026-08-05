@@ -239,7 +239,6 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByRole('link', { name: 'Add recipe' }).click();
 			await expect(page).toHaveURL(/\/admin\/recipes\/new$/u);
 			await page.getByLabel('Title').fill('Playwright Christmas cake');
-			await page.getByLabel('Slug').fill('playwright-christmas-cake');
 			await page.getByLabel('Description').fill('A cake created through the protected administration workflow.');
 			await page.getByLabel('Ingredients').fill('250 | g | flour\n100 | g | butter');
 			await page.getByLabel('Instructions').fill('Mix the ingredients.\nBake the cake.');
@@ -253,6 +252,10 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			const createResponse = await createResponsePromise;
 
 			await expectApiResponse(createResponse, 201);
+			await expect(createResponse.json()).resolves.toMatchObject({
+				data: { published: true, slug: 'playwright-christmas-cake' },
+				status: true,
+			});
 
 			await expect(page).toHaveURL(/\/recipes\/playwright-christmas-cake$/u);
 			await expect(page.getByRole('heading', { level: 1, name: 'Playwright Christmas cake' })).toBeVisible();

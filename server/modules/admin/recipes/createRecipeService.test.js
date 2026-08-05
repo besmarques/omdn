@@ -36,4 +36,15 @@ describe('create recipe service', () => {
 		);
 		expect(repository.mock.calls[0][0].sourceHash).toHaveLength(32);
 	});
+
+	it('generates a normalized slug from the title when the slug is empty', async () => {
+		const repository = vi.fn().mockImplementation(async (record) => ({ id: 11, slug: record.slug }));
+		const service = createRecipeService(repository);
+
+		await expect(service({ ...input, slug: '', title: 'Bolo de Maçã & Canela!' }, { displayName: 'Admin', id: 7 })).resolves.toEqual({
+			id: 11,
+			slug: 'bolo-de-maca-canela',
+		});
+		expect(repository).toHaveBeenCalledWith(expect.objectContaining({ slug: 'bolo-de-maca-canela' }));
+	});
 });
