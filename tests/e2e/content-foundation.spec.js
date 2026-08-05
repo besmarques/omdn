@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+import createPublicRecipeRepository from '#server/modules/content/recipes/publicRecipeRepository';
+import createPublicRecipeService from '#server/modules/content/recipes/publicRecipeService';
+
 import { applyTestDatabaseSeeds, createTestDatabaseConnection } from './database.js';
 
 const contentTables = [
@@ -84,6 +87,7 @@ test('applies the content schema and scoped editorial seed idempotently', async 
 
 test('enforces revision ownership, canonical slugs, active schedules, and deletion ordering', async () => {
 	const database = await createTestDatabaseConnection();
+	const publicRecipes = createPublicRecipeService(createPublicRecipeRepository(database));
 
 	try {
 		const [userResult] = await database.execute(
@@ -115,7 +119,18 @@ test('enforces revision ownership, canonical slugs, active schedules, and deleti
 				userId,
 				'Content schema recipe',
 				JSON.stringify({ sidebar: [] }),
-				JSON.stringify({ kind: 'recipe', schemaVersion: 1 }),
+				JSON.stringify({
+					cookMinutes: 15,
+					description: 'The immutable published recipe.',
+					difficulty: 'easy',
+					ingredients: [{ id: 'flour', name: 'flour', quantity: '200', unit: 'g' }],
+					instructions: [{ id: 'mix', text: 'Mix the ingredients.' }],
+					kind: 'recipe',
+					prepMinutes: 10,
+					schemaVersion: 1,
+					title: 'Content schema recipe',
+					yield: { quantity: 8, unit: 'servings' },
+				}),
 				'Content schema recipe',
 				Buffer.alloc(32, 1),
 			],
@@ -123,6 +138,33 @@ test('enforces revision ownership, canonical slugs, active schedules, and deleti
 		const revisionId = revisionResult.insertId;
 
 		await database.execute('INSERT INTO post_revision_heads (post_id, current_revision_id) VALUES (?, ?)', [postId, revisionId]);
+		const [draftRevisionResult] = await database.execute(
+			`INSERT INTO post_revisions (
+				post_id, revision_number, created_by_user_id, title,
+				layout_key, template_key, header_key, footer_key,
+				region_config, source, source_schema_version, render_version,
+				plain_text, source_sha256
+			 )
+			 SELECT post_id, 2, created_by_user_id, 'New unpublished draft',
+				layout_key, template_key, header_key, footer_key,
+				region_config, JSON_SET(source, '$.title', 'New unpublished draft'),
+				source_schema_version, render_version, 'New unpublished draft', ?
+			 FROM post_revisions
+			 WHERE id = ?`,
+			[Buffer.alloc(32, 2), revisionId],
+		);
+		await database.execute(
+			`UPDATE post_revision_heads
+			 SET current_revision_id = ?, published_revision_id = ?
+			 WHERE post_id = ?`,
+			[draftRevisionResult.insertId, revisionId, postId],
+		);
+		await database.execute(
+			`UPDATE posts
+			 SET status = 'published', published_at = '2026-08-05 00:00:00.000'
+			 WHERE id = ?`,
+			[postId],
+		);
 		await database.execute('INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)', [postId, categoryId]);
 		await database.execute('INSERT INTO post_tags (post_id, tag_id) VALUES (?, ?)', [postId, tagId]);
 		await database.execute(
@@ -141,6 +183,23 @@ test('enforces revision ownership, canonical slugs, active schedules, and deleti
 			"INSERT INTO route_slugs (resource_type, resource_id, slug, kind) VALUES ('post', ?, 'old-content-schema-recipe', 'redirect')",
 			[postId],
 		);
+
+		await expect(publicRecipes.getBySlug('content-schema-recipe')).resolves.toMatchObject({
+			canonicalSlug: 'content-schema-recipe',
+			redirect: false,
+			recipe: {
+				source: { title: 'Content schema recipe' },
+				title: 'Content schema recipe',
+			},
+		});
+		await expect(publicRecipes.getBySlug('old-content-schema-recipe')).resolves.toMatchObject({
+			canonicalSlug: 'content-schema-recipe',
+			redirect: true,
+		});
+		await expect(publicRecipes.list({ limit: 10 })).resolves.toMatchObject({
+			items: [{ id: Number(postId), title: 'Content schema recipe' }],
+			nextCursor: null,
+		});
 		await database.execute(
 			`INSERT INTO publication_schedules (post_id, revision_id, publish_at, created_by_user_id)
 			 VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP(3), INTERVAL 1 DAY), ?)`,
