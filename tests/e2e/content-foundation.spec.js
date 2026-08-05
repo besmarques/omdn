@@ -58,6 +58,7 @@ async function readPostPermissions(database) {
 
 test('applies the content schema and scoped editorial seed idempotently', async () => {
 	const database = await createTestDatabaseConnection();
+	const publicRecipes = createPublicRecipeService(createPublicRecipeRepository(database));
 
 	try {
 		const [tables] = await database.execute(
@@ -78,6 +79,21 @@ test('applies the content schema and scoped editorial seed idempotently', async 
 		await applyTestDatabaseSeeds();
 
 		expect(await readPostPermissions(database)).toEqual(expectedPostPermissions);
+		await expect(publicRecipes.getBySlug('bolachas-de-gengibre')).resolves.toMatchObject({
+			canonicalSlug: 'bolachas-de-gengibre',
+			redirect: false,
+			recipe: {
+				author: { displayName: 'Cozinha OMDN' },
+				source: { kind: 'recipe', schemaVersion: 1 },
+				title: 'Bolachas de gengibre',
+			},
+		});
+		const [[seedCount]] = await database.execute(
+			`SELECT COUNT(*) AS total
+			 FROM route_slugs
+			 WHERE resource_type = 'post' AND slug = 'bolachas-de-gengibre'`,
+		);
+		expect(Number(seedCount.total)).toBe(1);
 		const [[legacyPermission]] = await database.execute("SELECT COUNT(*) AS total FROM permissions WHERE code = 'posts.publish'");
 		expect(Number(legacyPermission.total)).toBe(0);
 	} finally {

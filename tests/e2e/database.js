@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 import mysql from 'mysql2/promise';
 
 const executeFile = promisify(execFile);
-const seedFiles = ['server/database/seeds/001_seed_roles_permissions.sql'];
+const seedFiles = ['server/database/seeds/001_seed_roles_permissions.sql', 'server/database/seeds/002_seed_example_recipe.sql'];
 
 function requiredEnvironmentValue(name) {
 	const value = process.env[name]?.trim();

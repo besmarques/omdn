@@ -105,6 +105,7 @@ omdn/
 |   |       |-- routes.svg
 |   |       `-- feature-flow SVGs
 |-- scripts/
+|   |-- database/run-seeds.js
 |   `-- dev/generate-logic-map.js
 |-- public/favicon.svg
 |-- server/
@@ -118,8 +119,11 @@ omdn/
 |   |   |   |-- 002_create_rate_limit_counters.sql
 |   |   |   |-- 003_create_auth_event_outbox.sql
 |   |   |   |-- 004_simplify_sessions.sql
-|   |   |   `-- 005_add_deleted_user_retention_index.sql
-|   |   `-- seeds/001_seed_roles_permissions.sql
+|   |   |   |-- 005_add_deleted_user_retention_index.sql
+|   |   |   `-- 006_create_content_foundation.sql
+|   |   `-- seeds/
+|   |       |-- 001_seed_roles_permissions.sql
+|   |       `-- 002_seed_example_recipe.sql
 |   |-- dbConnect/
 |   |   |-- createPool.js
 |   |   `-- withConnection.js
@@ -288,6 +292,7 @@ Vite handles frontend HMR itself. Generated Vite dependency-cache files under
 | `npm run db:migrate:status`      | Shows applied and pending database migrations                   |
 | `npm run db:migrate`             | Applies pending migrations to the configured database           |
 | `npm run db:migrate:new -- name` | Creates a timestamped plain-SQL migration                       |
+| `npm run db:seed`                | Applies idempotent development/reference seeds                  |
 
 Playwright rebuilds and uses a separate database named by appending
 `_playwright` to `DB_NAME`. The configured database user must be allowed to
@@ -378,9 +383,13 @@ in MariaDB's `schema_migrations` table:
 5. `server/database/migrations/005_add_deleted_user_retention_index.sql`
 6. `server/database/migrations/006_create_content_foundation.sql`
 
-The role/permission seed remains a separate explicit step:
+The idempotent seeds remain a separate explicit step:
 
 - `server/database/seeds/001_seed_roles_permissions.sql`
+- `server/database/seeds/002_seed_example_recipe.sql`
+
+Apply them to the configured development database with `npm run db:seed`. The
+example recipe is published at `/recipes/bolachas-de-gengibre`.
 
 They create and evolve the authentication, authorization, session, token, TOTP,
 recovery-code, audit, shared rate-limit, authentication-event outbox, and content

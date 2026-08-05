@@ -33,6 +33,7 @@
 		"db:migrate": "node scripts/database/run-dbmate.js migrate",
 		"db:migrate:new": "node scripts/database/run-dbmate.js new",
 		"db:migrate:status": "node scripts/database/run-dbmate.js status",
+		"db:seed": "node --env-file=.env.development scripts/database/run-seeds.js",
 		"generate:secrets": "node scripts/dev/generate-secrets.js"
 	},
 	"dependencies": {
