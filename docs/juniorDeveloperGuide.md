@@ -641,10 +641,10 @@ The initial editorial model behaves like this:
 - Subscribers cannot access editorial operations.
 
 Publication uses separate `posts.publish_own` and `posts.publish_all`
-permissions. This is more precise than the current temporary `posts.publish`
-seed. That old permission will be replaced when the real content migration is
-created; changing the seed before the post tables exist would create a permission
-contract that no service can enforce yet.
+permissions. The content-foundation seed replaces the former coarse
+`posts.publish` permission and assigns the scoped permissions idempotently.
+Content services must still enforce ownership and lifecycle rules; possession of
+a permission code alone is not sufficient to authorize a transition.
 
 The browser can use these permissions to hide or disable controls, but requests
 remain hostile input. A user can modify JavaScript or call the API manually, so

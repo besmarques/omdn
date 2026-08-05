@@ -376,13 +376,15 @@ in MariaDB's `schema_migrations` table:
 3. `server/database/migrations/003_create_auth_event_outbox.sql`
 4. `server/database/migrations/004_simplify_sessions.sql`
 5. `server/database/migrations/005_add_deleted_user_retention_index.sql`
+6. `server/database/migrations/20260805010000_create_content_foundation.sql`
 
 The role/permission seed remains a separate explicit step:
 
 - `server/database/seeds/001_seed_roles_permissions.sql`
 
 They create and evolve the authentication, authorization, session, token, TOTP,
-recovery-code, audit, shared rate-limit, and authentication-event outbox schema.
+recovery-code, audit, shared rate-limit, authentication-event outbox, and content
+foundation schema.
 
 For a new empty database:
 

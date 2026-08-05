@@ -528,10 +528,13 @@ domain configuration—not a migration of Astra or WordPress plugin settings.
 
 `title` and `plain_text` are derived snapshots of validated `source`; the service
 must reject or derive them rather than accepting contradictory client values.
-`excerpt` and SEO fields are explicit editorial metadata. Submitted actor/time
-columns must both be null when there is no `submitted_revision_id`, and all must
-be populated together when entering `in_review`; enforce this with a database
-`CHECK` plus service validation.
+`excerpt` and SEO fields are explicit editorial metadata. When there is no
+`submitted_revision_id`, the submission time must be null. A submitted revision
+must retain its submission time; the service also requires an actor when
+entering `in_review`. The actor may later become null through `ON DELETE SET
+NULL` when account retention removes that user. MariaDB also prohibits a column
+affected by `ON DELETE SET NULL` from participating in a `CHECK`, so actor
+presence is necessarily a service-layer transition invariant.
 
 ### WordPress recipe-field mapping
 
@@ -1162,13 +1165,14 @@ Required security tests:
 
 ## 21. Implementation order
 
-| Phase                                      | Status                                                                   |
-| ------------------------------------------ | ------------------------------------------------------------------------ |
-| 0 — Protect baseline                       | Complete (2026-08-04)                                                    |
-| 1 — Framework Mode migration               | Complete (2026-08-04)                                                    |
-| 2 — Express integration and SSR boundaries | Complete (2026-08-04)                                                    |
-| 3 — Authentication hardening               | In progress; CSRF and session lifetime/revocation policy are implemented |
-| 4–9                                        | Planned                                                                  |
+| Phase                                      | Status                                                |
+| ------------------------------------------ | ----------------------------------------------------- |
+| 0 — Protect baseline                       | Complete (2026-08-04)                                 |
+| 1 — Framework Mode migration               | Complete (2026-08-04)                                 |
+| 2 — Express integration and SSR boundaries | Complete (2026-08-04)                                 |
+| 3 — Authentication hardening               | Complete (2026-08-04)                                 |
+| 4 — Content decisions and schema           | In progress; content-foundation migration implemented |
+| 5–9                                        | Planned                                               |
 
 ### Phase 0: protect the baseline
 
@@ -1226,7 +1230,7 @@ responses remove private query data.
 2. [x] Approve the publication lifecycle and permissions (2026-08-04).
 3. [x] Finalize corrected post/revision/category/slug schema (2026-08-04).
 4. [x] Select and integrate dbmate 2.34.1 (2026-08-04).
-5. Apply content migrations with real MariaDB integration tests.
+5. [x] Apply the content-foundation migration with real MariaDB integration tests (2026-08-05).
 
 ### Phase 5: public publishing and SEO
 
@@ -1280,11 +1284,12 @@ responses remove private query data.
 
 ## 23. Next decision
 
-Authentication hardening and the narrow recipe-source proof are complete. The
-next decision is whether to continue the source proof with general rich content
-or first approve the publication lifecycle and permissions. The general source
-decision still determines the revision schema, renderer, sanitizer, media
-references, and editorial interface.
+Authentication hardening, the narrow recipe-source proof, publication lifecycle,
+permission model, and content-foundation schema are complete. The next delivery
+slice is the first public recipe read path: repositories and services for
+canonical recipe lookup and a paginated recipe list, followed by SSR routes and
+the first content queries. General rich-content editing remains a separate
+decision and must not broaden recipe source version 1 implicitly.
 
 ## 24. Verified runtime and deployment contract
 

@@ -57,6 +57,10 @@ export async function rebuildTestDatabase() {
 		env: process.env,
 	});
 
+	await applyTestDatabaseSeeds();
+}
+
+export async function applyTestDatabaseSeeds() {
 	const seedConnection = await mysql.createConnection({
 		...connectionOptions(),
 		multipleStatements: true,
