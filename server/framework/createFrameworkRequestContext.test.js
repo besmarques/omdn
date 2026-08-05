@@ -29,7 +29,12 @@ describe('Framework request context', () => {
 			permissions: ['users.manage'],
 		});
 		expect(second.get(requestIdContext)).toBe('second-request');
-		expect(second.get(principalContext)).toEqual({ authenticated: false });
+		expect(second.get(principalContext)).toEqual({
+			authenticated: false,
+			permissions: [],
+			roles: [],
+			user: null,
+		});
 	});
 
 	it('copies and freezes principal data so later request mutations cannot leak in', () => {

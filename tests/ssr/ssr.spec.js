@@ -31,6 +31,7 @@ test('keeps public output account-independent and authentication/private routes 
 	const secondNonce = secondPublicResponse.headers()['content-security-policy']?.match(/'nonce-([^']+)'/u)?.[1];
 	const loginResponse = await request.get('/login');
 	const privateResponse = await request.get('/admin', { maxRedirects: 0 });
+	const recipeAdminResponse = await request.get('/admin/recipes/new', { maxRedirects: 0 });
 	const accountSecurityResponse = await request.get('/account/security', { maxRedirects: 0 });
 
 	expect(firstNonce).toBeTruthy();
@@ -41,6 +42,9 @@ test('keeps public output account-independent and authentication/private routes 
 	expect(privateResponse.status()).toBe(302);
 	expect(privateResponse.headers().location).toBe('/login');
 	expect(privateResponse.headers()['cache-control']).toBe('private, no-store');
+	expect(recipeAdminResponse.status()).toBe(302);
+	expect(recipeAdminResponse.headers().location).toBe('/login');
+	expect(recipeAdminResponse.headers()['cache-control']).toBe('private, no-store');
 	expect(accountSecurityResponse.status()).toBe(302);
 	expect(accountSecurityResponse.headers().location).toBe('/login');
 	expect(accountSecurityResponse.headers()['cache-control']).toBe('private, no-store');

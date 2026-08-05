@@ -2,7 +2,12 @@ import { RouterContextProvider } from 'react-router';
 
 import { applicationServicesContext, clockContext, principalContext, requestIdContext } from '#framework/contexts';
 
-const guestPrincipal = Object.freeze({ authenticated: false });
+const guestPrincipal = Object.freeze({
+	authenticated: false,
+	permissions: Object.freeze([]),
+	roles: Object.freeze([]),
+	user: null,
+});
 
 function createPrincipal(auth) {
 	if (!auth) {
