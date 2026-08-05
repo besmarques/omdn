@@ -166,19 +166,19 @@
 <g id="node9" class="node">
 <title>server/modules/auth</title>
 <g id="a_node9"><a xlink:href="../../../server/modules/auth" xlink:title="auth">
-<polygon fill="#c43a47" stroke="#843145" points="674.75,-259.62 622.89,-259.62 620.75,-257.49 620.75,-240.38 672.61,-240.38 674.75,-242.51 674.75,-259.62"/>
-<polyline fill="none" stroke="#843145" points="672.61,-257.49 620.75,-257.49"/>
-<polyline fill="none" stroke="#843145" points="672.61,-257.49 672.61,-240.38"/>
-<polyline fill="none" stroke="#843145" points="672.61,-257.49 674.75,-259.62"/>
-<text xml:space="preserve" text-anchor="start" x="637.25" y="-247.07" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">auth</text>
+<polygon fill="#c43a47" stroke="#843145" points="674.75,-239.62 622.89,-239.62 620.75,-237.49 620.75,-220.38 672.61,-220.38 674.75,-222.51 674.75,-239.62"/>
+<polyline fill="none" stroke="#843145" points="672.61,-237.49 620.75,-237.49"/>
+<polyline fill="none" stroke="#843145" points="672.61,-237.49 672.61,-220.38"/>
+<polyline fill="none" stroke="#843145" points="672.61,-237.49 674.75,-239.62"/>
+<text xml:space="preserve" text-anchor="start" x="637.25" y="-227.07" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">auth</text>
 </a>
 </g>
 </g>
 <!-- server/application/createApplicationServices.js&#45;&gt;server/modules/auth -->
 <g id="edge8" class="edge">
 <title>server/application/createApplicationServices.js&#45;&gt;server/modules/auth</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M405.37,-286.02C408.04,-287.49 410.6,-289.14 413,-291 419.59,-296.12 413.95,-303.53 421,-308 456.98,-330.83 580.04,-335.3 612.75,-308 625.98,-296.96 613.5,-284.07 620.04,-267.71"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="623.33,-262.05 622.54,-269.68 623.23,-263.22 620.25,-268.35 619.81,-268.1 619.38,-267.85 622.36,-262.72 617.09,-266.52 623.33,-262.05"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M405.37,-286.02C408.04,-287.49 410.6,-289.14 413,-291 419.59,-296.12 413.95,-303.53 421,-308 456.98,-330.83 580.78,-336.17 612.75,-308 621.85,-299.98 615.45,-267.9 621.38,-248.33"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="624.35,-242.09 624.18,-249.77 624.35,-243.27 621.79,-248.63 621.34,-248.41 620.89,-248.2 623.44,-242.84 618.5,-247.06 624.35,-242.09"/>
 </g>
 <!-- server/modules/content -->
 <g id="node10" class="node">
@@ -213,8 +213,8 @@
 <!-- server/expressApp.js&#45;&gt;server/modules/auth -->
 <g id="edge19" class="edge">
 <title>server/expressApp.js&#45;&gt;server/modules/auth</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M373.32,-185.31C388.13,-182.36 405.27,-179.45 421,-178 463.43,-174.09 576.76,-155.19 612.75,-178 630.91,-189.5 639.55,-213.59 643.54,-230.74"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="644.9,-237.49 640.43,-231.25 644.2,-236.55 643.03,-230.73 643.52,-230.63 644.01,-230.53 645.18,-236.35 646.6,-230.01 644.9,-237.49"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M373.32,-185.31C388.13,-182.36 405.27,-179.45 421,-178 463.43,-174.09 575.27,-157.73 612.75,-178 625.9,-185.12 634.78,-199.78 640.16,-211.72"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="642.68,-217.9 637.12,-212.61 641.82,-217.11 639.57,-211.61 640.04,-211.42 640.5,-211.23 642.74,-216.73 642.95,-210.23 642.68,-217.9"/>
 </g>
 <!-- server/expressApp.js&#45;&gt;server/modules/content -->
 <g id="edge20" class="edge">
@@ -291,8 +291,8 @@
 <!-- server/middleware&#45;&gt;server/modules/auth -->
 <g id="edge22" class="edge">
 <title>server/middleware&#45;&gt;server/modules/auth</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M551.4,-198.83C570.48,-200.69 594.2,-204.44 612.75,-215 620.37,-219.34 627.02,-226.1 632.36,-232.57"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="636.52,-237.96 629.75,-234.35 635.48,-237.43 631.85,-232.73 632.24,-232.42 632.64,-232.12 636.27,-236.81 634.73,-230.5 636.52,-237.96"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M551.18,-201.31C569.76,-203.95 593.05,-207.7 612.75,-215 613.55,-215.3 614.35,-215.61 615.14,-215.94"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="621.39,-218.93 613.72,-218.75 620.22,-218.93 614.86,-216.36 615.08,-215.91 615.29,-215.46 620.65,-218.02 616.44,-213.07 621.39,-218.93"/>
 </g>
 <!-- server/modules/account&#45;&gt;server/dbConnect -->
 <g id="edge23" class="edge">
@@ -303,20 +303,20 @@
 <!-- server/modules/account&#45;&gt;server/modules/auth -->
 <g id="edge24" class="edge">
 <title>server/modules/account&#45;&gt;server/modules/auth</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M544.15,-293.55C564.48,-293.48 592.49,-290.5 612.75,-277 616.63,-274.41 616.62,-271.44 619.43,-267.05"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="624.02,-261.9 621.72,-269.22 623.69,-263.02 619.74,-267.46 619.37,-267.12 618.99,-266.79 622.94,-262.36 617.01,-265.03 624.02,-261.9"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M544.14,-295.12C565.29,-296.11 594.42,-293.78 612.75,-277 621.79,-268.72 615.14,-260.1 620.72,-247.77"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="624.32,-242.11 623.22,-249.71 624.17,-243.28 620.98,-248.29 620.56,-248.02 620.14,-247.75 623.33,-242.74 617.91,-246.33 624.32,-242.11"/>
 </g>
 <!-- server/modules/auth&#45;&gt;server/dbConnect -->
-<g id="edge27" class="edge">
+<g id="edge28" class="edge">
 <title>server/modules/auth&#45;&gt;server/dbConnect</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M675.02,-260.12C677.67,-261.35 680.29,-262.65 682.75,-264 689.41,-267.66 696.3,-272.2 702.43,-276.56"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="707.76,-280.46 700.25,-278.87 706.61,-280.24 701.82,-276.73 702.11,-276.33 702.41,-275.92 707.2,-279.43 703.97,-273.78 707.76,-280.46"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M674.7,-239.94C677.52,-241.46 680.27,-243.15 682.75,-245 693.72,-253.2 703.66,-264.97 710.86,-274.67"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="714.81,-280.23 708.19,-276.35 713.79,-279.66 710.35,-274.82 710.76,-274.53 711.17,-274.24 714.61,-279.08 713.33,-272.7 714.81,-280.23"/>
 </g>
 <!-- server/modules/auth&#45;&gt;server/middleware -->
-<g id="edge26" class="edge">
+<g id="edge27" class="edge">
 <title>server/modules/auth&#45;&gt;server/middleware</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M643.54,-239.95C638.39,-228.54 627.37,-211.33 612.75,-203 597.1,-194.09 577.77,-190.03 560.65,-188.76"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="553.84,-188.44 560.97,-185.62 554.92,-187.99 560.85,-188.27 560.83,-188.77 560.8,-189.27 554.87,-188.99 560.68,-191.91 553.84,-188.44"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M639.88,-219.97C633.3,-213.74 622.9,-206.76 612.75,-203 596.13,-196.84 576.95,-193.21 560.2,-191.5"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="553.61,-190.94 560.85,-188.39 554.71,-190.53 560.63,-191.03 560.59,-191.53 560.55,-192.03 554.63,-191.53 560.32,-194.67 553.61,-190.94"/>
 </g>
 <!-- server/config -->
 <g id="node11" class="node">
@@ -373,34 +373,52 @@
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="159.76,-240.6 152.81,-243.87 158.7,-241.12 152.76,-241.22 152.76,-240.72 152.75,-240.22 158.68,-240.12 152.71,-237.57 159.76,-240.6"/>
 </g>
 <!-- server/modules/admin&#45;&gt;server/modules/auth -->
-<g id="edge25" class="edge">
+<g id="edge26" class="edge">
 <title>server/modules/admin&#45;&gt;server/modules/auth</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M544.27,-234.1C563.55,-237.09 589.92,-241.18 611.08,-244.46"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="617.99,-245.54 610.59,-247.58 616.86,-245.87 610.99,-244.96 611.07,-244.46 611.15,-243.97 617.01,-244.88 611.55,-241.35 617.99,-245.54"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M544.27,-230C563.55,-230 589.92,-230 611.08,-230"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="617.96,-230 610.96,-233.15 616.89,-230.5 610.96,-230.5 610.96,-230 610.96,-229.5 616.89,-229.5 610.96,-226.85 617.96,-230"/>
+</g>
+<!-- server/modules/media -->
+<g id="node18" class="node">
+<title>server/modules/media</title>
+<g id="a_node18"><a xlink:href="../../../server/modules/media" xlink:title="media">
+<polygon fill="#c43a47" stroke="#843145" points="674.75,-270.62 622.89,-270.62 620.75,-268.49 620.75,-251.38 672.61,-251.38 674.75,-253.51 674.75,-270.62"/>
+<polyline fill="none" stroke="#843145" points="672.61,-268.49 620.75,-268.49"/>
+<polyline fill="none" stroke="#843145" points="672.61,-268.49 672.61,-251.38"/>
+<polyline fill="none" stroke="#843145" points="672.61,-268.49 674.75,-270.62"/>
+<text xml:space="preserve" text-anchor="start" x="633.88" y="-258.07" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">media</text>
+</a>
+</g>
+</g>
+<!-- server/modules/admin&#45;&gt;server/modules/media -->
+<g id="edge25" class="edge">
+<title>server/modules/admin&#45;&gt;server/modules/media</title>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M544.1,-232.13C563.4,-234.19 590.12,-238.04 612.75,-245 614.93,-245.67 617.15,-246.46 619.36,-247.32"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="625.47,-249.93 617.79,-250.07 624.29,-249.97 618.84,-247.63 619.03,-247.17 619.23,-246.72 624.69,-249.05 620.27,-244.28 625.47,-249.93"/>
 </g>
 <!-- server/server.js -->
-<g id="node18" class="node">
+<g id="node19" class="node">
 <title>server/server.js</title>
-<g id="a_node18"><a xlink:href="../../../server/server.js" xlink:title="server.js">
+<g id="a_node19"><a xlink:href="../../../server/server.js" xlink:title="server.js">
 <path fill="#c43a47" stroke="#843145" d="M93.33,-285.62C93.33,-285.62 52.17,-285.62 52.17,-285.62 48.96,-285.62 45.75,-282.42 45.75,-279.21 45.75,-279.21 45.75,-272.79 45.75,-272.79 45.75,-269.58 48.96,-266.38 52.17,-266.38 52.17,-266.38 93.33,-266.38 93.33,-266.38 96.54,-266.38 99.75,-269.58 99.75,-272.79 99.75,-272.79 99.75,-279.21 99.75,-279.21 99.75,-282.42 96.54,-285.62 93.33,-285.62"/>
 <text xml:space="preserve" text-anchor="start" x="54.38" y="-273.07" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">server.js</text>
 </a>
 </g>
 </g>
 <!-- server/server.js&#45;&gt;server/application/createApplication.js -->
-<g id="edge28" class="edge">
+<g id="edge29" class="edge">
 <title>server/server.js&#45;&gt;server/application/createApplication.js</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M100.14,-276C110.7,-276 123.35,-276 135.95,-276"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="142.66,-276 135.66,-279.15 141.59,-276.5 135.66,-276.5 135.66,-276 135.66,-275.5 141.59,-275.5 135.66,-272.85 142.66,-276"/>
 </g>
 <!-- server/server.js&#45;&gt;server/config -->
-<g id="edge29" class="edge">
+<g id="edge30" class="edge">
 <title>server/server.js&#45;&gt;server/config</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M79.85,-285.95C89.89,-301.45 111.41,-331.24 137.5,-347 144.69,-351.35 153.1,-354.44 161.29,-356.64"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="168,-358.2 160.46,-359.68 166.85,-358.45 161.07,-357.1 161.18,-356.61 161.29,-356.12 167.07,-357.48 161.9,-353.54 168,-358.2"/>
 </g>
 <!-- server/server.js&#45;&gt;server/shutdown.js -->
-<g id="edge30" class="edge">
+<g id="edge31" class="edge">
 <title>server/server.js&#45;&gt;server/shutdown.js</title>
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M100.21,-267.73C109.5,-264.76 119.99,-261.32 129.5,-258 133.09,-256.75 133.88,-256.13 137.5,-255 142.56,-253.42 147.9,-251.88 153.22,-250.43"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="159.75,-248.71 153.79,-253.54 158.85,-249.46 153.11,-250.98 152.98,-250.49 152.85,-250.01 158.59,-248.5 152.18,-247.45 159.75,-248.71"/>

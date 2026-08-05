@@ -1,5 +1,5 @@
 import { redirect } from 'react-router';
-import AdminSectionPage from '../pages/AdminSectionPage';
+import { Link } from 'react-router';
 import { principalContext } from '#framework/contexts';
 
 export function loader({ context }) {
@@ -7,5 +7,10 @@ export function loader({ context }) {
 	return null;
 }
 export default function AdminSettingsRoute() {
-	return <AdminSectionPage title="Settings" description="Website settings will be implemented here." />;
+	return (
+		<main className="grid gap-4 p-6">
+			<h1 className="text-4xl font-bold">Settings</h1>
+			<Link to="/admin/settings/media">Media settings</Link>
+		</main>
+	);
 }

@@ -240,6 +240,47 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await expect(page).toHaveURL(/\/admin$/u);
 		});
 
+		await test.step('configure media sizes and generate image variants', async () => {
+			await page.getByRole('link', { name: 'Media settings' }).click();
+			await expect(page.getByRole('heading', { name: 'Media Settings' })).toBeVisible();
+			await expect(page.getByLabel(/JPEG/u)).toBeChecked();
+			await expect(page.getByLabel(/PNG/u)).toBeChecked();
+			const sizes = page.getByRole('group', { name: 'Generated image sizes' });
+			await sizes.getByLabel('Width').first().fill('64');
+			await sizes.getByLabel('Height').first().fill('64');
+			const settingsResponse = page.waitForResponse(
+				(response) => response.request().method() === 'PUT' && new URL(response.url()).pathname === '/api/admin/media/settings',
+			);
+			await page.getByRole('button', { name: 'Save media settings' }).click();
+			expect((await settingsResponse).status()).toBe(200);
+			await expect(page.getByRole('status')).toContainText('Media settings saved');
+
+			await page.getByRole('link', { name: 'Media Library' }).click();
+			await expect(page.getByRole('heading', { name: 'Media Library' })).toBeVisible();
+			await page.getByLabel('Image', { exact: true }).setInputFiles({
+				buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64'),
+				mimeType: 'image/png',
+				name: 'christmas-test.png',
+			});
+			await page.getByLabel('Default alt text').fill('Christmas test image');
+			const uploadResponse = page.waitForResponse(
+				(response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/admin/media',
+			);
+			await page.getByRole('button', { name: 'Upload image' }).click();
+			expect((await uploadResponse).status()).toBe(201);
+			await expect(page.getByText('christmas-test.png')).toBeVisible();
+			await expect(page.getByAltText('Christmas test image')).toBeVisible();
+			const [[asset]] = await database.execute(
+				`SELECT media_assets.mime_type, media_assets.width, media_assets.height, COUNT(media_variants.id) AS variants
+				 FROM media_assets INNER JOIN media_variants ON media_variants.media_asset_id = media_assets.id
+				 WHERE media_assets.original_filename = 'christmas-test.png'
+				 GROUP BY media_assets.id, media_assets.mime_type, media_assets.width, media_assets.height`,
+			);
+			expect(asset.mime_type).toBe('image/png');
+			expect(Number(asset.variants)).toBe(3);
+			await page.goto('/admin');
+		});
+
 		await test.step('create and publish a recipe from the admin page', async () => {
 			await page.getByRole('link', { name: 'Add recipe' }).click();
 			await expect(page).toHaveURL(/\/admin\/recipes\/new$/u);

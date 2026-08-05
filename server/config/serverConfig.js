@@ -1,4 +1,5 @@
 import { Buffer } from 'node:buffer';
+import path from 'node:path';
 
 import { z } from 'zod';
 
@@ -29,6 +30,7 @@ const serverEnvironmentSchema = z
 		SMTP_PASSWORD: optionalString,
 		SMTP_FROM_EMAIL: z.email().optional(),
 		SMTP_FROM_NAME: z.string().trim().min(1).default('O Melhor do Natal'),
+		MEDIA_STORAGE_PATH: optionalString,
 		TOTP_ENCRYPTION_KEY: requiredString('TOTP_ENCRYPTION_KEY').transform((value, context) => {
 			const key = Buffer.from(value, 'base64');
 
@@ -89,6 +91,7 @@ export default function loadServerConfig(environment) {
 		appEnvironment: values.APP_ENV,
 		port: values.PORT,
 		publicBaseUrl: values.PUBLIC_BASE_URL ?? `http://localhost:${values.PORT}`,
+		mediaStoragePath: path.resolve(values.MEDIA_STORAGE_PATH ?? 'storage/media'),
 		database: Object.freeze({
 			host: values.DB_HOST,
 			port: values.DB_PORT,

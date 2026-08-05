@@ -58,13 +58,14 @@ async function getCsrfToken() {
 
 export async function requestApi(path, options = {}, retryCsrf = true) {
 	const method = String(options.method ?? 'GET').toUpperCase();
+	const multipart = typeof FormData !== 'undefined' && options.body instanceof FormData;
 	const requestToken = safeMethods.has(method) ? null : await getCsrfToken();
 	const response = await fetch(path, {
 		credentials: 'include',
 		...options,
 		headers: {
 			accept: 'application/json',
-			...(options.body === undefined ? {} : { 'content-type': 'application/json' }),
+			...(options.body === undefined || multipart ? {} : { 'content-type': 'application/json' }),
 			...(requestToken ? { 'x-csrf-token': requestToken } : {}),
 			...options.headers,
 		},

@@ -95,9 +95,15 @@ export default function AdminLayout({ account }) {
 								</div>
 							</section>
 						)}
+						{canManagePosts && <Link to="/admin/media">Media Library</Link>}
 						{account.permissions.includes('users.manage') && <Link to="/admin/users">Users</Link>}
 						{account.permissions.includes('roles.manage') && <Link to="/admin/roles">Roles</Link>}
-						{account.permissions.includes('settings.manage') && <Link to="/admin/settings">Settings</Link>}
+						{account.permissions.includes('settings.manage') && (
+							<>
+								<Link to="/admin/settings">Settings</Link>
+								<Link to="/admin/settings/media">Media settings</Link>
+							</>
+						)}
 						<Link to="/admin/security">Account security</Link>
 					</nav>
 				</aside>

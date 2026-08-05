@@ -25,6 +25,7 @@ process.env.DB_NAME = testDatabaseName;
 process.env.PORT = String(frontendPort);
 process.env.OMDN_HMR_PORT = String(frontendPort + 1);
 process.env.SMTP_DISABLE_DELIVERY = 'true';
+process.env.MEDIA_STORAGE_PATH = '/tmp/omdn-playwright-media';
 
 export default defineConfig({
 	testDir: './tests/e2e',

@@ -49,3 +49,4 @@ test-results
 !/docs/diagrams/dependency/*.svg
 !/docs/diagrams/runtime/*.svg
 /docs/diagrams/*/source/
+storage/media/

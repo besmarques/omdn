@@ -13,8 +13,12 @@ import createEditPostController from '#server/modules/admin/posts/editPostContro
 import createEditPostRepository from '#server/modules/admin/posts/editPostRepository';
 import createPostLifecycleController from '#server/modules/admin/posts/postLifecycleController';
 import createPostLifecycleRepository from '#server/modules/admin/posts/postLifecycleRepository';
+import createLocalMediaStorage from '#server/modules/media/localMediaStorage';
+import createMediaController from '#server/modules/media/mediaController';
+import createMediaRepository from '#server/modules/media/mediaRepository';
+import createMediaService from '#server/modules/media/mediaService';
 
-export default function createAdminModule(db) {
+export default function createAdminModule(db, config) {
 	const testAdminAccessService = createTestAdminAccessService();
 
 	const testAdminAccessController = createTestAdminAccessController(testAdminAccessService);
@@ -27,12 +31,16 @@ export default function createAdminModule(db) {
 		recipe: createRecipeService(async (record) => record),
 	});
 	const postLifecycleController = createPostLifecycleController(editPostRepository, createPostLifecycleRepository(db));
+	const mediaRepository = createMediaRepository(db);
+	const mediaStorage = createLocalMediaStorage(config?.mediaStoragePath ?? 'storage/media');
+	const mediaController = createMediaController(mediaRepository, createMediaService(mediaRepository, mediaStorage), mediaStorage);
 
 	return createAdminRoutes({
 		articleController,
 		contentTypeController,
 		editPostController,
 		postLifecycleController,
+		mediaController,
 		recipeController,
 		testAdminAccessController,
 	});

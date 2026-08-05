@@ -44,7 +44,7 @@ export default function createApp(db, config, services, { frontend: providedFron
 
 	app.use('/api/auth', createAuthModule(db, createRateLimitStore, authEventService, config, mail));
 
-	app.use('/api/admin', authenticated, createAdminModule(db));
+	app.use('/api/admin', authenticated, createAdminModule(db, config));
 
 	app.use('/api/account', authenticated, createAccountModule(db, createRateLimitStore, authEventService, config));
 

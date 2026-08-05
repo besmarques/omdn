@@ -871,7 +871,9 @@ create upload intent
 
 Initial image policy:
 
-- Allow JPEG, PNG, and WebP.
+- The server-owned supported-format registry initially contains JPEG and PNG.
+- Administrators may enable or disable formats from that registry, but cannot
+  add arbitrary MIME types. Expanding the registry is a reviewed code change.
 - Reject SVG and animated formats until separately threat-modeled.
 - Use generated storage keys, not user filenames.
 - Enforce byte, dimension, and pixel limits.
@@ -881,6 +883,17 @@ Initial image policy:
 - Remove abandoned uploads and unreferenced assets after a grace period.
 
 Evaluate `sharp` when implementing the worker, not during the router migration.
+
+The first media slice is implemented with a local-filesystem storage adapter,
+MariaDB asset/variant metadata, Sharp decoding and metadata-stripping
+re-encoding, and synchronous variant generation. `MEDIA_STORAGE_PATH` controls
+the application-owned binary root; generated UUID-based keys never use the
+client filename. Media Settings owns enabled formats, named width/height/fit
+variants, upload bytes, dimensions, and pixel limits. The authenticated Media
+Library accepts multipart uploads, validates the decoded format rather than the
+reported MIME type, and serves private previews. Production object storage,
+asynchronous quarantine/worker processing, revision-media usage records, and
+the featured/gallery picker remain the next media increments.
 
 ## 11. Publication workflow and scheduling
 
@@ -1315,10 +1328,11 @@ responses remove private query data.
 
 ### Phase 7: media
 
-1. Implement storage adapters.
-2. Add quarantine and media records.
-3. Add worker validation and image processing.
-4. Generate immutable variants and CDN delivery.
+1. **Complete:** local storage adapter, media records, strict decode/re-encode,
+   administrator policy, and immutable named variants.
+2. Add revision-media usage records and shared featured/gallery picker.
+3. Move validation and generation through quarantine to a media worker.
+4. Add the production object-storage adapter and CDN delivery.
 
 ### Phase 8: scheduling and process separation
 

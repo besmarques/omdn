@@ -35,6 +35,8 @@ export default [
 		route('admin/users', 'routes/admin-users.jsx'),
 		route('admin/roles', 'routes/admin-roles.jsx'),
 		route('admin/settings', 'routes/admin-settings.jsx'),
+		route('admin/settings/media', 'routes/admin-media-settings.jsx'),
+		route('admin/media', 'routes/admin-media.jsx'),
 		route('admin/recipes/new', 'routes/admin-recipe-new.jsx'),
 		route('admin/articles/new', 'routes/admin-article-new.jsx'),
 	]),

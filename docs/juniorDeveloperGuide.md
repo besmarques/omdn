@@ -1009,6 +1009,17 @@ trashed post to draft so content never becomes public merely because it was
 restored. All actions require the table's current lock version and return 409
 after a concurrent change.
 
+The Media Library stores image bytes outside MariaDB under
+`MEDIA_STORAGE_PATH`; the database stores durable asset and generated-variant
+metadata. Upload names never become storage paths. Sharp decodes the actual
+bytes, applies orientation, strips unnecessary metadata by re-encoding, and
+generates every named size configured in Media Settings. The initial
+server-owned format registry contains JPEG and PNG. Administrators can select
+from that registry but cannot submit arbitrary extensions or MIME types. Upload
+limits cover bytes, width, height, and decoded pixels. This first slice serves
+authenticated previews; attaching assets to immutable post revisions as
+featured images or ordered galleries is the next media slice.
+
 ## 22. Important security rules to preserve
 
 - Keep secrets server-side and outside Git.
