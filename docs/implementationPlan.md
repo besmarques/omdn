@@ -367,7 +367,7 @@ posts
   id                    PK
   owner_user_id         FK users.id RESTRICT
   author_id             FK authors.id RESTRICT
-  content_type          VARCHAR(32) CHECK ('recipe' initially)
+  content_type          VARCHAR(32) FK → content_types.slug
   status                VARCHAR(32) CHECK approved lifecycle values
   visibility            VARCHAR(16) CHECK public | private
   is_pillar_content     TINYINT(1) DEFAULT 0
@@ -745,6 +745,13 @@ post-type field component such as `RecipeFields`, and `SeoEditor`. `FormField`
 and `FormFeedback` standardize accessible form presentation, while
 `useAsyncAction` standardizes the asynchronous request lifecycle. Post-type
 validation, parsing, and serialization remain explicit domain code.
+
+Post types are registered in the `content_types` table. `posts.content_type`
+references that registry instead of carrying a hard-coded check constraint.
+Adding a post type requires a forward migration that registers its stable slug,
+plus its application schema, editor fields, renderer, SEO analysis, and
+structured-data registration. Disabling a type prevents new application use;
+the registry row remains while posts reference it.
 
 Tiptap does not control the recipe document. Normal fields continue to own the
 title, timings, yield, ingredients, instructions, media references, and

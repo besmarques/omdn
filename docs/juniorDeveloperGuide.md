@@ -377,6 +377,13 @@ public `/api/recipes/archive?page=N` endpoint mirrors the crawlable archive
 loader contract. Publishing through the admin editor invalidates the recipe
 prefix; drafts and scheduled recipes do not invalidate public data immediately.
 
+`content_types` is the database registry for post discriminators. The
+`posts.content_type` foreign key prevents unknown values without hard-coding a
+list into the posts table. Register each future type through a migration so all
+environments receive it before application code can write that type. A database
+row alone does not make a type usable: its schema, editor, renderer, SEO, and
+structured-data registrations must ship in the same deployment.
+
 For a production page request, the current frontend works like this:
 
 - Express serves fingerprinted assets itself and sends document requests to React Router.
