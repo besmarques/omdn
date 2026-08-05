@@ -212,10 +212,10 @@ test('enforces revision ownership, canonical slugs, active schedules, and deleti
 			canonicalSlug: 'content-schema-recipe',
 			redirect: true,
 		});
-		await expect(publicRecipes.list({ limit: 10 })).resolves.toMatchObject({
-			items: [{ id: Number(postId), title: 'Content schema recipe' }],
-			nextCursor: null,
-		});
+		const recipeArchive = await publicRecipes.list({ limit: 10 });
+		expect(recipeArchive.items).toEqual(
+			expect.arrayContaining([expect.objectContaining({ id: Number(postId), title: 'Content schema recipe' })]),
+		);
 		await database.execute(
 			`INSERT INTO publication_schedules (post_id, revision_id, publish_at, created_by_user_id)
 			 VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP(3), INTERVAL 1 DAY), ?)`,

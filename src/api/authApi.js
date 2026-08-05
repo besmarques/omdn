@@ -56,7 +56,7 @@ async function getCsrfToken() {
 	return csrfToken;
 }
 
-async function requestApi(path, options = {}, retryCsrf = true) {
+export async function requestApi(path, options = {}, retryCsrf = true) {
 	const method = String(options.method ?? 'GET').toUpperCase();
 	const requestToken = safeMethods.has(method) ? null : await getCsrfToken();
 	const response = await fetch(path, {
