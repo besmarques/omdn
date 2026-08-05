@@ -20,6 +20,7 @@ function response() {
 const validBody = {
 	cookMinutes: 12,
 	description: 'A recipe.',
+	descriptionHtml: '<p>A recipe.</p>',
 	difficulty: 'easy',
 	ingredients: [{ id: 'flour', name: 'flour' }],
 	instructions: [{ id: 'mix', text: 'Mix.' }],

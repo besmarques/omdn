@@ -732,19 +732,25 @@ Redirects target a resource identity, not another redirect, preventing redirect 
 
 ## 9. Article editor and rendering pipeline
 
-The recipe-description editor decision is complete. Use the self-hosted
-TinyMCE Community edition under GPLv2+ for optional, narrowly formatted recipe
-descriptions. OMDN bundles the editor locally, uses no Tiny Cloud or premium
-plugins, and explicitly configures `licenseKey="gpl"`. Preserve TinyMCE's
-copyright/license material and reassess licensing before any change to OMDN's
-distribution model.
+The post-description editor decision is complete. Use Tiptap's headless React
+integration for optional, narrowly formatted descriptions. OMDN owns the
+toolbar and editor presentation, loads the editor with its route to avoid
+multi-stage layout shifts, and can add
+post-type-specific extensions without replacing the shared field contract.
 
-TinyMCE does not control the recipe document. Normal fields continue to own the
+The editor UI uses a middle application-component layer rather than composing
+every page directly from generic controls. `PostEditor` owns the common form
+shell, submit state, and feedback placement. It composes `PostEditorFields`, a
+post-type field component such as `RecipeFields`, and `SeoEditor`. `FormField`
+and `FormFeedback` standardize accessible form presentation, while
+`useAsyncAction` standardizes the asynchronous request lifecycle. Post-type
+validation, parsing, and serialization remain explicit domain code.
+
+Tiptap does not control the recipe document. Normal fields continue to own the
 title, timings, yield, ingredients, instructions, media references, and
 taxonomy. The editor allowlist contains only paragraphs, bold, italic, lists,
 links, and line breaks. A server-side `sanitize-html` allowlist is the security
-boundary; the browser toolbar and `valid_elements` configuration are only
-authoring assistance.
+boundary; the browser toolbar and Tiptap schema are only authoring assistance.
 
 The development route `/dev/recipe-editor` proves local/offline loading,
 editing, server sanitization, revision serialization/restoration, and rendering.

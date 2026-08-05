@@ -51,6 +51,12 @@ async function expectApiResponse(response, expectedStatus) {
 	return body;
 }
 
+async function fillPostDescription(page, html) {
+	const editor = page.getByRole('textbox', { name: 'Description', exact: true });
+	await expect(editor).toBeVisible();
+	await editor.fill(html.replaceAll(/<[^>]+>/gu, ''));
+}
+
 async function getCsrfToken(request) {
 	const response = await request.get('/api/auth/csrf');
 	const body = await expectApiResponse(response, 200);
@@ -139,16 +145,15 @@ test('composes development page templates independently from layouts and regions
 	await expect(page.getByRole('complementary', { name: 'Related content' })).toHaveCount(0);
 });
 
-test('edits and restores a recipe description with the self-hosted TinyMCE proof', async ({ page }) => {
+test('edits and restores a recipe description with the Tiptap proof', async ({ page }) => {
 	await page.goto('/dev/recipe-editor');
 
 	await expect(page.getByRole('heading', { level: 1, name: 'Recipe description editor proof' })).toBeVisible();
-	await expect(page.locator('.tox-tinymce')).toBeVisible();
-	await expect(page.frameLocator('.tox-edit-area iframe').locator('body')).toContainText('buttery biscuits');
-
-	await page.evaluate(() => {
-		globalThis.tinymce.activeEditor.setContent('<p onclick="alert(1)"><strong>Updated locally</strong><script>alert(1)</script></p>');
-	});
+	const editor = page.getByRole('textbox', { name: 'Description', exact: true });
+	await expect(editor).toContainText('buttery biscuits');
+	await editor.fill('Updated locally');
+	await editor.selectText();
+	await page.getByRole('button', { name: 'Bold' }).click();
 	await page.getByRole('button', { name: 'Save proof revision' }).click();
 
 	await expect(page.getByText('Recipe revision validated, sanitized on the server, restored, and rendered below.')).toBeVisible();
@@ -239,7 +244,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByRole('link', { name: 'Add recipe' }).click();
 			await expect(page).toHaveURL(/\/admin\/recipes\/new$/u);
 			await page.getByLabel('Title', { exact: true }).fill('Playwright Christmas cake');
-			await page.getByLabel('Description', { exact: true }).fill('A cake created through the protected administration workflow.');
+			await fillPostDescription(page, '<p>A cake created through the protected administration workflow.</p>');
 			await page.getByLabel('Excerpt').fill('A short festive cake summary.');
 			await page.getByLabel('Ingredients').fill('250 | g | flour\n100 | g | butter');
 			await page.getByLabel('Instructions').fill('Mix the ingredients.\nBake the cake.');
@@ -288,7 +293,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		await test.step('schedule a recipe from the admin page', async () => {
 			await page.getByRole('link', { name: 'Add recipe' }).click();
 			await page.getByLabel('Title', { exact: true }).fill('Scheduled Playwright pudding');
-			await page.getByLabel('Description', { exact: true }).fill('A recipe that should remain private until its scheduled time.');
+			await fillPostDescription(page, '<p>A recipe that should remain private until its scheduled time.</p>');
 			await page.getByLabel('Ingredients').fill('500 | ml | milk');
 			await page.getByLabel('Instructions').fill('Cook the pudding.');
 			await page.getByLabel('Preparation minutes').fill('10');

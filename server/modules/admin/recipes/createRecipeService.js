@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { deriveRecipePlainText, parseRecipeArticleSource, serializeRecipeArticleSource } from '#content/recipes/recipeSchema.js';
+import { derivePostDescriptionText, sanitizePostDescriptionHtml } from '#content/posts/postDescriptionSanitizer.server.js';
 import { normalizeSeoInput } from '#content/seo/seoSchema.js';
 
 export function slugifyRecipeTitle(title) {
@@ -16,9 +17,12 @@ export function slugifyRecipeTitle(title) {
 
 export default function createRecipeService(repository, { now = () => new Date() } = {}) {
 	return async function createRecipe(input, actor) {
+		const descriptionHtml = sanitizePostDescriptionHtml(input.descriptionHtml);
+		const description = derivePostDescriptionText(descriptionHtml);
 		const source = parseRecipeArticleSource({
 			cookMinutes: input.cookMinutes,
-			description: input.description,
+			description,
+			descriptionHtml,
 			difficulty: input.difficulty,
 			ingredients: input.ingredients,
 			instructions: input.instructions,

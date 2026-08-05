@@ -5,6 +5,7 @@ import createRecipeService from './createRecipeService';
 const input = {
 	cookMinutes: 12,
 	description: 'A simple recipe.',
+	descriptionHtml: '<p>A simple recipe.</p>',
 	difficulty: 'easy',
 	ingredients: [{ id: 'flour', name: 'flour', quantity: '200', unit: 'g' }],
 	instructions: [{ id: 'mix', text: 'Mix everything.' }],
@@ -52,6 +53,29 @@ describe('create recipe service', () => {
 		await service({ ...input, excerpt: 'Short archive summary.' }, { displayName: 'Admin', id: 7 });
 
 		expect(repository).toHaveBeenCalledWith(expect.objectContaining({ excerpt: 'Short archive summary.' }));
+	});
+
+	it('sanitizes rich description HTML and derives its plain-text fallback', async () => {
+		const repository = vi.fn().mockResolvedValue({ id: 15 });
+		const service = createRecipeService(repository);
+
+		await service(
+			{
+				...input,
+				description: 'Untrusted client fallback',
+				descriptionHtml: '<p onclick="bad()"><strong>Safe recipe</strong><script>bad()</script></p>',
+			},
+			{ displayName: 'Admin', id: 7 },
+		);
+
+		expect(repository).toHaveBeenCalledWith(
+			expect.objectContaining({
+				source: expect.objectContaining({
+					description: 'Safe recipe',
+					descriptionHtml: '<p><strong>Safe recipe</strong></p>',
+				}),
+			}),
+		);
 	});
 
 	it('preserves shared SEO overrides independently from recipe content', async () => {

@@ -1,9 +1,14 @@
 # TanStack Query Integration Plan
 
-Implementation status (2026-08-04): phases 1–6 are complete for the
-authentication slice. Phase 7, the first recipe content queries, remains
-planned. Full query dehydration is deliberately deferred because private React
-Router loader data seeds the critical account query directly.
+Implementation status (2026-08-05): phases 1–7 are complete for the currently
+implemented frontend. The current account and TOTP status use private query
+keys; authentication loss and logout remove private cache data; TOTP operations
+use zero-retention mutations and update or invalidate the security cache.
+Recipe archive/detail routes seed stable public query keys from their
+authoritative loader data, numbered archive pages can refetch through the public
+API, and publishing invalidates only the recipe prefix. Full query dehydration
+remains deliberately deferred because React Router loader data seeds critical
+SSR data directly.
 
 ## 1. Objective
 
@@ -384,9 +389,11 @@ The authentication slice is complete when:
 8. Existing unit, browser, SSR, and real-authentication smoke tests pass.
 9. Documentation and diagrams describe the implemented flow.
 
-The content slice is complete when one paginated recipe list and detail page use
-stable query keys, URL-owned filters, mutation invalidation, and measured request
-deduplication.
+The initial content slice is complete: the numbered recipe list and detail page
+use stable query keys, URL-owned pagination, previous-page placeholders, and
+targeted publication invalidation. Search, sort, and filter keys will be added
+when those controls and backend contracts exist; they must follow the same key
+factory rather than creating parallel component state.
 
 ## 11. Rollback strategy
 

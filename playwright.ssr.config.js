@@ -28,6 +28,7 @@ process.env.PORT = String(serverPort);
 process.env.PUBLIC_BASE_URL = `http://127.0.0.1:${serverPort}`;
 process.env.SMTP_HOST = '127.0.0.1';
 process.env.SMTP_FROM_EMAIL = 'no-reply@example.com';
+process.env.SMTP_DISABLE_DELIVERY = 'true';
 
 export default defineConfig({
 	testDir: './tests/ssr',

@@ -60,4 +60,21 @@ describe('public content routes', () => {
 		expect(invalid.status).toBe(400);
 		expect(publicRecipes.list).toHaveBeenCalledWith({ cursor: null, limit: 1 });
 	});
+
+	it('returns numbered archive pages and rejects missing or malformed pages', async () => {
+		const publicRecipes = {
+			getBySlug: vi.fn(),
+			list: vi.fn(),
+			listArchivePage: vi.fn().mockResolvedValueOnce({ items: [], page: 2, totalPages: 3 }).mockResolvedValueOnce(null),
+		};
+		const app = createApp(publicRecipes);
+		const response = await request(app).get('/api/recipes/archive?page=2');
+		const missing = await request(app).get('/api/recipes/archive?page=20');
+		const invalid = await request(app).get('/api/recipes/archive?page=zero');
+
+		expect(response.body).toEqual({ status: true, data: { items: [], page: 2, totalPages: 3 } });
+		expect(publicRecipes.listArchivePage).toHaveBeenCalledWith(2);
+		expect(missing.status).toBe(404);
+		expect(invalid.status).toBe(400);
+	});
 });

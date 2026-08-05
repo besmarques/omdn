@@ -47,5 +47,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
+      - run: npm run maps
+      - name: Verify generated architecture diagrams are current
+        run: git diff --exit-code -- docs/diagrams
       - run: npm run test:e2e
       - run: npm run test:ssr

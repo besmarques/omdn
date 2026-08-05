@@ -363,6 +363,20 @@ cached permissions only control presentation.
 
 `src/root.jsx` is the sole HTML document shell in React Router Framework Mode. It owns global CSS, metadata, the favicon, scroll restoration, Framework scripts, the TanStack Query provider, and the last-resort error document. Each root render creates an isolated query client, which prevents one SSR request from sharing private data with another; the hydrated browser retains its client across renders. The public, authentication, and private layouts render `SiteHeader.jsx` above their route outlet, so every normal page uses the same navigation component. The private layout seeds its loader principal into the current-account query, which supplies account links, the signed-in email, and logout; public pages retain guest links without opening a session or calling `/me`. `src/entry.server.jsx` streams that document on the server, while React Router's default client entry hydrates the same markup in the browser and supplies development `StrictMode`. `src/routes.js` maps every URL to a small module in `src/routes/`; each module currently reuses the corresponding page component from `src/pages/`. The old declarative SPA router has been removed, so this Framework configuration is the only frontend route authority.
 
+The account-security page uses the private `['account', 'security', 'totp']`
+query for TOTP status. TOTP setup, enable, recovery-code regeneration, and
+disable operations use mutations with `gcTime: 0` so codes, passwords, secrets,
+and recovery-code responses are not retained in the mutation cache after the
+operation. Successful operations update or invalidate only the account-security
+prefix.
+
+Public recipe pages use feature-owned keys under `['recipes']`. Numbered archive
+pages include the normalized page in their key, detail pages include the slug,
+and loader results are used as initial query data for SSR and hydration. The
+public `/api/recipes/archive?page=N` endpoint mirrors the crawlable archive
+loader contract. Publishing through the admin editor invalidates the recipe
+prefix; drafts and scheduled recipes do not invalidate public data immediately.
+
 For a production page request, the current frontend works like this:
 
 - Express serves fingerprinted assets itself and sends document requests to React Router.
@@ -575,10 +589,10 @@ using their visible text as identity. This is intentionally a recipe-only
 decision; it does not yet define how arbitrary rich articles will store
 galleries, tables, embeds, or other editor content.
 
-`/dev/recipe-editor` adds a self-hosted TinyMCE Community editor only for the
-optional recipe description. TinyMCE loads in the browser from locally bundled
-npm modules and uses the GPL configuration; it does not contact Tiny Cloud.
-The toolbar exposes only emphasis, lists, and links. When the proof is saved,
+`/dev/recipe-editor` adds the shared Tiptap editor for the optional recipe
+description. Tiptap is bundled with the editor route from local npm modules;
+the stable editor frame avoids swapping through separate loading and textarea
+states. The OMDN-owned toolbar exposes only emphasis, lists, and links. When the proof is saved,
 React Router sends the whole serialized recipe to its server action. The action
 validates its size and recipe schema, sanitizes the HTML with
 `sanitize-html`, serializes/restores the revision, and returns the safe preview.
@@ -850,7 +864,10 @@ npm run db:migrate:new -- describe_the_change
 An existing database created before dbmate needs one explicit
 `npm run db:migrate:baseline`. The command checks evidence for migrations
 001–005 and then records the verified prefix; it does not alter the application
-tables. A new empty database skips baseline and runs `db:migrate` directly.
+tables. A new or deleted database skips baseline and runs `db:migrate`
+directly. The wrapper creates only the explicitly configured `DB_NAME` before
+dbmate applies migrations. `db:migrate:status` remains read-only and reports a
+missing database instead of creating one.
 
 Migration execution is a deployment job, not part of web-server startup. If
 three web instances started simultaneously and all changed the schema, startup
@@ -1030,6 +1047,12 @@ Only two maintained prose documents exist:
 
 The SVG files under `docs/diagrams/` are generated views of code dependencies
 and runtime request flows; they are not separate sources of architecture policy.
+The dependency generator reads JavaScript imports, so a new component appears
+without adding it to a diagram feed. In particular,
+`docs/diagrams/dependency/post-editor.svg` starts at
+`AdminRecipeCreatePage.jsx` and follows its editor dependencies automatically.
+Never edit generated DOT, Mermaid, or SVG files by hand. `npm run check:all`
+regenerates both dependency and runtime diagrams after code checks.
 Use `docs/diagrams/runtime/navigation.svg` for the current guest, TOTP,
 subscriber, administrator, redirect, and logout paths.
 When code and prose disagree, verify the code and tests, then update both of

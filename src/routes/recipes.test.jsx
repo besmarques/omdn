@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, RouterContextProvider } from 'react-router';
 
 import { describe, expect, it, vi } from 'vitest';
@@ -6,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { applicationServicesContext } from '#framework/contexts';
 
 import RecipesRoute, { headers, loader, meta } from './recipes';
+import createQueryClient from '../query/createQueryClient';
 
 function createContext(listArchivePage) {
 	const context = new RouterContextProvider();
@@ -75,25 +77,27 @@ describe('public recipe archive route', () => {
 
 	it('renders recipe links and crawlable numbered navigation', () => {
 		const html = renderToStaticMarkup(
-			<MemoryRouter>
-				<RecipesRoute
-					loaderData={archive({
-						items: [
-							{
-								author: { displayName: 'Maria Natal' },
-								description: 'A recipe.',
-								excerpt: null,
-								id: 1,
-								slug: 'bolachas',
-								title: 'Bolachas',
-							},
-						],
-						page: 2,
-						totalItems: 30,
-						totalPages: 3,
-					})}
-				/>
-			</MemoryRouter>,
+			<QueryClientProvider client={createQueryClient()}>
+				<MemoryRouter>
+					<RecipesRoute
+						loaderData={archive({
+							items: [
+								{
+									author: { displayName: 'Maria Natal' },
+									description: 'A recipe.',
+									excerpt: null,
+									id: 1,
+									slug: 'bolachas',
+									title: 'Bolachas',
+								},
+							],
+							page: 2,
+							totalItems: 30,
+							totalPages: 3,
+						})}
+					/>
+				</MemoryRouter>
+			</QueryClientProvider>,
 		);
 
 		expect(html).toContain('href="/recipes/bolachas"');

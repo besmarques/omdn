@@ -2,6 +2,8 @@ import { data, Link, redirect } from 'react-router';
 
 import { applicationServicesContext } from '#framework/contexts';
 
+import { useRecipeArchive } from '../content/recipes/queries/recipeQueries';
+
 const archiveDescription = 'Receitas de Natal para preparar, partilhar e celebrar.';
 
 function archivePath(page) {
@@ -102,7 +104,8 @@ export function meta({ loaderData }) {
 }
 
 export default function RecipesRoute({ loaderData }) {
-	const { items, page, totalPages } = loaderData;
+	const { data: archive } = useRecipeArchive(loaderData.page, loaderData);
+	const { items, page, totalPages } = archive;
 
 	return (
 		<main className="mx-auto max-w-5xl p-6">

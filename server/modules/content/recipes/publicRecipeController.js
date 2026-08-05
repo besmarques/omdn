@@ -36,6 +36,18 @@ function parseLimit(value) {
 	return Number(value);
 }
 
+function parsePage(value) {
+	if (value === undefined) return 1;
+	if (typeof value !== 'string' || !/^[1-9][0-9]*$/u.test(value)) {
+		throw new TypeError('Invalid recipe archive page');
+	}
+
+	const page = Number(value);
+	if (!Number.isSafeInteger(page)) throw new TypeError('Invalid recipe archive page');
+
+	return page;
+}
+
 function invalidRequest(res, error) {
 	return res.status(400).json({
 		status: false,
@@ -81,5 +93,19 @@ export default function createPublicRecipeController(publicRecipes) {
 		}
 	}
 
-	return { getBySlug, list };
+	async function archive(req, res, next) {
+		try {
+			const result = await publicRecipes.listArchivePage(parsePage(req.query.page));
+
+			if (!result) {
+				return res.status(404).json({ status: false, message: 'Recipe archive page not found' });
+			}
+
+			return res.json({ status: true, data: result });
+		} catch (error) {
+			return error instanceof TypeError ? invalidRequest(res, error) : next(error);
+		}
+	}
+
+	return { archive, getBySlug, list };
 }

@@ -1,6 +1,7 @@
 import { data, redirect } from 'react-router';
 
 import { createPostStructuredData } from '../content/structuredData/structuredDataRegistry';
+import { useRecipe } from '../content/recipes/queries/recipeQueries';
 import PageRenderer from '../presentation/PageRenderer';
 
 import { applicationServicesContext } from '#framework/contexts';
@@ -59,7 +60,7 @@ export function meta({ loaderData }) {
 }
 
 export default function RecipeRoute({ loaderData }) {
-	const { recipe } = loaderData;
+	const { data: recipe } = useRecipe(loaderData.recipe.slug, loaderData.recipe);
 	const { presentation, source } = recipe;
 
 	return (

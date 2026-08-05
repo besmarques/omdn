@@ -32,9 +32,9 @@ async function normalizeRecipe(row, { includeSource = false } = {}) {
 	let source = parsedSource;
 
 	if (parsedSource.descriptionHtml) {
-		const { sanitizeRecipeDescriptionHtml } = await import('#content/recipes/recipeDescriptionSanitizer.server.js');
+		const { sanitizePostDescriptionHtml } = await import('#content/posts/postDescriptionSanitizer.server.js');
 
-		source = { ...parsedSource, descriptionHtml: sanitizeRecipeDescriptionHtml(parsedSource.descriptionHtml) };
+		source = { ...parsedSource, descriptionHtml: sanitizePostDescriptionHtml(parsedSource.descriptionHtml) };
 	}
 	const regionConfig = parseStoredJson(row.region_config, 'region configuration');
 

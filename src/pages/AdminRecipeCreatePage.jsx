@@ -1,8 +1,11 @@
 import { useState, useSyncExternalStore } from 'react';
 
-import { createRecipe } from '../api/adminRecipeApi';
+import PostEditor from '../content/posts/PostEditor';
 import PostEditorFields from '../content/posts/PostEditorFields';
+import RecipeFields from '../content/recipes/RecipeFields';
+import { useCreateRecipeMutation } from '../content/recipes/queries/recipeQueries';
 import SeoEditor from '../content/seo/SeoEditor';
+import useAsyncAction from '../hooks/useAsyncAction';
 
 function parseIngredients(value) {
 	return value
@@ -29,14 +32,20 @@ function parseInstructions(value) {
 		.map((text, index) => ({ id: `step-${index + 1}`, text }));
 }
 
+function plainTextFromHtml(value) {
+	const container = document.createElement('div');
+	container.innerHTML = value;
+	return (container.textContent ?? '').replace(/\s+/gu, ' ').trim();
+}
+
 export default function AdminRecipeCreatePage({ canPublish }) {
-	const [message, setMessage] = useState('');
-	const [errors, setErrors] = useState({});
-	const [submitting, setSubmitting] = useState(false);
+	const createRecipeMutation = useCreateRecipeMutation();
+	const { errors, message, run, setErrors, setMessage, submitting } = useAsyncAction();
 	const [publication, setPublication] = useState('draft');
 	const [title, setTitle] = useState('');
 	const [slug, setSlug] = useState('');
 	const [description, setDescription] = useState('');
+	const [descriptionHtml, setDescriptionHtml] = useState('');
 	const [excerpt, setExcerpt] = useState('');
 	const [ingredients, setIngredients] = useState('');
 	const [instructions, setInstructions] = useState('');
@@ -50,17 +59,12 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 	async function handleSubmit(event) {
 		event.preventDefault();
 		const formElement = event.currentTarget;
-		setErrors({});
-		setMessage('');
-		setSubmitting(true);
-
 		const form = new FormData(formElement);
-		let result;
-
-		try {
-			result = await createRecipe({
+		const result = await run(() =>
+			createRecipeMutation.mutateAsync({
 				cookMinutes: Number(form.get('cookMinutes')),
 				description: form.get('description'),
+				descriptionHtml: form.get('descriptionHtml'),
 				difficulty: form.get('difficulty'),
 				excerpt: form.get('excerpt'),
 				ingredients: parseIngredients(form.get('ingredients')),
@@ -77,13 +81,10 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				slug: form.get('slug'),
 				title: form.get('title'),
 				yield: { quantity: Number(form.get('yieldQuantity')), unit: form.get('yieldUnit') },
-			});
-		} catch (error) {
-			setMessage(error.message || 'Unable to contact the server');
-			return;
-		} finally {
-			setSubmitting(false);
-		}
+			}),
+		);
+
+		if (!result) return;
 
 		if (!result.ok) {
 			setErrors(result.body?.errors ?? {});
@@ -106,6 +107,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		setTitle('');
 		setSlug('');
 		setDescription('');
+		setDescriptionHtml('');
 		setExcerpt('');
 		setIngredients('');
 		setInstructions('');
@@ -113,75 +115,47 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 	}
 
 	return (
-		<main className="mx-auto max-w-3xl p-6">
-			<h1 className="text-4xl font-bold">Add recipe</h1>
-			<form className="grid gap-4" inert={!ready} onSubmit={handleSubmit}>
-				<PostEditorFields
-					canPublish={canPublish}
-					description={description}
-					excerpt={excerpt}
-					onDescriptionChange={(event) => setDescription(event.target.value)}
-					onExcerptChange={(event) => setExcerpt(event.target.value)}
-					onPublicationChange={(event) => setPublication(event.target.value)}
-					onSlugChange={(event) => setSlug(event.target.value)}
-					onTitleChange={(event) => setTitle(event.target.value)}
-					publication={publication}
-					slug={slug}
-					title={title}
-				/>
-				<label htmlFor="ingredients">Ingredients</label>
-				<textarea
-					id="ingredients"
-					name="ingredients"
-					required
-					placeholder={'250 | g | farinha\n100 | g | manteiga'}
-					value={ingredients}
-					onChange={(event) => setIngredients(event.target.value)}
-				/>
-				<p>One ingredient per line: quantity | unit | name</p>
-				<label htmlFor="instructions">Instructions</label>
-				<textarea
-					id="instructions"
-					name="instructions"
-					required
-					placeholder={'Misture os ingredientes.\nLeve ao forno.'}
-					value={instructions}
-					onChange={(event) => setInstructions(event.target.value)}
-				/>
-				<p>One instruction per line.</p>
-				<label htmlFor="prepMinutes">Preparation minutes</label>
-				<input id="prepMinutes" name="prepMinutes" type="number" min="0" required />
-				<label htmlFor="cookMinutes">Cooking minutes</label>
-				<input id="cookMinutes" name="cookMinutes" type="number" min="0" required />
-				<label htmlFor="difficulty">Difficulty</label>
-				<select id="difficulty" name="difficulty" defaultValue="easy">
-					<option value="easy">Easy</option>
-					<option value="medium">Medium</option>
-					<option value="hard">Hard</option>
-				</select>
-				<label htmlFor="yieldQuantity">Yield quantity</label>
-				<input id="yieldQuantity" name="yieldQuantity" type="number" min="0.01" step="any" required />
-				<label htmlFor="yieldUnit">Yield unit</label>
-				<input id="yieldUnit" name="yieldUnit" required maxLength={200} />
-				<SeoEditor
-					key={formVersion}
-					content={`${ingredients}\n${instructions}`}
-					description={description}
-					excerpt={excerpt}
-					path={`/recipes/${slug || 'generated-slug'}`}
-					title={title}
-					type="recipe"
-				/>
-				<button type="submit" disabled={!ready || submitting}>
-					{submitting ? 'Creating…' : 'Create recipe'}
-				</button>
-			</form>
-			{message && <p role="status">{message}</p>}
-			{Object.values(errors)
-				.flat()
-				.map((error) => (
-					<p key={error}>{error}</p>
-				))}
-		</main>
+		<PostEditor
+			errors={errors}
+			message={message}
+			onSubmit={handleSubmit}
+			ready={ready}
+			submitLabel="Create recipe"
+			submitting={submitting}
+			title="Add recipe"
+		>
+			<PostEditorFields
+				canPublish={canPublish}
+				description={description}
+				descriptionHtml={descriptionHtml}
+				excerpt={excerpt}
+				onDescriptionHtmlChange={(value) => {
+					setDescriptionHtml(value);
+					setDescription(plainTextFromHtml(value));
+				}}
+				onExcerptChange={(event) => setExcerpt(event.target.value)}
+				onPublicationChange={(event) => setPublication(event.target.value)}
+				onSlugChange={(event) => setSlug(event.target.value)}
+				onTitleChange={(event) => setTitle(event.target.value)}
+				publication={publication}
+				slug={slug}
+				title={title}
+			/>
+			<RecipeFields
+				ingredients={ingredients}
+				instructions={instructions}
+				onIngredientsChange={(event) => setIngredients(event.target.value)}
+				onInstructionsChange={(event) => setInstructions(event.target.value)}
+			/>
+			<SeoEditor
+				key={formVersion}
+				content={`${ingredients}\n${instructions}`}
+				description={description}
+				excerpt={excerpt}
+				path={`/recipes/${slug || 'generated-slug'}`}
+				title={title}
+				type="recipe"
+			/>
+		</PostEditor>
 	);
 }

@@ -13,6 +13,7 @@ export const createRecipeSchema = z
 	.object({
 		cookMinutes: z.number().int().nonnegative().max(10_000),
 		description: z.string().trim().min(1).max(5000),
+		descriptionHtml: z.string().trim().min(1).max(20000),
 		excerpt: z.string().trim().max(1000).optional(),
 		difficulty: z.enum(['easy', 'medium', 'hard']),
 		ingredients: z

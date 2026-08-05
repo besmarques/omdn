@@ -7,6 +7,7 @@ export default function createContentRoutes({ publicRecipes }) {
 	const controller = createPublicRecipeController(publicRecipes);
 
 	router.get('/recipes', controller.list);
+	router.get('/recipes/archive', controller.archive);
 	router.get('/recipes/:slug', controller.getBySlug);
 
 	return router;

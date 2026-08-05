@@ -24,6 +24,7 @@ process.env.APP_ENV = 'development';
 process.env.DB_NAME = testDatabaseName;
 process.env.PORT = String(frontendPort);
 process.env.OMDN_HMR_PORT = String(frontendPort + 1);
+process.env.SMTP_DISABLE_DELIVERY = 'true';
 
 export default defineConfig({
 	testDir: './tests/e2e',

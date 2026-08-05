@@ -116,6 +116,12 @@ describe('server configuration', () => {
 		expect(config.smtp.enabled).toBe(false);
 	});
 
+	it('can explicitly disable SMTP delivery for isolated test processes', () => {
+		const config = loadServerConfig(createEnvironment({ SMTP_DISABLE_DELIVERY: 'true' }));
+
+		expect(config.smtp.enabled).toBe(false);
+	});
+
 	it('requires SMTP credentials to be configured as a pair', () => {
 		expect(() => loadServerConfig(createEnvironment({ SMTP_PASSWORD: undefined }))).toThrow(
 			'SMTP_USER and SMTP_PASSWORD must be configured together',

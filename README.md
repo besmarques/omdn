@@ -26,7 +26,9 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | `@base-ui/react`           | `^1.6.0`      | Accessible React UI primitives                             |
 | `@tanstack/react-query`    | `^5.101.4`    | Browser cache for backend-owned account and content data   |
 | `@tailwindcss/vite`        | `^4.3.3`      | Tailwind integration for Vite                              |
-| `@tinymce/tinymce-react`   | `^6.3.0`      | React integration for the self-hosted recipe editor        |
+| `@tiptap/react`            | `^3.29.2`     | React integration for the shared rich-text editor          |
+| `@tiptap/starter-kit`      | `^3.29.2`     | Core rich-text editing extensions                          |
+| `@tiptap/extension-link`   | `^3.29.2`     | Configurable rich-text link support                        |
 | `argon2`                   | `^0.45.1`     | Password hashing and verification                          |
 | `class-variance-authority` | `^0.7.1`      | Component variant definitions                              |
 | `clsx`                     | `^2.1.1`      | Conditional class-name composition                         |
@@ -48,7 +50,6 @@ On platforms where `argon2` has no compatible prebuilt binary, npm may also requ
 | `shadcn`                   | `^4.16.0`     | UI component tooling                                       |
 | `tailwind-merge`           | `^3.6.0`      | Tailwind class conflict resolution                         |
 | `tailwindcss`              | `^4.3.3`      | Utility-first CSS framework                                |
-| `tinymce`                  | `^8.8.2`      | Self-hosted Community rich-text editor                     |
 | `tw-animate-css`           | `^1.4.0`      | Tailwind animation utilities                               |
 | `zod`                      | `^4.4.3`      | Configuration and request validation                       |
 
@@ -290,7 +291,7 @@ Vite handles frontend HMR itself. Generated Vite dependency-cache files under
 | `npm run format:check`           | Checks formatting without writing files                         |
 | `npm run db:migrate:baseline`    | Records verified migrations on a legacy OMDN database           |
 | `npm run db:migrate:status`      | Shows applied and pending database migrations                   |
-| `npm run db:migrate`             | Applies pending migrations to the configured database           |
+| `npm run db:migrate`             | Creates the configured database if absent, then migrates it     |
 | `npm run db:migrate:new -- name` | Creates a timestamped plain-SQL migration                       |
 | `npm run db:seed`                | Applies idempotent development/reference seeds                  |
 
@@ -315,14 +316,18 @@ All diagrams intended for reading are SVG files under `docs/diagrams/`. Open
 those files in a browser; the DOT and Mermaid generator sources are kept in
 each output directory's ignored `source/` subdirectory.
 
-`npm run diagram` generates three dependency views while excluding tests,
+`npm run diagram` generates dependency views directly from source imports while excluding tests,
 generated shadcn components, and development-only pages:
 
 - [`application.svg`](docs/diagrams/dependency/application.svg): collapsed application architecture overview.
 - [`backend.svg`](docs/diagrams/dependency/backend.svg): collapsed backend domain overview.
 - [`frontend.svg`](docs/diagrams/dependency/frontend.svg): file-level frontend dependencies.
+- [`post-editor.svg`](docs/diagrams/dependency/post-editor.svg): focused shared post-editor and post-type field composition.
 
-Each SVG has a matching DOT source. Use `npm run diagram:validate` for circular,
+No component list or diagram feed is maintained by hand. Adding, removing, or
+rewiring an imported component changes the next generated graph automatically.
+`npm run check:all` regenerates every diagram as its final task. Each SVG has a
+matching generated DOT source. Use `npm run diagram:validate` for circular,
 orphan, resolution, and dependency-policy checks; those checks intentionally scan
 the complete source tree independently from the presentation-focused diagrams.
 
@@ -336,6 +341,8 @@ email verification, password/TOTP login, permission-based landing pages,
 authenticated auth-page redirects, private-route protection, and logout.
 Rendering reuses Playwright Chromium; install it once with
 `npx playwright install chromium`.
+CI regenerates both map sets and rejects stale committed SVGs, so code changes
+cannot silently leave the architecture diagrams behind.
 
 ## Environment variables
 
@@ -395,7 +402,8 @@ They create and evolve the authentication, authorization, session, token, TOTP,
 recovery-code, audit, shared rate-limit, authentication-event outbox, and content
 foundation schema.
 
-For a new empty database:
+For a new or deleted database (the wrapper creates the explicitly configured
+`DB_NAME` if necessary):
 
 ```bash
 npm run db:migrate
@@ -503,18 +511,32 @@ The frontend now builds with React Router Framework SSR. `src/root.jsx` is the s
 
 ## Design system
 
-The frontend uses Tailwind CSS, shadcn/ui with Base UI primitives, Lucide icons, and shared class/variant utilities. The development-only design-system page previews components, variations, sizes, and states.
+The frontend uses three component layers: shadcn/Base UI primitives under
+`src/components/ui`, reusable application form components under
+`src/components/forms`, and domain components under `src/content`. The shared
+post-editor composition is `PostEditor` → `PostEditorFields`, post-type fields,
+`SeoEditor`, and `FormFeedback`. `FormField` standardizes labels, descriptions,
+controls, and validation feedback; `useAsyncAction` standardizes asynchronous
+form state. A recipe supplies `RecipeFields` without moving recipe validation
+or serialization into generic components. The development-only design-system
+page previews primitives, variations, sizes, and states.
+
+TanStack Query is the browser cache for backend-owned account and content
+state. React Router loaders remain responsible for SSR data, redirects, and
+route authorization; their account, recipe archive, and recipe detail results
+seed stable query keys without an immediate duplicate request. TOTP status is a
+private query, sensitive TOTP operations use zero-retention mutations, and a
+published recipe invalidates the recipe cache prefix. Public recipe queries do
+not contain account state.
 
 The development-only `/dev/page-examples/:example?` route demonstrates the independent page-presentation layers without committing to final styling. `/dev/page-examples/recipe` combines a recipe template, sidebar layout, hero header, related-posts block, and newsletter block. Its content uses a validated, versioned recipe JSON source that round-trips revision data and derives both search text and schema.org `Recipe` structured data. `/dev/page-examples/gift-ideas` combines a gift-ideas template, full-width layout, and minimal header. Database-backed pages will eventually store only validated source data plus allowlisted registry keys and settings—not JSX, import paths, or executable code.
 
-The development-only `/dev/recipe-editor` route proves the selected recipe
-description editor. TinyMCE Community is bundled and served by OMDN without
-Tiny Cloud, configured with `licenseKey="gpl"`, and limited to paragraphs,
-emphasis, lists, and links. Saving the proof submits a serialized recipe to a
-server action, sanitizes the description with the same allowlist, restores the
-revision, and renders the result. TinyMCE is licensed under GPLv2 or later; its
-copyright and license files remain in the installed `tinymce` package. OMDN
-does not use TinyMCE premium plugins or services.
+The development-only `/dev/recipe-editor` route proves the shared post
+description editor. Tiptap is bundled with the editor route and
+uses an OMDN-owned toolbar limited to paragraphs, emphasis, lists, and links.
+Saving the proof submits a serialized recipe to a server action, sanitizes the
+description with the same allowlist, restores the revision, and renders the
+result.
 
 ## Deployment
 

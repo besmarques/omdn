@@ -1,67 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
-import { disableTotp, enableTotp, getTotpStatus, regenerateTotpRecoveryCodes, setupTotp } from '@/api/authApi';
+import { disableTotp, enableTotp, regenerateTotpRecoveryCodes, setupTotp } from '@/api/authApi';
+import { accountSecurityQueryKeys, useTotpStatus } from '@/query/accountSecurityQuery';
 import { useCurrentAccount } from '@/query/currentAccountQuery';
 
 export default function AccountSecurityPage() {
 	const { data: account } = useCurrentAccount();
-	const [enabled, setEnabled] = useState(null);
+	const queryClient = useQueryClient();
+	const { data: totpStatus, error: statusError, isPending: statusPending } = useTotpStatus();
+	const enabled = totpStatus?.enabled ?? null;
 	const [setup, setSetup] = useState(null);
 	const [setupCode, setSetupCode] = useState('');
 	const [regenerationCode, setRegenerationCode] = useState('');
 	const [disableCode, setDisableCode] = useState('');
 	const [password, setPassword] = useState('');
 	const [recoveryCodes, setRecoveryCodes] = useState([]);
-	const [message, setMessage] = useState('Loading two-factor authentication status...');
-	const [submitting, setSubmitting] = useState(false);
+	const [message, setMessage] = useState('');
+	const setupMutation = useMutation({ mutationFn: setupTotp, gcTime: 0 });
+	const enableMutation = useMutation({ mutationFn: enableTotp, gcTime: 0 });
+	const regenerateMutation = useMutation({ mutationFn: regenerateTotpRecoveryCodes, gcTime: 0 });
+	const disableMutation = useMutation({ mutationFn: disableTotp, gcTime: 0 });
+	const submitting = [setupMutation, enableMutation, regenerateMutation, disableMutation].some((mutation) => mutation.isPending);
 	const authenticated = Boolean(account?.authenticated);
 
-	useEffect(() => {
-		let active = true;
-
-		async function loadStatus() {
-			try {
-				const result = await getTotpStatus();
-
-				if (!active) return;
-
-				if (!result.ok) {
-					setMessage(result.body?.message ?? 'Unable to load two-factor authentication status');
-					return;
-				}
-
-				setEnabled(Boolean(result.body?.data?.enabled));
-				setMessage('');
-			} catch (error) {
-				if (active) setMessage(error.message || 'Unable to contact the server');
-			}
-		}
-
-		void loadStatus();
-
-		return () => {
-			active = false;
-		};
-	}, []);
-
-	async function runAction(action) {
-		setSubmitting(true);
+	async function runAction(mutation, variables, onResult) {
 		setMessage('');
 
 		try {
-			await action();
+			await onResult(await mutation.mutateAsync(variables));
 		} catch (error) {
 			setMessage(error.message || 'Unable to contact the server');
 		} finally {
-			setSubmitting(false);
+			mutation.reset();
 		}
 	}
 
 	function handleStartSetup() {
-		void runAction(async () => {
-			const result = await setupTotp();
-
+		void runAction(setupMutation, undefined, async (result) => {
 			if (!result.ok) {
 				setMessage(result.body?.message ?? 'Unable to start two-factor authentication setup');
 				return;
@@ -75,15 +52,13 @@ export default function AccountSecurityPage() {
 
 	function handleEnable(event) {
 		event.preventDefault();
-		void runAction(async () => {
-			const result = await enableTotp(setupCode);
-
+		void runAction(enableMutation, setupCode, async (result) => {
 			if (!result.ok) {
 				setMessage(result.body?.message ?? 'Unable to enable two-factor authentication');
 				return;
 			}
 
-			setEnabled(true);
+			queryClient.setQueryData(accountSecurityQueryKeys.totp, { enabled: true });
 			setSetup(null);
 			setSetupCode('');
 			setRecoveryCodes(result.body?.data?.recoveryCodes ?? []);
@@ -93,9 +68,7 @@ export default function AccountSecurityPage() {
 
 	function handleRegenerate(event) {
 		event.preventDefault();
-		void runAction(async () => {
-			const result = await regenerateTotpRecoveryCodes(regenerationCode);
-
+		void runAction(regenerateMutation, regenerationCode, async (result) => {
 			if (!result.ok) {
 				setMessage(result.body?.message ?? 'Unable to regenerate recovery codes');
 				return;
@@ -103,21 +76,20 @@ export default function AccountSecurityPage() {
 
 			setRegenerationCode('');
 			setRecoveryCodes(result.body?.data?.recoveryCodes ?? []);
+			await queryClient.invalidateQueries({ queryKey: accountSecurityQueryKeys.all });
 			setMessage('Recovery codes regenerated. Previous recovery codes no longer work.');
 		});
 	}
 
 	function handleDisable(event) {
 		event.preventDefault();
-		void runAction(async () => {
-			const result = await disableTotp({ code: disableCode, password });
-
+		void runAction(disableMutation, { code: disableCode, password }, async (result) => {
 			if (!result.ok) {
 				setMessage(result.body?.message ?? 'Unable to disable two-factor authentication');
 				return;
 			}
 
-			setEnabled(false);
+			queryClient.setQueryData(accountSecurityQueryKeys.totp, { enabled: false });
 			setDisableCode('');
 			setPassword('');
 			setRecoveryCodes([]);
@@ -138,7 +110,8 @@ export default function AccountSecurityPage() {
 		<main>
 			<h1>Account security</h1>
 			<p>Signed in as {account.user.email}</p>
-			<p>Two-factor authentication: {enabled === null ? 'Loading' : enabled ? 'Enabled' : 'Disabled'}</p>
+			<p>Two-factor authentication: {statusPending ? 'Loading' : enabled ? 'Enabled' : 'Disabled'}</p>
+			{statusError && <p role="alert">{statusError.message}</p>}
 
 			{enabled === false && !setup && (
 				<button type="button" disabled={submitting} onClick={handleStartSetup}>

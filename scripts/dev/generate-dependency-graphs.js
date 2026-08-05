@@ -34,6 +34,12 @@ const graphs = [
 		includeOnly: '^src',
 		outputBaseName: 'frontend',
 	},
+	{
+		name: 'Post editor composition',
+		sources: ['src/pages/AdminRecipeCreatePage.jsx'],
+		includeOnly: '^src',
+		outputBaseName: 'post-editor',
+	},
 ];
 
 function run(command, args) {

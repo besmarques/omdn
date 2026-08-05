@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFetcher } from 'react-router';
 
-import RecipeDescriptionEditor from '@/content/recipes/RecipeDescriptionEditor';
+import PostDescriptionEditor from '@/content/posts/PostDescriptionEditor';
 import { parseRecipeArticleSource, serializeRecipeArticleSource } from '@/content/recipes/recipeSchema';
 import PageRenderer from '@/presentation/PageRenderer';
 
@@ -27,10 +27,10 @@ export default function RecipeEditorProofPage({ page }) {
 	return (
 		<main>
 			<h1>Recipe description editor proof</h1>
-			<p>TinyMCE is loaded from the local application bundle. Only the recipe description uses rich text.</p>
+			<p>The customizable Tiptap editor is loaded from the local application bundle. Only the recipe description uses rich text.</p>
 
 			<label>Recipe description</label>
-			<RecipeDescriptionEditor initialValue={descriptionHtml} onChange={setDescriptionHtml} />
+			<PostDescriptionEditor initialValue={descriptionHtml} onChange={setDescriptionHtml} />
 			<button type="button" disabled={fetcher.state !== 'idle'} onClick={saveRevision}>
 				{fetcher.state === 'idle' ? 'Save proof revision' : 'Saving...'}
 			</button>

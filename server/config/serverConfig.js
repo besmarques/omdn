@@ -22,6 +22,7 @@ const serverEnvironmentSchema = z
 		DB_CONNECTION_LIMIT: z.coerce.number().int().min(1).max(100).default(10),
 		SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must contain at least 32 characters'),
 		SMTP_HOST: optionalString,
+		SMTP_DISABLE_DELIVERY: environmentBoolean,
 		SMTP_PORT: z.coerce.number().int().min(1).max(65_535).default(587),
 		SMTP_SECURE: environmentBoolean,
 		SMTP_USER: optionalString,
@@ -101,7 +102,7 @@ export default function loadServerConfig(environment) {
 			secureCookie: values.APP_ENV === 'production',
 		}),
 		smtp: Object.freeze({
-			enabled: Boolean(values.SMTP_HOST),
+			enabled: Boolean(values.SMTP_HOST) && !values.SMTP_DISABLE_DELIVERY,
 			host: values.SMTP_HOST,
 			port: values.SMTP_PORT,
 			secure: values.SMTP_SECURE,

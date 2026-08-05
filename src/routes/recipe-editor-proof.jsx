@@ -1,6 +1,6 @@
 import { data } from 'react-router';
 
-import { sanitizeRecipeDescriptionHtml } from '@/content/recipes/recipeDescriptionSanitizer.server';
+import { sanitizePostDescriptionHtml } from '@/content/posts/postDescriptionSanitizer.server';
 import { parseRecipeArticleSource, restoreRecipeArticleSource, serializeRecipeArticleSource } from '@/content/recipes/recipeSchema';
 import RecipeEditorProofPage from '@/pages/dev/RecipeEditorProofPage';
 import { pagePresentationExamples } from '@/pages/dev/pagePresentationExamples';
@@ -21,7 +21,7 @@ export async function action({ request }) {
 		const recipe = parseRecipeArticleSource(JSON.parse(serializedSource));
 		const sanitizedRecipe = {
 			...recipe,
-			descriptionHtml: recipe.descriptionHtml ? sanitizeRecipeDescriptionHtml(recipe.descriptionHtml) : undefined,
+			descriptionHtml: recipe.descriptionHtml ? sanitizePostDescriptionHtml(recipe.descriptionHtml) : undefined,
 		};
 
 		return {

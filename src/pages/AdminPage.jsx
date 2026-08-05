@@ -9,7 +9,11 @@ export default function AdminPage({ authorized }) {
 			<h1>Admin</h1>
 			<p>{authorized ? 'You have access to this admin route' : 'Forbidden'}</p>
 			{authorized && account.authenticated && <p>Signed in as {account.user.email}</p>}
-			{authorized && <Link to="/admin/recipes/new">Add recipe</Link>}
+			{authorized && (
+				<Link prefetch="intent" to="/admin/recipes/new">
+					Add recipe
+				</Link>
+			)}
 		</main>
 	);
 }
