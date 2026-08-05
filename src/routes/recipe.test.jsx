@@ -19,6 +19,7 @@ function createContext(publicRecipes) {
 
 const recipe = {
 	author: { displayName: 'Recipe Author' },
+	contentType: 'recipe',
 	description: 'Christmas biscuits.',
 	publishedAt: '2026-08-05T00:00:00.000Z',
 	seo: { description: null, title: null },

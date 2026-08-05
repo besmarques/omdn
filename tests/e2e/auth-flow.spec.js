@@ -250,6 +250,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByLabel('SEO title').fill('Christmas cake recipe | O Melhor do Natal');
 			await page.getByLabel('Meta description').fill('Bake a festive Christmas cake with this tested recipe.');
 			await page.getByLabel('Focus keyword').fill('christmas cake recipe');
+			await page.getByLabel('This post is pillar content').check();
 			await page.getByLabel('Publication').selectOption('publish');
 			const createResponsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/admin/recipes');
 			await page.getByRole('button', { name: 'Create recipe' }).click();
@@ -265,17 +266,19 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			);
 			await expect(page).toHaveTitle('Christmas cake recipe | O Melhor do Natal');
 			const [[created]] = await database.execute(
-				`SELECT posts.status, post_revisions.excerpt, post_revisions.focus_keyword, COUNT(content_events.id) AS event_count
+				`SELECT posts.status, posts.is_pillar_content, post_revisions.excerpt, post_revisions.focus_keyword,
+				        COUNT(content_events.id) AS event_count
 				 FROM posts
 				 INNER JOIN route_slugs ON route_slugs.resource_id = posts.id AND route_slugs.resource_type = 'post'
 				 INNER JOIN post_revision_heads ON post_revision_heads.post_id = posts.id
 				 INNER JOIN post_revisions ON post_revisions.id = post_revision_heads.published_revision_id
 				 LEFT JOIN content_events ON content_events.post_id = posts.id
 				 WHERE route_slugs.slug = 'playwright-christmas-cake'
-				 GROUP BY posts.id, posts.status, post_revisions.excerpt, post_revisions.focus_keyword`,
+				 GROUP BY posts.id, posts.status, posts.is_pillar_content, post_revisions.excerpt, post_revisions.focus_keyword`,
 			);
 
 			expect(created.status).toBe('published');
+			expect(Number(created.is_pillar_content)).toBe(1);
 			expect(created.excerpt).toBe('A short festive cake summary.');
 			expect(created.focus_keyword).toBe('christmas cake recipe');
 			expect(Number(created.event_count)).toBe(1);

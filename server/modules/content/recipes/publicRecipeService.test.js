@@ -17,6 +17,7 @@ const source = {
 
 function createRow(overrides = {}) {
 	return {
+		content_type: 'recipe',
 		id: 42,
 		published_at: new Date('2026-08-05T00:00:00.000Z'),
 		author_id: 7,
@@ -53,6 +54,7 @@ describe('public recipe service', () => {
 			canonicalSlug: 'published-recipe',
 			redirect: true,
 			recipe: {
+				contentType: 'recipe',
 				source,
 				title: 'Published recipe',
 			},

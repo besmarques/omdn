@@ -37,6 +37,7 @@ export const createRecipeSchema = z
 			.min(1)
 			.max(100),
 		prepMinutes: z.number().int().nonnegative().max(10_000),
+		isPillar: z.boolean().default(false),
 		publication: z.enum(['draft', 'publish', 'schedule']).default('draft'),
 		publishAt: z.string().datetime({ offset: true }).optional(),
 		seo: seoInputSchema,

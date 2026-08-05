@@ -39,6 +39,7 @@ async function normalizeRecipe(row, { includeSource = false } = {}) {
 	const regionConfig = parseStoredJson(row.region_config, 'region configuration');
 
 	return {
+		contentType: row.content_type,
 		id: Number(row.id),
 		slug: row.canonical_slug,
 		title: source.title,

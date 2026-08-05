@@ -1,6 +1,6 @@
 import { data, redirect } from 'react-router';
 
-import { createRecipeStructuredData } from '../content/recipes/recipeSchema';
+import { createPostStructuredData } from '../content/structuredData/structuredDataRegistry';
 import PageRenderer from '../presentation/PageRenderer';
 
 import { applicationServicesContext } from '#framework/contexts';
@@ -49,7 +49,7 @@ export function meta({ loaderData }) {
 		{ property: 'og:description', content: description },
 		{ property: 'og:url', content: url },
 		{
-			'script:ld+json': createRecipeStructuredData(recipe.source, {
+			'script:ld+json': createPostStructuredData(recipe.contentType, recipe.source, {
 				author: recipe.author.displayName,
 				datePublished: recipe.publishedAt,
 				url,

@@ -11,6 +11,7 @@ describe('SEO editor', () => {
 		expect(html).toContain('name="seoTitle"');
 		expect(html).toContain('name="seoDescription"');
 		expect(html).toContain('name="focusKeyword"');
+		expect(html).toContain('name="isPillar"');
 		expect(html).toContain('omelhordonatal.pt/recipes/christmas-cake');
 		expect(html).toContain('Recipe description');
 	});

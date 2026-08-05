@@ -28,6 +28,7 @@ describe('create recipe service', () => {
 				actor,
 				createdAt,
 				excerpt: input.description,
+				isPillar: undefined,
 				plainText: expect.stringContaining('200 g flour'),
 				publication: 'publish',
 				publishAt: null,

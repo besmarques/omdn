@@ -1,7 +1,9 @@
 export default function PostEditorFields({
 	canPublish,
 	description,
+	excerpt,
 	onDescriptionChange,
+	onExcerptChange,
 	onPublicationChange,
 	onSlugChange,
 	onTitleChange,
@@ -27,7 +29,14 @@ export default function PostEditorFields({
 			<label htmlFor="description">Description</label>
 			<textarea id="description" name="description" required maxLength={5000} value={description} onChange={onDescriptionChange} />
 			<label htmlFor="excerpt">Excerpt</label>
-			<textarea id="excerpt" name="excerpt" maxLength={1000} placeholder="Defaults to the description when left blank" />
+			<textarea
+				id="excerpt"
+				name="excerpt"
+				maxLength={1000}
+				placeholder="Defaults to the description when left blank"
+				value={excerpt}
+				onChange={onExcerptChange}
+			/>
 			<section aria-labelledby="featured-image-heading">
 				<h2 id="featured-image-heading">Featured image</h2>
 				<p>Image selection will be enabled by the shared media library. Arbitrary image URLs are not accepted.</p>

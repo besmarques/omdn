@@ -10,7 +10,9 @@ describe('shared post editor fields', () => {
 			<PostEditorFields
 				canPublish
 				description="Description"
+				excerpt="Excerpt"
 				onDescriptionChange={vi.fn()}
+				onExcerptChange={vi.fn()}
 				onPublicationChange={vi.fn()}
 				onSlugChange={vi.fn()}
 				onTitleChange={vi.fn()}

@@ -14,12 +14,13 @@ export default function createRecipeRepository(db) {
 			);
 			const [postResult] = await connection.execute(
 				`INSERT INTO posts (
-					owner_user_id, author_id, content_type, status, visibility, published_at
-				 ) VALUES (?, ?, 'recipe', ?, 'public', ?)`,
+					owner_user_id, author_id, content_type, status, visibility, is_pillar_content, published_at
+				 ) VALUES (?, ?, 'recipe', ?, 'public', ?, ?)`,
 				[
 					record.actor.id,
 					authorResult.insertId,
 					published ? 'published' : scheduled ? 'scheduled' : 'draft',
+					record.isPillar,
 					published ? record.createdAt : null,
 				],
 			);

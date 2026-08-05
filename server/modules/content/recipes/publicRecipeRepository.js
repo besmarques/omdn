@@ -1,6 +1,7 @@
 const publicRecipeSelection = `
 	SELECT
 		posts.id,
+		posts.content_type,
 		posts.published_at,
 		authors.id AS author_id,
 		authors.display_name AS author_display_name,
