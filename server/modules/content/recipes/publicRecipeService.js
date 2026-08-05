@@ -26,8 +26,15 @@ function normalizePublishedAt(value) {
 	return date.toISOString();
 }
 
-function normalizeRecipe(row, { includeSource = false } = {}) {
-	const source = parseRecipeArticleSource(parseStoredJson(row.source, 'source'));
+async function normalizeRecipe(row, { includeSource = false } = {}) {
+	const parsedSource = parseRecipeArticleSource(parseStoredJson(row.source, 'source'));
+	let source = parsedSource;
+
+	if (parsedSource.descriptionHtml) {
+		const { sanitizeRecipeDescriptionHtml } = await import('#content/recipes/recipeDescriptionSanitizer.server.js');
+
+		source = { ...parsedSource, descriptionHtml: sanitizeRecipeDescriptionHtml(parsedSource.descriptionHtml) };
+	}
 	const regionConfig = parseStoredJson(row.region_config, 'region configuration');
 
 	return {
@@ -103,7 +110,7 @@ export default function createPublicRecipeService(repository) {
 		return {
 			canonicalSlug: row.canonical_slug,
 			redirect: row.requested_slug_kind === 'redirect',
-			recipe: normalizeRecipe(row, { includeSource: true }),
+			recipe: await normalizeRecipe(row, { includeSource: true }),
 		};
 	}
 
@@ -112,7 +119,7 @@ export default function createPublicRecipeService(repository) {
 		const rows = await repository.list({ cursor, limit: limit + 1 });
 		const hasMore = rows.length > limit;
 		const visibleRows = hasMore ? rows.slice(0, limit) : rows;
-		const items = visibleRows.map((row) => normalizeRecipe(row));
+		const items = await Promise.all(visibleRows.map((row) => normalizeRecipe(row)));
 		const lastItem = items.at(-1);
 
 		return {

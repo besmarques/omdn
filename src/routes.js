@@ -10,7 +10,12 @@ const developmentRoutes =
 			];
 
 export default [
-	layout('routes/public-layout.jsx', [index('routes/home.jsx'), ...developmentRoutes, route('*', 'routes/not-found.jsx')]),
+	layout('routes/public-layout.jsx', [
+		index('routes/home.jsx'),
+		route('recipes/:slug', 'routes/recipe.jsx'),
+		...developmentRoutes,
+		route('*', 'routes/not-found.jsx'),
+	]),
 	layout('routes/auth-layout.jsx', [
 		route('login', 'routes/login.jsx'),
 		route('register', 'routes/register.jsx'),

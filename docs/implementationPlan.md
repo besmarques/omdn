@@ -946,14 +946,27 @@ Keep the existing `{ status, message, data }` response family during the router 
 
 RFC 9457 Problem Details may be adopted later through a dedicated API-contract decision and compatibility plan.
 
-### Proposed public routes
+### Public routes
+
+Implemented recipe contract:
+
+```text
+GET /api/recipes
+GET /api/recipes/:slug
+```
+
+Planned discovery contracts:
 
 ```text
 GET /api/posts
-GET /api/posts/:slug
 GET /api/categories/:slug/posts
 GET /api/authors/:slug/posts
 ```
+
+Type-specific public endpoints own their validated representation and source
+schema. `/api/recipes` exposes recipes only. A future `/api/posts` contract may
+provide a deliberately mixed discovery feed, but must include an explicit
+content-type discriminator and must not alias one post type implicitly.
 
 ### Proposed administration routes
 
@@ -1235,7 +1248,7 @@ responses remove private query data.
 ### Phase 5: public publishing and SEO
 
 1. [ ] Complete public post services and repositories (public recipe detail/list read slice complete on 2026-08-05).
-2. Implement article, author, category, and archive SSR routes.
+2. [ ] Implement article, author, category, and archive SSR routes (public recipe detail SSR route complete on 2026-08-05).
 3. Add canonical redirects, metadata, JSON-LD, sitemap, and robots.
 4. Add cache isolation and SEO response tests.
 
@@ -1286,11 +1299,12 @@ responses remove private query data.
 
 Authentication hardening, the narrow recipe-source proof, publication lifecycle,
 permission model, content-foundation schema, and the first public recipe read
-repository/service slice are complete. The next delivery slice is the public
-recipe HTTP contract and SSR route, including canonical redirect behavior,
-metadata, structured data, and response-level tests. General rich-content
-editing remains a separate decision and must not broaden recipe source version
-1 implicitly.
+path are complete. Recipe-specific HTTP endpoints now expose list/detail reads,
+and the recipe SSR route includes canonical redirects, metadata, structured
+data, and response-level tests. The next delivery slice is a crawlable recipe
+archive with numbered pagination, followed by the article content contract.
+General rich-content editing remains a separate decision and must not broaden
+recipe source version 1 implicitly.
 
 ## 24. Verified runtime and deployment contract
 

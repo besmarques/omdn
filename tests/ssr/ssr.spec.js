@@ -74,3 +74,39 @@ test('returns a rendered 404 document while keeping API responses JSON', async (
 	expect(apiResponse.headers()['content-type']).toContain('application/json');
 	expect(await apiResponse.json()).toMatchObject({ status: true });
 });
+
+test('server-renders a published recipe with canonical SEO and structured data', async ({ request }) => {
+	const response = await request.get('/recipes/bolachas-de-natal');
+	const html = await response.text();
+
+	expect(response.status()).toBe(200);
+	expect(response.headers()['cache-control']).toBe('public, max-age=0, must-revalidate');
+	expect(response.headers()['set-cookie']).toBeUndefined();
+	expect(html).toContain('<h1>Bolachas de Natal</h1>');
+	expect(html).toContain('Bolachas simples para celebrar o Natal.');
+	expect(html).toContain('<title>Bolachas de Natal | O Melhor do Natal</title>');
+	expect(html).toContain('rel="canonical" href="http://127.0.0.1:3200/recipes/bolachas-de-natal"');
+	expect(html).toContain('property="og:type" content="article"');
+	expect(html).toContain('type="application/ld+json"');
+	expect(html).toContain('"@type":"Recipe"');
+	expect(html).toContain('"name":"Maria Natal"');
+	expect(html).toContain('"datePublished":"2026-08-05T00:00:00.000Z"');
+});
+
+test('redirects old recipe slugs and returns real recipe/API 404 responses', async ({ request }) => {
+	const redirectResponse = await request.get('/recipes/bolachas-antigas', { maxRedirects: 0 });
+	const missingPage = await request.get('/recipes/receita-inexistente');
+	const missingApi = await request.get('/api/recipes/receita-inexistente');
+	const recipeApi = await request.get('/api/recipes/bolachas-de-natal');
+
+	expect(redirectResponse.status()).toBe(301);
+	expect(redirectResponse.headers().location).toBe('/recipes/bolachas-de-natal');
+	expect(missingPage.status()).toBe(404);
+	expect(missingApi.status()).toBe(404);
+	expect(await missingApi.json()).toEqual({ status: false, message: 'Recipe not found' });
+	expect(recipeApi.status()).toBe(200);
+	expect(await recipeApi.json()).toMatchObject({
+		status: true,
+		data: { slug: 'bolachas-de-natal', title: 'Bolachas de Natal' },
+	});
+});

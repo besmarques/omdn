@@ -7,6 +7,7 @@ export default function createPool(config) {
 		user: config.user,
 		password: config.password,
 		database: config.name,
+		timezone: 'Z',
 		waitForConnections: true,
 		connectionLimit: config.connectionLimit,
 		queueLimit: 0,

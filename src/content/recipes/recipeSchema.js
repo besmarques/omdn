@@ -98,13 +98,15 @@ export function deriveRecipePlainText(source) {
 	].join('\n');
 }
 
-export function createRecipeStructuredData(source) {
+export function createRecipeStructuredData(source, metadata = {}) {
 	const recipe = parseRecipeArticleSource(source);
 
 	return {
 		'@context': 'https://schema.org',
 		'@type': 'Recipe',
+		...(metadata.author ? { author: { '@type': 'Person', name: metadata.author } } : {}),
 		cookTime: `PT${recipe.cookMinutes}M`,
+		...(metadata.datePublished ? { datePublished: metadata.datePublished } : {}),
 		description: recipe.description,
 		name: recipe.title,
 		prepTime: `PT${recipe.prepMinutes}M`,
@@ -116,9 +118,10 @@ export function createRecipeStructuredData(source) {
 		})),
 		recipeYield: `${recipe.yield.quantity} ${recipe.yield.unit}`,
 		totalTime: `PT${recipe.prepMinutes + recipe.cookMinutes}M`,
+		...(metadata.url ? { url: metadata.url } : {}),
 	};
 }
 
-export function serializeRecipeStructuredData(source) {
-	return JSON.stringify(createRecipeStructuredData(source)).replaceAll('<', '\\u003c');
+export function serializeRecipeStructuredData(source, metadata) {
+	return JSON.stringify(createRecipeStructuredData(source, metadata)).replaceAll('<', '\\u003c');
 }

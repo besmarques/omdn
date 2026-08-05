@@ -52,6 +52,20 @@ describe('recipe article source', () => {
 		});
 	});
 
+	it('adds public publication metadata to structured recipe data', () => {
+		expect(
+			createRecipeStructuredData(recipe, {
+				author: 'Recipe Author',
+				datePublished: '2026-08-05T00:00:00.000Z',
+				url: 'https://example.com/recipes/christmas-biscuits',
+			}),
+		).toMatchObject({
+			author: { '@type': 'Person', name: 'Recipe Author' },
+			datePublished: '2026-08-05T00:00:00.000Z',
+			url: 'https://example.com/recipes/christmas-biscuits',
+		});
+	});
+
 	it('escapes structured data before placing it inside an HTML script element', () => {
 		const serialized = serializeRecipeStructuredData({ ...recipe, description: '</script><script>alert(1)</script>' });
 

@@ -9,6 +9,7 @@ import createSecurityHeaders from '#server/middleware/securityHeaders';
 import createAccountModule from '#server/modules/account/accountModule';
 import createAdminModule from '#server/modules/admin/adminModule';
 import createAuthModule from '#server/modules/auth/authModule';
+import createContentModule from '#server/modules/content/contentModule';
 
 import createApiRoutes from '#server/routes/apiRoutes';
 
@@ -46,6 +47,8 @@ export default function createApp(db, config, services, { frontend: providedFron
 	app.use('/api/admin', authenticated, createAdminModule());
 
 	app.use('/api/account', authenticated, createAccountModule(db, createRateLimitStore, authEventService, config));
+
+	app.use('/api', createContentModule({ publicRecipes: services.publicRecipes }));
 
 	// Generic API routes and API 404 handling
 	// must stay last.

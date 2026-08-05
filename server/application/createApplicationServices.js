@@ -9,6 +9,8 @@ import requireAuth from '#server/modules/auth/shared/middleware/requireAuth';
 import resolvePrincipal from '#server/modules/auth/shared/middleware/resolvePrincipal';
 import createMySqlRateLimitStore from '#server/modules/auth/shared/middleware/mySqlRateLimitStore';
 import createMailService from '#server/mail/createMailService';
+import createPublicRecipeRepository from '#server/modules/content/recipes/publicRecipeRepository';
+import createPublicRecipeService from '#server/modules/content/recipes/publicRecipeService';
 
 export default function createApplicationServices(db, config) {
 	const session = createSessionMiddleware(db, config.session);
@@ -24,13 +26,19 @@ export default function createApplicationServices(db, config) {
 		repository: deletedAccountCleanupRepository,
 	});
 	const mail = createMailService(config);
+	const publicRecipes = createPublicRecipeService(createPublicRecipeRepository(db));
+	const framework = Object.freeze({
+		publicBaseUrl: config.publicBaseUrl,
+		publicRecipes,
+	});
 
 	return Object.freeze({
 		authenticated: requireAuth(db),
 		authEventService,
 		createRateLimitStore: (namespace) => createMySqlRateLimitStore(db, namespace),
-		framework: Object.freeze({}),
+		framework,
 		mail,
+		publicRecipes,
 		resolvePrincipal: resolvePrincipal(db),
 		session,
 		workers: Object.freeze([authEventOutboxWorker, deletedAccountCleanupWorker]),

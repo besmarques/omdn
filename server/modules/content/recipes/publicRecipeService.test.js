@@ -60,6 +60,24 @@ describe('public recipe service', () => {
 		expect(repository.findBySlug).toHaveBeenCalledWith('old-published-recipe');
 	});
 
+	it('sanitizes stored rich descriptions again at the public read boundary', async () => {
+		const repository = {
+			findBySlug: vi.fn().mockResolvedValue(
+				createRow({
+					source: JSON.stringify({
+						...source,
+						descriptionHtml: '<p onclick="bad()"><strong>Safe</strong><script>bad()</script></p>',
+					}),
+				}),
+			),
+			list: vi.fn(),
+		};
+
+		await expect(createPublicRecipeService(repository).getBySlug('published-recipe')).resolves.toMatchObject({
+			recipe: { source: { descriptionHtml: '<p><strong>Safe</strong></p>' } },
+		});
+	});
+
 	it('rejects invalid slugs and invalid stored recipe sources', async () => {
 		const repository = {
 			findBySlug: vi.fn().mockResolvedValue(createRow({ source: '{}' })),

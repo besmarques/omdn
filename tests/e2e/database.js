@@ -34,6 +34,7 @@ function connectionOptions(includeDatabase = true) {
 		port: Number(process.env.DB_PORT ?? 3306),
 		user: requiredEnvironmentValue('DB_USER'),
 		password: requiredEnvironmentValue('DB_PASSWORD'),
+		timezone: 'Z',
 		...(includeDatabase ? { database: getTestDatabaseName() } : {}),
 	};
 }
@@ -79,4 +80,65 @@ export async function applyTestDatabaseSeeds() {
 
 export function createTestDatabaseConnection() {
 	return mysql.createConnection(connectionOptions());
+}
+
+export async function seedPublishedRecipeFixture() {
+	const database = await createTestDatabaseConnection();
+
+	try {
+		const [user] = await database.execute(
+			`INSERT INTO users (email, display_name, status, email_verified_at)
+			 VALUES ('public-recipe@example.com', 'Maria Natal', 'active', CURRENT_TIMESTAMP(3))`,
+		);
+		const [author] = await database.execute('INSERT INTO authors (user_id, display_name) VALUES (?, ?)', [user.insertId, 'Maria Natal']);
+		const [post] = await database.execute(
+			`INSERT INTO posts (owner_user_id, author_id, content_type, status, visibility, published_at)
+			 VALUES (?, ?, 'recipe', 'published', 'public', '2026-08-05 00:00:00.000')`,
+			[user.insertId, author.insertId],
+		);
+		const source = {
+			cookMinutes: 12,
+			description: 'Bolachas simples para celebrar o Natal.',
+			difficulty: 'easy',
+			ingredients: [{ id: 'farinha', name: 'farinha', quantity: '200', unit: 'g' }],
+			instructions: [{ id: 'misturar', text: 'Misture todos os ingredientes.', title: 'Misturar' }],
+			kind: 'recipe',
+			prepMinutes: 20,
+			schemaVersion: 1,
+			title: 'Bolachas de Natal',
+			yield: { quantity: 16, unit: 'bolachas' },
+		};
+		const [revision] = await database.execute(
+			`INSERT INTO post_revisions (
+				post_id, revision_number, created_by_user_id, title, excerpt,
+				seo_title, seo_description, layout_key, template_key, header_key, footer_key,
+				region_config, source, source_schema_version, render_version, plain_text, source_sha256
+			 ) VALUES (?, 1, ?, ?, ?, ?, ?, 'full-width', 'recipe', 'minimal', 'standard', ?, ?, 1, 1, ?, ?)`,
+			[
+				post.insertId,
+				user.insertId,
+				source.title,
+				source.description,
+				'Bolachas de Natal | O Melhor do Natal',
+				source.description,
+				JSON.stringify({ sidebar: [] }),
+				JSON.stringify(source),
+				source.title,
+				Buffer.alloc(32, 9),
+			],
+		);
+
+		await database.execute('INSERT INTO post_revision_heads (post_id, current_revision_id, published_revision_id) VALUES (?, ?, ?)', [
+			post.insertId,
+			revision.insertId,
+			revision.insertId,
+		]);
+		await database.execute(
+			`INSERT INTO route_slugs (resource_type, resource_id, slug, kind)
+			 VALUES ('post', ?, 'bolachas-de-natal', 'canonical'), ('post', ?, 'bolachas-antigas', 'redirect')`,
+			[post.insertId, post.insertId],
+		);
+	} finally {
+		await database.end();
+	}
 }
