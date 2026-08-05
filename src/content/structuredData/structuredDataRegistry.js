@@ -1,6 +1,8 @@
 import { createRecipeStructuredData } from '../recipes/recipeSchema';
+import { createArticleStructuredData } from '../articles/articleSchema';
 
 const structuredDataBuilders = Object.freeze({
+	article: createArticleStructuredData,
 	recipe: createRecipeStructuredData,
 });
 

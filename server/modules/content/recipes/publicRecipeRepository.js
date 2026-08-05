@@ -36,15 +36,17 @@ const publicRecipeSelection = `
 		AND canonical_slug.kind = 'canonical'
 `;
 
-const publicRecipePredicate = `
-	posts.content_type = 'recipe'
+function publicPostPredicate(contentType) {
+	return `
+	posts.content_type = '${contentType}'
 	AND posts.status = 'published'
 	AND posts.visibility = 'public'
 	AND posts.published_at IS NOT NULL
-	AND posts.trashed_at IS NULL
-`;
+	AND posts.trashed_at IS NULL`;
+}
 
-export default function createPublicRecipeRepository(db) {
+export default function createPublicRecipeRepository(db, { contentType = 'recipe' } = {}) {
+	const publicRecipePredicate = publicPostPredicate(contentType);
 	async function findBySlug(slug) {
 		const [rows] = await db.execute(
 			`${publicRecipeSelection}

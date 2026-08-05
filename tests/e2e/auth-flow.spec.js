@@ -290,6 +290,29 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.goto('/admin');
 		});
 
+		await test.step('create and publish an article through the shared post editor', async () => {
+			await page.getByRole('link', { name: 'Add article' }).click();
+			await expect(page).toHaveURL(/\/admin\/articles\/new$/u);
+			await page.getByLabel('Title', { exact: true }).fill('Playwright Christmas traditions');
+			await fillPostDescription(page, '<p>An article created through the shared Tiptap post editor.</p>');
+			await page.getByLabel('Excerpt').fill('A short traditions article.');
+			await page.getByLabel('SEO title').fill('Christmas traditions | O Melhor do Natal');
+			await page.getByLabel('Meta description').fill('Discover Christmas traditions in this tested article workflow.');
+			await page.getByLabel('Publication').selectOption('publish');
+			const createResponsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/admin/articles');
+			await page.getByRole('button', { name: 'Create article' }).click();
+			const createResponse = await createResponsePromise;
+			expect(createResponse.status()).toBe(201);
+			await expect(page).toHaveURL(/\/articles\/playwright-christmas-traditions$/u);
+			await expect(page.getByRole('heading', { level: 1, name: 'Playwright Christmas traditions' })).toBeVisible();
+			await expect(page).toHaveTitle('Christmas traditions | O Melhor do Natal');
+			const structuredData = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+			expect(structuredData).toMatchObject({ '@type': 'Article', headline: 'Playwright Christmas traditions' });
+			await page.goto('/articles');
+			await expect(page.getByRole('link', { name: 'Playwright Christmas traditions' })).toBeVisible();
+			await page.goto('/admin');
+		});
+
 		await test.step('schedule a recipe from the admin page', async () => {
 			await page.getByRole('link', { name: 'Add recipe' }).click();
 			await page.getByLabel('Title', { exact: true }).fill('Scheduled Playwright pudding');

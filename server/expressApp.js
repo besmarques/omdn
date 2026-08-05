@@ -48,7 +48,7 @@ export default function createApp(db, config, services, { frontend: providedFron
 
 	app.use('/api/account', authenticated, createAccountModule(db, createRateLimitStore, authEventService, config));
 
-	app.use('/api', createContentModule({ publicRecipes: services.publicRecipes }));
+	app.use('/api', createContentModule({ publicArticles: services.publicArticles, publicRecipes: services.publicRecipes }));
 
 	// Generic API routes and API 404 handling
 	// must stay last.

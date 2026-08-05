@@ -37,7 +37,7 @@ export default function SiteHeader({ principal }) {
 	return (
 		<header>
 			<nav aria-label="Main navigation">
-				<Link to="/">Home</Link> <Link to="/recipes">Receitas</Link>{' '}
+				<Link to="/">Home</Link> <Link to="/recipes">Receitas</Link> <Link to="/articles">Artigos</Link>{' '}
 				{authenticated ? (
 					<>
 						<Link to="/account/security">Account security</Link>{' '}

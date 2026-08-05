@@ -55,7 +55,10 @@ function invalidRequest(res, error) {
 	});
 }
 
-export default function createPublicRecipeController(publicRecipes) {
+export default function createPublicRecipeController(
+	publicRecipes,
+	{ basePath = '/api/recipes', itemName = 'Recipe', resultKey = 'recipe' } = {},
+) {
 	async function list(req, res, next) {
 		try {
 			const result = await publicRecipes.list({
@@ -80,14 +83,14 @@ export default function createPublicRecipeController(publicRecipes) {
 			const result = await publicRecipes.getBySlug(req.params.slug);
 
 			if (!result) {
-				return res.status(404).json({ status: false, message: 'Recipe not found' });
+				return res.status(404).json({ status: false, message: `${itemName} not found` });
 			}
 
 			if (result.redirect) {
-				return res.redirect(301, `/api/recipes/${result.canonicalSlug}`);
+				return res.redirect(301, `${basePath}/${result.canonicalSlug}`);
 			}
 
-			return res.json({ status: true, data: result.recipe });
+			return res.json({ status: true, data: result[resultKey] });
 		} catch (error) {
 			return error instanceof TypeError ? invalidRequest(res, error) : next(error);
 		}
@@ -98,7 +101,7 @@ export default function createPublicRecipeController(publicRecipes) {
 			const result = await publicRecipes.listArchivePage(parsePage(req.query.page));
 
 			if (!result) {
-				return res.status(404).json({ status: false, message: 'Recipe archive page not found' });
+				return res.status(404).json({ status: false, message: `${itemName} archive page not found` });
 			}
 
 			return res.json({ status: true, data: result });

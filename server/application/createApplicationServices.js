@@ -11,6 +11,8 @@ import createMySqlRateLimitStore from '#server/modules/auth/shared/middleware/my
 import createMailService from '#server/mail/createMailService';
 import createPublicRecipeRepository from '#server/modules/content/recipes/publicRecipeRepository';
 import createPublicRecipeService from '#server/modules/content/recipes/publicRecipeService';
+import createPublicArticleRepository from '#server/modules/content/articles/publicArticleRepository';
+import createPublicArticleService from '#server/modules/content/articles/publicArticleService';
 import createPublicationScheduleRepository from '#server/modules/content/publication/publicationScheduleRepository';
 import createPublicationScheduleWorker from '#server/modules/content/publication/publicationScheduleWorker';
 
@@ -29,9 +31,11 @@ export default function createApplicationServices(db, config) {
 	});
 	const mail = createMailService(config);
 	const publicRecipes = createPublicRecipeService(createPublicRecipeRepository(db));
+	const publicArticles = createPublicArticleService(createPublicArticleRepository(db));
 	const publicationScheduleWorker = createPublicationScheduleWorker({ repository: createPublicationScheduleRepository(db) });
 	const framework = Object.freeze({
 		publicBaseUrl: config.publicBaseUrl,
+		publicArticles,
 		publicRecipes,
 	});
 
@@ -41,6 +45,7 @@ export default function createApplicationServices(db, config) {
 		createRateLimitStore: (namespace) => createMySqlRateLimitStore(db, namespace),
 		framework,
 		mail,
+		publicArticles,
 		publicRecipes,
 		resolvePrincipal: resolvePrincipal(db),
 		session,

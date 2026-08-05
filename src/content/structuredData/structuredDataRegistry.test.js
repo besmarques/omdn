@@ -22,10 +22,21 @@ describe('structured-data registry', () => {
 			author: { name: 'Maria' },
 		});
 		expect(supportsStructuredData('recipe')).toBe(true);
-		expect(supportsStructuredData('article')).toBe(false);
+		expect(
+			createPostStructuredData(
+				'article',
+				{ description: 'News', kind: 'article', schemaVersion: 1, title: 'Christmas news' },
+				{ author: 'Maria' },
+			),
+		).toMatchObject({
+			'@type': 'Article',
+			author: { name: 'Maria' },
+			headline: 'Christmas news',
+		});
+		expect(supportsStructuredData('article')).toBe(true);
 	});
 
 	it('rejects an unregistered content type', () => {
-		expect(() => createPostStructuredData('article', {}, {})).toThrow('Unsupported structured-data content type');
+		expect(() => createPostStructuredData('travel', {}, {})).toThrow('Unsupported structured-data content type');
 	});
 });

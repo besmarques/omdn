@@ -12,6 +12,8 @@ const developmentRoutes =
 export default [
 	layout('routes/public-layout.jsx', [
 		index('routes/home.jsx'),
+		route('articles', 'routes/articles.jsx'),
+		route('articles/:slug', 'routes/article.jsx'),
 		route('recipes', 'routes/recipes.jsx'),
 		route('recipes/:slug', 'routes/recipe.jsx'),
 		...developmentRoutes,
@@ -26,5 +28,6 @@ export default [
 		route('account/security', 'routes/account-security.jsx'),
 		route('admin', 'routes/admin.jsx'),
 		route('admin/recipes/new', 'routes/admin-recipe-new.jsx'),
+		route('admin/articles/new', 'routes/admin-article-new.jsx'),
 	]),
 ];

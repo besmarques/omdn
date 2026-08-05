@@ -1176,9 +1176,9 @@ Required security tests:
 | Package/capability                   | Decision                                                                      |
 | ------------------------------------ | ----------------------------------------------------------------------------- |
 | React Router Framework Mode packages | Installed and pinned together at 8.3.0                                        |
-| TanStack Query                       | Installed for the shared browser account snapshot; content queries are next   |
+| TanStack Query                       | Installed for account, recipe, and article server-state queries               |
 | Zustand                              | Do not add without a concrete client-only global-state requirement            |
-| TipTap/Lexical/Markdown editor       | Decide through an editor proof of concept                                     |
+| Tiptap                               | Integrated through the shared post-description editor                         |
 | React Hook Form                      | Evaluate when administration forms begin                                      |
 | Zod                                  | Already present; define browser-safe schema boundaries before frontend reuse  |
 | sharp                                | Add with the media worker                                                     |
@@ -1252,7 +1252,7 @@ responses remove private query data.
 
 ### Phase 4: content decisions and schema
 
-1. [ ] Complete the editor/source-format proof of concept (recipe slice complete; general rich content remains).
+1. [x] Complete the editor/source-format proof with shared Tiptap descriptions and recipe/article source schemas.
 2. [x] Approve the publication lifecycle and permissions (2026-08-04).
 3. [x] Finalize corrected post/revision/category/slug schema (2026-08-04).
 4. [x] Select and integrate dbmate 2.34.1 (2026-08-04).
@@ -1315,10 +1315,10 @@ permission model, content-foundation schema, and the first public recipe read
 path are complete. Recipe-specific HTTP endpoints now expose list/detail reads,
 and the recipe SSR routes include a detail page, canonical redirects, a
 crawlable numbered archive, metadata, structured data, and response-level
-tests. The shared navigation links to the recipe archive. The next delivery
-slice is the article content contract and its first public read path. General
-rich-content editing remains a separate decision and must not broaden recipe
-source version 1 implicitly.
+tests. The article contract and public read path now prove that the shared
+editor, persistence, SEO, query, presentation, and structured-data registries
+support multiple post types. The next delivery slice is editorial listing and
+immutable revision editing with optimistic concurrency.
 
 ## 24. Verified runtime and deployment contract
 

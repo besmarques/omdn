@@ -1,4 +1,4 @@
-export default function createRecipeRepository(db) {
+export default function createRecipeRepository(db, { contentType = 'recipe', templateKey = 'recipe' } = {}) {
 	return async function createRecipe(record) {
 		const connection = await db.getConnection();
 
@@ -15,10 +15,11 @@ export default function createRecipeRepository(db) {
 			const [postResult] = await connection.execute(
 				`INSERT INTO posts (
 					owner_user_id, author_id, content_type, status, visibility, is_pillar_content, published_at
-				 ) VALUES (?, ?, 'recipe', ?, 'public', ?, ?)`,
+				 ) VALUES (?, ?, ?, ?, 'public', ?, ?)`,
 				[
 					record.actor.id,
 					authorResult.insertId,
+					contentType,
 					published ? 'published' : scheduled ? 'scheduled' : 'draft',
 					record.isPillar,
 					published ? record.createdAt : null,
@@ -30,7 +31,7 @@ export default function createRecipeRepository(db) {
 					seo_title, seo_description, focus_keyword, layout_key, template_key, header_key,
 					footer_key, region_config, source, source_schema_version,
 					render_version, plain_text, source_sha256
-				 ) VALUES (?, 1, ?, ?, ?, ?, ?, ?, 'full-width', 'recipe', 'minimal',
+				 ) VALUES (?, 1, ?, ?, ?, ?, ?, ?, 'full-width', ?, 'minimal',
 					'standard', ?, ?, 1, 1, ?, ?)`,
 				[
 					postResult.insertId,
@@ -40,6 +41,7 @@ export default function createRecipeRepository(db) {
 					record.seo.title,
 					record.seo.description,
 					record.seo.focusKeyword,
+					templateKey,
 					JSON.stringify({ sidebar: [] }),
 					JSON.stringify(record.source),
 					record.plainText,
@@ -64,7 +66,7 @@ export default function createRecipeRepository(db) {
 					[postResult.insertId, revisionResult.insertId, record.publishAt, record.publishAt, record.actor.id],
 				);
 			}
-			const eventType = published ? 'recipe_published' : scheduled ? 'recipe_scheduled' : 'recipe_created';
+			const eventType = published ? `${contentType}_published` : scheduled ? `${contentType}_scheduled` : `${contentType}_created`;
 			const [outboxResult] = await connection.execute(
 				`INSERT INTO domain_outbox (aggregate_type, aggregate_id, event_type, payload)
 				 VALUES ('post', ?, ?, ?)`,

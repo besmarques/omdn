@@ -27,8 +27,8 @@ function normalizePublishedAt(value) {
 	return date.toISOString();
 }
 
-async function normalizeRecipe(row, { includeSource = false } = {}) {
-	const parsedSource = parseRecipeArticleSource(parseStoredJson(row.source, 'source'));
+async function normalizeRecipe(row, { includeSource = false, parseSource = parseRecipeArticleSource } = {}) {
+	const parsedSource = parseSource(parseStoredJson(row.source, 'source'));
 	let source = parsedSource;
 
 	if (parsedSource.descriptionHtml) {
@@ -100,7 +100,7 @@ function validateListOptions({ limit = defaultPageSize, cursor = null } = {}) {
 	return { cursor: { id, publishedAt }, limit };
 }
 
-export default function createPublicRecipeService(repository) {
+export default function createPublicRecipeService(repository, { parseSource = parseRecipeArticleSource, resultKey = 'recipe' } = {}) {
 	async function getBySlug(slug) {
 		const normalizedSlug = validateSlug(slug);
 		const row = await repository.findBySlug(normalizedSlug);
@@ -112,7 +112,7 @@ export default function createPublicRecipeService(repository) {
 		return {
 			canonicalSlug: row.canonical_slug,
 			redirect: row.requested_slug_kind === 'redirect',
-			recipe: await normalizeRecipe(row, { includeSource: true }),
+			[resultKey]: await normalizeRecipe(row, { includeSource: true, parseSource }),
 		};
 	}
 
@@ -121,7 +121,7 @@ export default function createPublicRecipeService(repository) {
 		const rows = await repository.list({ cursor, limit: limit + 1 });
 		const hasMore = rows.length > limit;
 		const visibleRows = hasMore ? rows.slice(0, limit) : rows;
-		const items = await Promise.all(visibleRows.map((row) => normalizeRecipe(row)));
+		const items = await Promise.all(visibleRows.map((row) => normalizeRecipe(row, { parseSource })));
 		const lastItem = items.at(-1);
 
 		return {
@@ -154,7 +154,7 @@ export default function createPublicRecipeService(repository) {
 		});
 
 		return {
-			items: await Promise.all(rows.map((row) => normalizeRecipe(row))),
+			items: await Promise.all(rows.map((row) => normalizeRecipe(row, { parseSource }))),
 			page,
 			pageSize: archivePageSize,
 			totalItems,

@@ -5,6 +5,7 @@ import StandardFooter from './regions/Footer';
 import { HeroHeader, MinimalHeader } from './regions/Headers';
 import GiftIdeasTemplate from '../content/gifts/GiftIdeasTemplate';
 import RecipeTemplate from '../content/recipes/RecipeTemplate';
+import ArticleTemplate from '../content/articles/ArticleTemplate';
 
 export const presentationRegistry = Object.freeze({
 	blocks: Object.freeze({
@@ -23,6 +24,7 @@ export const presentationRegistry = Object.freeze({
 		sidebar: SidebarLayout,
 	}),
 	templates: Object.freeze({
+		article: ArticleTemplate,
 		'gift-ideas': GiftIdeasTemplate,
 		recipe: RecipeTemplate,
 	}),
