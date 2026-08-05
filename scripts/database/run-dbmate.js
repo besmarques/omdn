@@ -40,6 +40,27 @@ export function createDatabaseUrl(databaseConfig) {
 	return `mysql://${encodeURIComponent(databaseConfig.user)}:${encodeURIComponent(databaseConfig.password)}@${host}:${databaseConfig.port}/${encodeURIComponent(databaseConfig.database)}`;
 }
 
+export function quoteMysqlIdentifier(value) {
+	return `\`${String(value).replaceAll('`', '``')}\``;
+}
+
+async function ensureDatabaseExists(databaseConfig) {
+	const connection = await mysql.createConnection({
+		host: databaseConfig.host,
+		password: databaseConfig.password,
+		port: databaseConfig.port,
+		user: databaseConfig.user,
+	});
+
+	try {
+		await connection.query(
+			`CREATE DATABASE IF NOT EXISTS ${quoteMysqlIdentifier(databaseConfig.database)} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
+		);
+	} finally {
+		await connection.end();
+	}
+}
+
 export function findOutOfOrderMigration(fileNames, appliedVersionList) {
 	const appliedVersions = new Set(appliedVersionList);
 	const highestAppliedVersion = [...appliedVersions]
@@ -212,6 +233,10 @@ async function main() {
 
 	if (!allowedCommands.has(command)) {
 		throw new Error(`Unsupported dbmate command: ${command ?? '(missing)'}`);
+	}
+
+	if (command === 'migrate') {
+		await ensureDatabaseExists(databaseConfig);
 	}
 
 	await assertMigrationTrackingIsSafe(databaseConfig);

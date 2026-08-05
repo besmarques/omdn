@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createDatabaseUrl, findOutOfOrderMigration, readDatabaseConfig } from './run-dbmate';
+import { createDatabaseUrl, findOutOfOrderMigration, quoteMysqlIdentifier, readDatabaseConfig } from './run-dbmate';
 
 describe('dbmate configuration', () => {
 	it('builds an encoded MySQL URL without changing database settings', () => {
@@ -36,5 +36,10 @@ describe('dbmate configuration', () => {
 	it('rejects a pending migration older than an applied version', () => {
 		expect(findOutOfOrderMigration(['001_first.sql', '002_second.sql', '003_third.sql'], ['001', '003'])).toBe('002');
 		expect(findOutOfOrderMigration(['001_first.sql', '002_second.sql', '003_third.sql'], ['001', '002'])).toBeUndefined();
+	});
+
+	it('quotes an explicitly configured MySQL database identifier', () => {
+		expect(quoteMysqlIdentifier('omdn')).toBe('`omdn`');
+		expect(quoteMysqlIdentifier('omdn`test')).toBe('`omdn``test`');
 	});
 });
