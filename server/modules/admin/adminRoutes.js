@@ -6,6 +6,7 @@ export default function createAdminRoutes({
 	articleController,
 	contentTypeController,
 	editPostController,
+	postLifecycleController,
 	recipeController,
 	testAdminAccessController,
 }) {
@@ -19,6 +20,7 @@ export default function createAdminRoutes({
 	router.post('/content-types/:contentType/tags', contentTypeController.createTag);
 	router.get('/content-types/:contentType/posts/:id', editPostController.get);
 	router.put('/content-types/:contentType/posts/:id', editPostController.update);
+	router.post('/content-types/:contentType/posts/:id/actions/:action', postLifecycleController);
 	router.put('/content-types/:contentType/:taxonomy/:id', contentTypeController.updateTaxonomy);
 	router.delete('/content-types/:contentType/:taxonomy/:id', contentTypeController.deleteTaxonomy);
 	router.patch('/content-types/:contentType/archive-seo', contentTypeController.updateArchiveSeo);

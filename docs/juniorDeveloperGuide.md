@@ -998,6 +998,17 @@ assignments first. Category deletion also removes its generic `route_slugs`
 rows in the same transaction because that polymorphic relation is not a normal
 foreign key.
 
+Publication controls live beside each row in the typed content tables. The UI
+only displays actions granted to the current account, while the API independently
+checks ownership and `posts.publish_own`/`posts.publish_all` or
+`posts.delete_own`/`posts.delete_all`. Publish uses the current immutable
+revision. Scheduling records that exact revision and a future instant.
+Rescheduling, publishing, unpublishing, or trashing cancels any older active
+schedule. Unpublish maps to the database's `archived` state. Restore returns a
+trashed post to draft so content never becomes public merely because it was
+restored. All actions require the table's current lock version and return 409
+after a concurrent change.
+
 ## 22. Important security rules to preserve
 
 - Keep secrets server-side and outside Git.

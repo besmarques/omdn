@@ -782,6 +782,17 @@ type-parameterized management screen for updates and deletion. Categories
 retain redirect history when renamed, and deleting an unused category removes
 its polymorphic slug history transactionally.
 
+Typed management tables also expose the first complete lifecycle controls.
+Publish, schedule/reschedule, unpublish (the `archived` state), trash, and
+restore are handled by one content-type-independent API. Each transition locks
+the post, verifies the submitted lock version and scoped owner/all permission,
+cancels any superseded active schedule, increments the lock version, and writes
+both the content audit event and domain-outbox event in the same transaction.
+Scheduling always points at the exact current immutable revision. Trashed posts
+remain visible in their typed management table for restoration, but cannot be
+opened in the editor or returned by public content queries. Restore deliberately
+returns a post to draft; publication is a separate explicit action.
+
 Tiptap does not control the recipe document. Normal fields continue to own the
 title, timings, yield, ingredients, instructions, media references, and
 taxonomy. The editor allowlist contains only paragraphs, bold, italic, lists,

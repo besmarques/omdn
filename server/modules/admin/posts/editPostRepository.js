@@ -1,5 +1,5 @@
 export default function createEditPostRepository(db) {
-	async function findById(contentType, id) {
+	async function findById(contentType, id, { includeTrashed = false } = {}) {
 		const [[post]] = await db.execute(
 			`SELECT posts.id, posts.owner_user_id, posts.status, posts.lock_version, posts.is_pillar_content,
 			        route_slugs.slug, post_revisions.title, post_revisions.excerpt,
@@ -10,7 +10,7 @@ export default function createEditPostRepository(db) {
 			 INNER JOIN post_revision_heads ON post_revision_heads.post_id = posts.id
 			 INNER JOIN post_revisions ON post_revisions.id = post_revision_heads.current_revision_id
 			 INNER JOIN route_slugs ON route_slugs.resource_type = 'post' AND route_slugs.resource_id = posts.id AND route_slugs.kind = 'canonical'
-			 WHERE posts.id = ? AND posts.content_type = ? AND posts.trashed_at IS NULL`,
+			 WHERE posts.id = ? AND posts.content_type = ? ${includeTrashed ? '' : 'AND posts.trashed_at IS NULL'}`,
 			[id, contentType],
 		);
 		if (!post) return null;

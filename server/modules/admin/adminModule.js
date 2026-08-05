@@ -11,6 +11,8 @@ import createAdminContentTypeController from '#server/modules/admin/contentTypes
 import createAdminContentTypeRepository from '#server/modules/admin/contentTypes/adminContentTypeRepository';
 import createEditPostController from '#server/modules/admin/posts/editPostController';
 import createEditPostRepository from '#server/modules/admin/posts/editPostRepository';
+import createPostLifecycleController from '#server/modules/admin/posts/postLifecycleController';
+import createPostLifecycleRepository from '#server/modules/admin/posts/postLifecycleRepository';
 
 export default function createAdminModule(db) {
 	const testAdminAccessService = createTestAdminAccessService();
@@ -19,15 +21,18 @@ export default function createAdminModule(db) {
 	const recipeController = createRecipeController(createRecipeService(createRecipeRepository(db)));
 	const articleController = createArticleController(createArticleService(createArticleRepository(db)));
 	const contentTypeController = createAdminContentTypeController(createAdminContentTypeRepository(db));
-	const editPostController = createEditPostController(createEditPostRepository(db), {
+	const editPostRepository = createEditPostRepository(db);
+	const editPostController = createEditPostController(editPostRepository, {
 		article: createArticleService(async (record) => record),
 		recipe: createRecipeService(async (record) => record),
 	});
+	const postLifecycleController = createPostLifecycleController(editPostRepository, createPostLifecycleRepository(db));
 
 	return createAdminRoutes({
 		articleController,
 		contentTypeController,
 		editPostController,
+		postLifecycleController,
 		recipeController,
 		testAdminAccessController,
 	});

@@ -419,6 +419,55 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.goto('/admin');
 		});
 
+		await test.step('run publication, schedule, trash, and restore transitions', async () => {
+			await page.getByRole('link', { name: 'All recipes', exact: true }).click();
+			const row = () => page.getByRole('row').filter({ hasText: 'Updated Playwright Christmas cake' });
+			async function runAction(action, buttonName) {
+				const responsePromise = page.waitForResponse(
+					(response) => response.request().method() === 'POST' && new URL(response.url()).pathname.endsWith(`/actions/${action}`),
+				);
+				await row().getByRole('button', { name: buttonName, exact: true }).click();
+				const response = await responsePromise;
+				expect(response.status()).toBe(200);
+			}
+
+			await runAction('unpublish', 'Unpublish');
+			await expect(row().getByText('archived')).toBeVisible();
+
+			const future = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+			await row().getByLabel('Schedule Updated Playwright Christmas cake').fill(future);
+			await runAction('schedule', 'Set schedule');
+			await expect(row().getByText('scheduled')).toBeVisible();
+			const [[activeSchedule]] = await database.execute(
+				`SELECT publication_schedules.status
+				 FROM publication_schedules
+				 INNER JOIN route_slugs ON route_slugs.resource_id = publication_schedules.post_id
+				 WHERE route_slugs.slug = 'updated-playwright-christmas-cake' AND publication_schedules.status = 'pending'`,
+			);
+			expect(activeSchedule.status).toBe('pending');
+
+			await runAction('publish', 'Publish');
+			await expect(row().getByText('published')).toBeVisible();
+			page.once('dialog', (dialog) => dialog.accept());
+			await runAction('trash', 'Trash');
+			await expect(row().getByText('trashed')).toBeVisible();
+			expect((await page.request.get('/api/recipes/updated-playwright-christmas-cake')).status()).toBe(404);
+
+			await runAction('restore', 'Restore');
+			await expect(row().getByText('draft')).toBeVisible();
+			await runAction('publish', 'Publish');
+			await expect(row().getByText('published')).toBeVisible();
+			const [[events]] = await database.execute(
+				`SELECT COUNT(*) AS total
+				 FROM content_events
+				 INNER JOIN route_slugs ON route_slugs.resource_id = content_events.post_id
+				 WHERE route_slugs.slug = 'updated-playwright-christmas-cake'
+				   AND content_events.event_type IN ('recipe_unpublished', 'recipe_scheduled', 'recipe_trashed', 'recipe_restored')`,
+			);
+			expect(Number(events.total)).toBe(4);
+			await page.goto('/admin');
+		});
+
 		await test.step('schedule a recipe from the admin page', async () => {
 			await page.getByRole('link', { name: 'Add recipe' }).click();
 			await fillPostDescription(page, '<p>A recipe that should remain private until its scheduled time.</p>');

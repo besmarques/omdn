@@ -7,14 +7,14 @@ export default function createAdminContentTypeRepository(db) {
 				contentType,
 			]),
 			db.execute(
-				`SELECT posts.id, posts.status, posts.updated_at, posts.published_at,
+				`SELECT posts.id, posts.owner_user_id, posts.status, posts.lock_version, posts.updated_at, posts.published_at,
 				        post_revisions.title, route_slugs.slug, authors.display_name AS author
 				 FROM posts
 				 INNER JOIN post_revision_heads ON post_revision_heads.post_id = posts.id
 				 INNER JOIN post_revisions ON post_revisions.id = post_revision_heads.current_revision_id
 				 INNER JOIN route_slugs ON route_slugs.resource_type = 'post' AND route_slugs.resource_id = posts.id AND route_slugs.kind = 'canonical'
 				 INNER JOIN authors ON authors.id = posts.author_id
-				 WHERE posts.content_type = ? AND posts.trashed_at IS NULL ${ownerClause}
+				 WHERE posts.content_type = ? ${ownerClause}
 				 ORDER BY posts.updated_at DESC, posts.id DESC`,
 				parameters,
 			),
@@ -45,7 +45,12 @@ export default function createAdminContentTypeRepository(db) {
 			archiveSeo: { description: type[0].archive_seo_description, title: type[0].archive_seo_title },
 			categories: categories.map((category) => ({ ...category, id: Number(category.id), post_count: Number(category.post_count) })),
 			contentType: { label: type[0].label, slug: type[0].slug },
-			posts: posts.map((post) => ({ ...post, id: Number(post.id) })),
+			posts: posts.map((post) => ({
+				...post,
+				id: Number(post.id),
+				lock_version: Number(post.lock_version),
+				owner_user_id: Number(post.owner_user_id),
+			})),
 			tags: tags.map((tag) => ({ ...tag, id: Number(tag.id), post_count: Number(tag.post_count) })),
 		};
 	}

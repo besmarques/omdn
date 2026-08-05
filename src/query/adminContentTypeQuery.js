@@ -5,6 +5,7 @@ import {
 	deleteAdminTaxonomy,
 	getAdminContentType,
 	getAdminPost,
+	transitionAdminPost,
 	updateAdminPost,
 	updateAdminTaxonomy,
 	updateArchiveSeo,
@@ -67,6 +68,13 @@ export function useUpdateAdminPost(contentType, id) {
 				client.invalidateQueries({ queryKey: adminPostKey(contentType, id) });
 			}
 		},
+	});
+}
+export function useTransitionAdminPost(contentType) {
+	const client = useQueryClient();
+	return useMutation({
+		mutationFn: ({ action, id, input }) => transitionAdminPost(contentType, id, action, input),
+		onSuccess: (result) => (result.ok ? client.invalidateQueries({ queryKey: adminContentTypeKey(contentType) }) : undefined),
 	});
 }
 export function useUpdateTaxonomy(contentType, taxonomy) {

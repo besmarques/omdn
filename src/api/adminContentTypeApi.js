@@ -18,6 +18,12 @@ export function getAdminPost(contentType, id) {
 export function updateAdminPost(contentType, id, post) {
 	return requestApi(`/api/admin/content-types/${contentType}/posts/${id}`, { method: 'PUT', body: JSON.stringify(post) });
 }
+export function transitionAdminPost(contentType, id, action, input) {
+	return requestApi(`/api/admin/content-types/${contentType}/posts/${id}/actions/${action}`, {
+		method: 'POST',
+		body: JSON.stringify(input),
+	});
+}
 export function updateAdminTaxonomy(contentType, taxonomy, id, value) {
 	return requestApi(`/api/admin/content-types/${contentType}/${taxonomy}/${id}`, { method: 'PUT', body: JSON.stringify(value) });
 }
