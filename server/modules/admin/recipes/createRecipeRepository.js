@@ -4,6 +4,8 @@ export default function createRecipeRepository(db) {
 
 		try {
 			await connection.beginTransaction();
+			const published = record.publication === 'publish';
+			const scheduled = record.publication === 'schedule';
 			const [authorResult] = await connection.execute(
 				`INSERT INTO authors (user_id, display_name)
 				 VALUES (?, ?)
@@ -14,7 +16,12 @@ export default function createRecipeRepository(db) {
 				`INSERT INTO posts (
 					owner_user_id, author_id, content_type, status, visibility, published_at
 				 ) VALUES (?, ?, 'recipe', ?, 'public', ?)`,
-				[record.actor.id, authorResult.insertId, record.publish ? 'published' : 'draft', record.publish ? record.createdAt : null],
+				[
+					record.actor.id,
+					authorResult.insertId,
+					published ? 'published' : scheduled ? 'scheduled' : 'draft',
+					published ? record.createdAt : null,
+				],
 			);
 			const [revisionResult] = await connection.execute(
 				`INSERT INTO post_revisions (
@@ -41,20 +48,33 @@ export default function createRecipeRepository(db) {
 			await connection.execute(
 				`INSERT INTO post_revision_heads (post_id, current_revision_id, published_revision_id)
 				 VALUES (?, ?, ?)`,
-				[postResult.insertId, revisionResult.insertId, record.publish ? revisionResult.insertId : null],
+				[postResult.insertId, revisionResult.insertId, published ? revisionResult.insertId : null],
 			);
 			await connection.execute(
 				`INSERT INTO route_slugs (resource_type, resource_id, slug, kind)
 				 VALUES ('post', ?, ?, 'canonical')`,
 				[postResult.insertId, record.slug],
 			);
+			if (scheduled) {
+				await connection.execute(
+					`INSERT INTO publication_schedules (post_id, revision_id, publish_at, available_at, created_by_user_id)
+					 VALUES (?, ?, ?, ?, ?)`,
+					[postResult.insertId, revisionResult.insertId, record.publishAt, record.publishAt, record.actor.id],
+				);
+			}
+			const eventType = published ? 'recipe_published' : scheduled ? 'recipe_scheduled' : 'recipe_created';
 			const [outboxResult] = await connection.execute(
 				`INSERT INTO domain_outbox (aggregate_type, aggregate_id, event_type, payload)
 				 VALUES ('post', ?, ?, ?)`,
 				[
 					postResult.insertId,
-					record.publish ? 'recipe_published' : 'recipe_created',
-					JSON.stringify({ postId: Number(postResult.insertId), revisionId: Number(revisionResult.insertId), slug: record.slug }),
+					eventType,
+					JSON.stringify({
+						postId: Number(postResult.insertId),
+						publishAt: record.publishAt?.toISOString() ?? null,
+						revisionId: Number(revisionResult.insertId),
+						slug: record.slug,
+					}),
 				],
 			);
 			await connection.execute(
@@ -65,14 +85,19 @@ export default function createRecipeRepository(db) {
 					postResult.insertId,
 					revisionResult.insertId,
 					record.actor.id,
-					record.publish ? 'recipe_published' : 'recipe_created',
-					JSON.stringify({ slug: record.slug }),
+					eventType,
+					JSON.stringify({ publishAt: record.publishAt?.toISOString() ?? null, slug: record.slug }),
 				],
 			);
 
 			await connection.commit();
 
-			return { id: Number(postResult.insertId), published: record.publish, slug: record.slug };
+			return {
+				id: Number(postResult.insertId),
+				publication: record.publication,
+				publishAt: record.publishAt?.toISOString() ?? null,
+				slug: record.slug,
+			};
 		} catch (error) {
 			await connection.rollback();
 			throw error;

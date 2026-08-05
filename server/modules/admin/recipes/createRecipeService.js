@@ -30,16 +30,22 @@ export default function createRecipeService(repository, { now = () => new Date()
 		const serializedSource = serializeRecipeArticleSource(source);
 
 		const slug = input.slug || slugifyRecipeTitle(source.title);
+		const publishAt = input.publishAt ? new Date(input.publishAt) : null;
 
 		if (!slug) {
 			throw new TypeError('Recipe title must contain letters or numbers when no slug is provided');
+		}
+
+		if (publishAt && publishAt <= now()) {
+			throw new RangeError('Scheduled publication must be in the future');
 		}
 
 		return repository({
 			actor,
 			createdAt: now(),
 			plainText: deriveRecipePlainText(source),
-			publish: input.publish,
+			publication: input.publication,
+			publishAt,
 			seoTitle: `${source.title} | O Melhor do Natal`,
 			slug,
 			source,

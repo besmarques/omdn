@@ -24,7 +24,7 @@ const validBody = {
 	ingredients: [{ id: 'flour', name: 'flour' }],
 	instructions: [{ id: 'mix', text: 'Mix.' }],
 	prepMinutes: 10,
-	publish: false,
+	publication: 'draft',
 	slug: 'new-recipe',
 	title: 'New recipe',
 	yield: { quantity: 12, unit: 'servings' },
@@ -39,7 +39,10 @@ describe('create recipe controller', () => {
 
 		await controller({ auth: { permissions: [], user: {} }, body: {} }, invalidResponse, vi.fn());
 		await controller(
-			{ auth: { permissions: ['posts.create'], user: {} }, body: { ...validBody, publish: true } },
+			{
+				auth: { permissions: ['posts.create'], user: {} },
+				body: { ...validBody, publication: 'schedule', publishAt: '2026-08-06T18:30:00.000Z' },
+			},
 			forbiddenResponse,
 			vi.fn(),
 		);
@@ -50,7 +53,7 @@ describe('create recipe controller', () => {
 	});
 
 	it('creates a recipe and maps slug conflicts', async () => {
-		const createdRecipe = { id: 12, published: true, slug: 'new-recipe' };
+		const createdRecipe = { id: 12, publication: 'publish', slug: 'new-recipe' };
 		const createRecipe = vi.fn().mockResolvedValueOnce(createdRecipe).mockRejectedValueOnce({ code: 'ER_DUP_ENTRY' });
 		const controller = createRecipeController(createRecipe);
 		const createdResponse = response();
@@ -60,7 +63,7 @@ describe('create recipe controller', () => {
 				permissions: ['posts.create', 'posts.publish_all'],
 				user: { display_name: 'Admin', id: 7 },
 			},
-			body: { ...validBody, publish: true },
+			body: { ...validBody, publication: 'publish' },
 		};
 
 		await controller(request, createdResponse, vi.fn());

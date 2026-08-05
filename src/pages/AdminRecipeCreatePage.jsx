@@ -33,6 +33,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 	const [message, setMessage] = useState('');
 	const [errors, setErrors] = useState({});
 	const [submitting, setSubmitting] = useState(false);
+	const [publication, setPublication] = useState('draft');
 
 	async function handleSubmit(event) {
 		event.preventDefault();
@@ -42,7 +43,6 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		setSubmitting(true);
 
 		const form = new FormData(formElement);
-		const publish = canPublish && form.get('publish') === 'on';
 		let result;
 
 		try {
@@ -53,7 +53,8 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				ingredients: parseIngredients(form.get('ingredients')),
 				instructions: parseInstructions(form.get('instructions')),
 				prepMinutes: Number(form.get('prepMinutes')),
-				publish,
+				publication: canPublish ? form.get('publication') : 'draft',
+				...(canPublish && form.get('publication') === 'schedule' ? { publishAt: new Date(form.get('publishAt')).toISOString() } : {}),
 				slug: form.get('slug'),
 				title: form.get('title'),
 				yield: { quantity: Number(form.get('yieldQuantity')), unit: form.get('yieldUnit') },
@@ -71,13 +72,18 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 			return;
 		}
 
-		if (result.body.data.published) {
+		if (result.body.data.publication === 'publish') {
 			navigate(`/recipes/${result.body.data.slug}`);
 			return;
 		}
 
-		setMessage(`Draft created with ID ${result.body.data.id}`);
+		setMessage(
+			result.body.data.publication === 'schedule'
+				? `Recipe scheduled for ${new Date(result.body.data.publishAt).toLocaleString()}`
+				: `Draft created with ID ${result.body.data.id}`,
+		);
 		formElement.reset();
+		setPublication('draft');
 	}
 
 	return (
@@ -117,9 +123,20 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				<label htmlFor="yieldUnit">Yield unit</label>
 				<input id="yieldUnit" name="yieldUnit" required maxLength={200} />
 				{canPublish && (
-					<label>
-						<input name="publish" type="checkbox" /> Publish immediately
-					</label>
+					<>
+						<label htmlFor="publication">Publication</label>
+						<select id="publication" name="publication" value={publication} onChange={(event) => setPublication(event.target.value)}>
+							<option value="draft">Save as draft</option>
+							<option value="publish">Publish immediately</option>
+							<option value="schedule">Schedule publication</option>
+						</select>
+						{publication === 'schedule' && (
+							<>
+								<label htmlFor="publishAt">Publication date and time</label>
+								<input id="publishAt" name="publishAt" type="datetime-local" required />
+							</>
+						)}
+					</>
 				)}
 				<button type="submit" disabled={submitting}>
 					{submitting ? 'Creating…' : 'Create recipe'}

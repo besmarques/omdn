@@ -13,10 +13,10 @@ export default function createRecipeController(createRecipe) {
 		}
 
 		if (
-			validation.data.publish &&
+			validation.data.publication !== 'draft' &&
 			!req.auth.permissions.some((permission) => ['posts.publish_own', 'posts.publish_all'].includes(permission))
 		) {
-			return res.status(403).json({ status: false, message: 'You do not have permission to publish recipes' });
+			return res.status(403).json({ status: false, message: 'You do not have permission to publish or schedule recipes' });
 		}
 
 		try {
@@ -27,6 +27,10 @@ export default function createRecipeController(createRecipe) {
 
 			return res.status(201).json({ status: true, data: recipe });
 		} catch (error) {
+			if (error instanceof RangeError) {
+				return res.status(400).json({ status: false, message: error.message });
+			}
+
 			if (error.code === 'ER_DUP_ENTRY') {
 				return res.status(409).json({ status: false, message: 'That recipe slug is already in use' });
 			}

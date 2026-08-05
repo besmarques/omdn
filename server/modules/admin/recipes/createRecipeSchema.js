@@ -34,7 +34,8 @@ export const createRecipeSchema = z
 			.min(1)
 			.max(100),
 		prepMinutes: z.number().int().nonnegative().max(10_000),
-		publish: z.boolean().default(false),
+		publication: z.enum(['draft', 'publish', 'schedule']).default('draft'),
+		publishAt: z.string().datetime({ offset: true }).optional(),
 		slug: slug.or(z.literal('')).optional(),
 		title: z.string().trim().min(1).max(200),
 		yield: z.object({
@@ -42,4 +43,13 @@ export const createRecipeSchema = z
 			unit: z.string().trim().min(1).max(200),
 		}),
 	})
-	.strict();
+	.strict()
+	.superRefine((recipe, context) => {
+		if (recipe.publication === 'schedule' && !recipe.publishAt) {
+			context.addIssue({ code: 'custom', message: 'Choose a publication date', path: ['publishAt'] });
+		}
+
+		if (recipe.publication !== 'schedule' && recipe.publishAt) {
+			context.addIssue({ code: 'custom', message: 'A publication date is only valid when scheduling', path: ['publishAt'] });
+		}
+	});

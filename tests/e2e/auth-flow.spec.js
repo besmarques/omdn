@@ -246,14 +246,14 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByLabel('Cooking minutes').fill('40');
 			await page.getByLabel('Yield quantity').fill('8');
 			await page.getByLabel('Yield unit').fill('slices');
-			await page.getByLabel('Publish immediately').check();
+			await page.getByLabel('Publication').selectOption('publish');
 			const createResponsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/admin/recipes');
 			await page.getByRole('button', { name: 'Create recipe' }).click();
 			const createResponse = await createResponsePromise;
 
 			await expectApiResponse(createResponse, 201);
 			await expect(createResponse.json()).resolves.toMatchObject({
-				data: { published: true, slug: 'playwright-christmas-cake' },
+				data: { publication: 'publish', slug: 'playwright-christmas-cake' },
 				status: true,
 			});
 
@@ -270,6 +270,63 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 
 			expect(created.status).toBe('published');
 			expect(Number(created.event_count)).toBe(1);
+			await page.goto('/admin');
+		});
+
+		await test.step('schedule a recipe from the admin page', async () => {
+			await page.getByRole('link', { name: 'Add recipe' }).click();
+			await page.getByLabel('Title').fill('Scheduled Playwright pudding');
+			await page.getByLabel('Description').fill('A recipe that should remain private until its scheduled time.');
+			await page.getByLabel('Ingredients').fill('500 | ml | milk');
+			await page.getByLabel('Instructions').fill('Cook the pudding.');
+			await page.getByLabel('Preparation minutes').fill('10');
+			await page.getByLabel('Cooking minutes').fill('30');
+			await page.getByLabel('Yield quantity').fill('6');
+			await page.getByLabel('Yield unit').fill('servings');
+			await page.getByLabel('Publication').selectOption('schedule');
+			const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+			await page.getByLabel('Publication date and time').fill(tomorrow);
+			const createResponsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/admin/recipes');
+			await page.getByRole('button', { name: 'Create recipe' }).click();
+			const createResponse = await createResponsePromise;
+
+			await expectApiResponse(createResponse, 201);
+			await expect(createResponse.json()).resolves.toMatchObject({
+				data: { publication: 'schedule', slug: 'scheduled-playwright-pudding' },
+				status: true,
+			});
+			await expect(page.getByRole('status')).toContainText('Recipe scheduled for');
+			const [[scheduled]] = await database.execute(
+				`SELECT posts.status, publication_schedules.status AS schedule_status
+				 FROM posts
+				 INNER JOIN route_slugs ON route_slugs.resource_id = posts.id AND route_slugs.resource_type = 'post'
+				 INNER JOIN publication_schedules ON publication_schedules.post_id = posts.id
+				 WHERE route_slugs.slug = 'scheduled-playwright-pudding'`,
+			);
+
+			expect(scheduled.status).toBe('scheduled');
+			expect(scheduled.schedule_status).toBe('pending');
+			const privateRecipeResponse = await page.request.get('/api/recipes/scheduled-playwright-pudding');
+			expect(privateRecipeResponse.status()).toBe(404);
+			await database.execute(
+				`UPDATE publication_schedules
+				 SET publish_at = DATE_SUB(CURRENT_TIMESTAMP(3), INTERVAL 1 SECOND),
+				     available_at = DATE_SUB(CURRENT_TIMESTAMP(3), INTERVAL 1 SECOND)
+				 WHERE post_id = (
+					SELECT resource_id FROM route_slugs
+					WHERE resource_type = 'post' AND slug = 'scheduled-playwright-pudding'
+				 )`,
+			);
+			await expect
+				.poll(async () => (await page.request.get('/api/recipes/scheduled-playwright-pudding')).status(), { timeout: 5000 })
+				.toBe(200);
+			const [[completedSchedule]] = await database.execute(
+				`SELECT publication_schedules.status
+				 FROM publication_schedules
+				 INNER JOIN route_slugs ON route_slugs.resource_id = publication_schedules.post_id
+				 WHERE route_slugs.resource_type = 'post' AND route_slugs.slug = 'scheduled-playwright-pudding'`,
+			);
+			expect(completedSchedule.status).toBe('completed');
 			await page.goto('/admin');
 		});
 
