@@ -22,6 +22,8 @@ describe('site header', () => {
 		const html = renderHeader();
 
 		expect(html).toContain('Home');
+		expect(html).toContain('href="/recipes"');
+		expect(html).toContain('Receitas');
 		expect(html).toContain('Login');
 		expect(html).toContain('Register');
 		expect(html).not.toContain('Logout');
@@ -35,6 +37,7 @@ describe('site header', () => {
 		});
 
 		expect(html).toContain('Account security');
+		expect(html).toContain('href="/recipes"');
 		expect(html).toContain('Admin');
 		expect(html).toContain('Logout');
 		expect(html).toContain('admin@example.com');

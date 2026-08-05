@@ -1248,7 +1248,7 @@ responses remove private query data.
 ### Phase 5: public publishing and SEO
 
 1. [ ] Complete public post services and repositories (public recipe detail/list read slice complete on 2026-08-05).
-2. [ ] Implement article, author, category, and archive SSR routes (public recipe detail SSR route complete on 2026-08-05).
+2. [ ] Implement article, author, category, and archive SSR routes (public recipe detail and numbered archive complete on 2026-08-05).
 3. Add canonical redirects, metadata, JSON-LD, sitemap, and robots.
 4. Add cache isolation and SEO response tests.
 
@@ -1300,11 +1300,12 @@ responses remove private query data.
 Authentication hardening, the narrow recipe-source proof, publication lifecycle,
 permission model, content-foundation schema, and the first public recipe read
 path are complete. Recipe-specific HTTP endpoints now expose list/detail reads,
-and the recipe SSR route includes canonical redirects, metadata, structured
-data, and response-level tests. The next delivery slice is a crawlable recipe
-archive with numbered pagination, followed by the article content contract.
-General rich-content editing remains a separate decision and must not broaden
-recipe source version 1 implicitly.
+and the recipe SSR routes include a detail page, canonical redirects, a
+crawlable numbered archive, metadata, structured data, and response-level
+tests. The shared navigation links to the recipe archive. The next delivery
+slice is the article content contract and its first public read path. General
+rich-content editing remains a separate decision and must not broaden recipe
+source version 1 implicitly.
 
 ## 24. Verified runtime and deployment contract
 

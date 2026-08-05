@@ -110,3 +110,27 @@ test('redirects old recipe slugs and returns real recipe/API 404 responses', asy
 		data: { slug: 'bolachas-de-natal', title: 'Bolachas de Natal' },
 	});
 });
+
+test('renders crawlable numbered recipe archive pages and navigation', async ({ request }) => {
+	const firstResponse = await request.get('/recipes');
+	const firstHtml = await firstResponse.text();
+	const secondResponse = await request.get('/recipes?page=2');
+	const secondHtml = await secondResponse.text();
+	const normalizedPageOne = await request.get('/recipes?page=1', { maxRedirects: 0 });
+	const missingPage = await request.get('/recipes?page=3');
+
+	expect(firstResponse.status()).toBe(200);
+	expect(firstHtml).toContain('<h1 class="text-4xl font-bold">Receitas de Natal</h1>');
+	expect(firstHtml).toContain('rel="canonical" href="http://127.0.0.1:3200/recipes"');
+	expect(firstHtml).toContain('rel="next" href="http://127.0.0.1:3200/recipes?page=2"');
+	expect(firstHtml).toContain('href="/recipes/bolachas-de-natal"');
+	expect(firstHtml).toContain('href="/recipes?page=2"');
+	expect(secondResponse.status()).toBe(200);
+	expect(secondHtml).toContain('<title>Receitas de Natal — Página 2</title>');
+	expect(secondHtml).toContain('rel="prev" href="http://127.0.0.1:3200/recipes"');
+	expect(secondHtml).not.toContain('rel="next"');
+	expect(secondHtml).toContain('Receita de arquivo 1');
+	expect(normalizedPageOne.status()).toBe(301);
+	expect(normalizedPageOne.headers().location).toBe('/recipes');
+	expect(missingPage.status()).toBe(404);
+});

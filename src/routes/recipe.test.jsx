@@ -52,6 +52,9 @@ describe('public recipe route', () => {
 				{ title: 'Biscuits | O Melhor do Natal' },
 				{ tagName: 'link', rel: 'canonical', href: 'https://example.com/recipes/biscuits' },
 				{ property: 'og:url', content: 'https://example.com/recipes/biscuits' },
+				expect.objectContaining({
+					'script:ld+json': expect.objectContaining({ '@type': 'Recipe', name: 'Biscuits' }),
+				}),
 			]),
 		);
 		expect(headers()).toEqual({ 'Cache-Control': 'public, max-age=0, must-revalidate' });

@@ -1,10 +1,13 @@
-import { formatIngredient, parseRecipeArticleSource } from './recipeSchema';
+import { formatIngredient, parseRecipeArticleSource, serializeRecipeStructuredData } from './recipeSchema';
 
-export default function RecipeTemplate({ content }) {
+export default function RecipeTemplate({ content, includeStructuredData = true }) {
 	const recipe = parseRecipeArticleSource(content);
 
 	return (
 		<article>
+			{includeStructuredData && (
+				<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeRecipeStructuredData(recipe) }} />
+			)}
 			<h1>{recipe.title}</h1>
 			{recipe.descriptionHtml ? <div dangerouslySetInnerHTML={{ __html: recipe.descriptionHtml }} /> : <p>{recipe.description}</p>}
 			<dl>

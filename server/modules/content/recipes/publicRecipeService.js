@@ -3,6 +3,7 @@ import { parseRecipeArticleSource } from '#content/recipes/recipeSchema.js';
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const defaultPageSize = 12;
 const maximumPageSize = 50;
+const archivePageSize = 12;
 
 function parseStoredJson(value, field) {
 	if (value && typeof value === 'object' && !Buffer.isBuffer(value)) {
@@ -134,8 +135,35 @@ export default function createPublicRecipeService(repository) {
 		};
 	}
 
+	async function listArchivePage(page = 1) {
+		if (!Number.isSafeInteger(page) || page < 1) {
+			throw new TypeError('Invalid recipe archive page');
+		}
+
+		const totalItems = await repository.count();
+		const totalPages = Math.max(1, Math.ceil(totalItems / archivePageSize));
+
+		if (page > totalPages) {
+			return null;
+		}
+
+		const rows = await repository.listPage({
+			limit: archivePageSize,
+			offset: (page - 1) * archivePageSize,
+		});
+
+		return {
+			items: await Promise.all(rows.map((row) => normalizeRecipe(row))),
+			page,
+			pageSize: archivePageSize,
+			totalItems,
+			totalPages,
+		};
+	}
+
 	return {
 		getBySlug,
 		list,
+		listArchivePage,
 	};
 }

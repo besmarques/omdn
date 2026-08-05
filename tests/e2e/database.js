@@ -138,6 +138,47 @@ export async function seedPublishedRecipeFixture() {
 			 VALUES ('post', ?, 'bolachas-de-natal', 'canonical'), ('post', ?, 'bolachas-antigas', 'redirect')`,
 			[post.insertId, post.insertId],
 		);
+
+		for (let index = 1; index <= 12; index += 1) {
+			const fixtureSource = {
+				...source,
+				description: `Receita de arquivo número ${index}.`,
+				title: `Receita de arquivo ${index}`,
+			};
+			const [fixturePost] = await database.execute(
+				`INSERT INTO posts (owner_user_id, author_id, content_type, status, visibility, published_at)
+				 VALUES (?, ?, 'recipe', 'published', 'public', '2026-08-04 00:00:00.000')`,
+				[user.insertId, author.insertId],
+			);
+			const [fixtureRevision] = await database.execute(
+				`INSERT INTO post_revisions (
+					post_id, revision_number, created_by_user_id, title, excerpt,
+					layout_key, template_key, header_key, footer_key, region_config,
+					source, source_schema_version, render_version, plain_text, source_sha256
+				 ) VALUES (?, 1, ?, ?, ?, 'full-width', 'recipe', 'minimal', 'standard', ?, ?, 1, 1, ?, ?)`,
+				[
+					fixturePost.insertId,
+					user.insertId,
+					fixtureSource.title,
+					fixtureSource.description,
+					JSON.stringify({ sidebar: [] }),
+					JSON.stringify(fixtureSource),
+					fixtureSource.title,
+					Buffer.alloc(32, index + 20),
+				],
+			);
+
+			await database.execute('INSERT INTO post_revision_heads (post_id, current_revision_id, published_revision_id) VALUES (?, ?, ?)', [
+				fixturePost.insertId,
+				fixtureRevision.insertId,
+				fixtureRevision.insertId,
+			]);
+			await database.execute(
+				`INSERT INTO route_slugs (resource_type, resource_id, slug, kind)
+				 VALUES ('post', ?, ?, 'canonical')`,
+				[fixturePost.insertId, `receita-de-arquivo-${index}`],
+			);
+		}
 	} finally {
 		await database.end();
 	}

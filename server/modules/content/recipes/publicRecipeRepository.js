@@ -93,8 +93,32 @@ export default function createPublicRecipeRepository(db) {
 		return rows;
 	}
 
+	async function count() {
+		const [[row]] = await db.execute(
+			`SELECT COUNT(*) AS total
+			 FROM (${publicRecipeSelection}
+				WHERE ${publicRecipePredicate}) AS public_recipes`,
+		);
+
+		return Number(row.total);
+	}
+
+	async function listPage({ limit, offset }) {
+		const [rows] = await db.execute(
+			`${publicRecipeSelection}
+			 WHERE ${publicRecipePredicate}
+			 ORDER BY posts.published_at DESC, posts.id DESC
+			 LIMIT ? OFFSET ?`,
+			[limit, offset],
+		);
+
+		return rows;
+	}
+
 	return {
+		count,
 		findBySlug,
 		list,
+		listPage,
 	};
 }

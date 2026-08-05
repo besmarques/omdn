@@ -73,6 +73,7 @@ export default function RecipeRoute({ loaderData }) {
 					sidebar: presentation.regions.sidebar ?? [],
 					template: presentation.template,
 				},
+				structuredData: false,
 			}}
 		/>
 	);

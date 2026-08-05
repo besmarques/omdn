@@ -43,6 +43,9 @@ export default function PageRenderer({ page }) {
 			}),
 			sidebar: renderBlocks(page.presentation.sidebar ?? [], page.content),
 		},
-		createElement(Template, { content: page.content }),
+		createElement(Template, {
+			content: page.content,
+			includeStructuredData: page.structuredData !== false,
+		}),
 	);
 }
