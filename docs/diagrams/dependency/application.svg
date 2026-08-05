@@ -1275,109 +1275,109 @@
 <path fill="none" stroke="#3e6c67" stroke-width="2" d="M564.26,-877.82C581.94,-878.85 600.7,-883.61 612.75,-897 624.36,-909.9 617.77,-1035.9 620.75,-1053 632.11,-1118.26 658.61,-1192.54 671.48,-1226.41"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="673.99,-1232.94 668.54,-1227.53 673.14,-1232.12 671.01,-1226.58 671.48,-1226.4 671.94,-1226.22 674.07,-1231.77 674.42,-1225.27 673.99,-1232.94"/>
 </g>
-<!-- src/routes/admin&#45;categories.jsx -->
-<g id="node66" class="node">
-<title>src/routes/admin&#45;categories.jsx</title>
-<g id="a_node66"><a xlink:href="../../../src/routes/admin-categories.jsx" xlink:title="admin&#45;categories.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M564.96,-922.62C564.96,-922.62 468.79,-922.62 468.79,-922.62 465.58,-922.62 462.38,-919.42 462.38,-916.21 462.38,-916.21 462.38,-909.79 462.38,-909.79 462.38,-906.58 465.58,-903.38 468.79,-903.38 468.79,-903.38 564.96,-903.38 564.96,-903.38 568.17,-903.38 571.38,-906.58 571.38,-909.79 571.38,-909.79 571.38,-916.21 571.38,-916.21 571.38,-919.42 568.17,-922.62 564.96,-922.62"/>
-<text xml:space="preserve" text-anchor="start" x="470.38" y="-910.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;categories.jsx</text>
-</a>
-</g>
-</g>
-<!-- src/routes/admin&#45;categories.jsx&#45;&gt;src/framework/contexts.js -->
-<g id="edge88" class="edge">
-<title>src/routes/admin&#45;categories.jsx&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M571.47,-906.49C585.05,-904.31 599.53,-901.51 612.75,-898 624.13,-894.98 636.27,-890.7 646.99,-886.54"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="653.35,-884 648.01,-889.52 652.55,-884.86 647.03,-887.06 646.85,-886.6 646.66,-886.13 652.18,-883.93 645.68,-883.67 653.35,-884"/>
-</g>
-<!-- src/routes/admin&#45;categories.jsx&#45;&gt;src/pages -->
-<g id="edge87" class="edge">
-<title>src/routes/admin&#45;categories.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M571.58,-909.56C586.93,-911.42 602.3,-916.54 612.75,-928 622.12,-938.29 618.28,-1039.3 620.75,-1053 632.52,-1118.18 658.82,-1192.51 671.56,-1226.4"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="674.04,-1232.93 668.61,-1227.5 673.2,-1232.11 671.09,-1226.56 671.56,-1226.38 672.02,-1226.2 674.13,-1231.75 674.5,-1225.26 674.04,-1232.93"/>
-</g>
 <!-- src/routes/admin&#45;recipe&#45;new.jsx -->
-<g id="node67" class="node">
+<g id="node66" class="node">
 <title>src/routes/admin&#45;recipe&#45;new.jsx</title>
-<g id="a_node67"><a xlink:href="../../../src/routes/admin-recipe-new.jsx" xlink:title="admin&#45;recipe&#45;new.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M566.08,-953.62C566.08,-953.62 467.67,-953.62 467.67,-953.62 464.46,-953.62 461.25,-950.42 461.25,-947.21 461.25,-947.21 461.25,-940.79 461.25,-940.79 461.25,-937.58 464.46,-934.38 467.67,-934.38 467.67,-934.38 566.08,-934.38 566.08,-934.38 569.29,-934.38 572.5,-937.58 572.5,-940.79 572.5,-940.79 572.5,-947.21 572.5,-947.21 572.5,-950.42 569.29,-953.62 566.08,-953.62"/>
-<text xml:space="preserve" text-anchor="start" x="469.25" y="-941.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;recipe&#45;new.jsx</text>
+<g id="a_node66"><a xlink:href="../../../src/routes/admin-recipe-new.jsx" xlink:title="admin&#45;recipe&#45;new.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M566.08,-922.62C566.08,-922.62 467.67,-922.62 467.67,-922.62 464.46,-922.62 461.25,-919.42 461.25,-916.21 461.25,-916.21 461.25,-909.79 461.25,-909.79 461.25,-906.58 464.46,-903.38 467.67,-903.38 467.67,-903.38 566.08,-903.38 566.08,-903.38 569.29,-903.38 572.5,-906.58 572.5,-909.79 572.5,-909.79 572.5,-916.21 572.5,-916.21 572.5,-919.42 569.29,-922.62 566.08,-922.62"/>
+<text xml:space="preserve" text-anchor="start" x="469.25" y="-910.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;recipe&#45;new.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/admin&#45;recipe&#45;new.jsx&#45;&gt;src/framework/contexts.js -->
-<g id="edge90" class="edge">
+<g id="edge88" class="edge">
 <title>src/routes/admin&#45;recipe&#45;new.jsx&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M572.7,-943.64C586.71,-941.41 601.09,-937.05 612.75,-929 618.65,-924.93 615.96,-920.33 620.75,-915 630.02,-904.68 642.22,-895.38 653.04,-888.17"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="658.93,-884.39 654.74,-890.82 658.3,-885.39 653.3,-888.59 653.03,-888.17 652.76,-887.75 657.76,-884.55 651.33,-885.52 658.93,-884.39"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M572.96,-906.25C586.11,-904.1 600.02,-901.38 612.75,-898 624.13,-894.98 636.27,-890.7 646.99,-886.54"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="653.35,-884 648.01,-889.52 652.55,-884.86 647.03,-887.06 646.85,-886.6 646.66,-886.13 652.18,-883.93 645.68,-883.67 653.35,-884"/>
 </g>
 <!-- src/routes/admin&#45;recipe&#45;new.jsx&#45;&gt;src/pages -->
-<g id="edge89" class="edge">
+<g id="edge87" class="edge">
 <title>src/routes/admin&#45;recipe&#45;new.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M572.92,-940.88C587.76,-942.9 602.53,-948.01 612.75,-959 627.03,-974.35 616.81,-1032.41 620.75,-1053 633.2,-1118.06 659.17,-1192.44 671.7,-1226.37"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="674.13,-1232.91 668.74,-1227.45 673.29,-1232.08 671.22,-1226.52 671.69,-1226.35 672.16,-1226.17 674.23,-1231.74 674.64,-1225.25 674.13,-1232.91"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M572.57,-909.68C587.59,-911.65 602.53,-916.78 612.75,-928 622.12,-938.29 618.28,-1039.3 620.75,-1053 632.52,-1118.18 658.82,-1192.51 671.56,-1226.4"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="674.04,-1232.93 668.61,-1227.5 673.2,-1232.11 671.09,-1226.56 671.56,-1226.38 672.02,-1226.2 674.13,-1231.75 674.5,-1225.26 674.04,-1232.93"/>
 </g>
 <!-- src/routes/admin&#45;recipes.jsx -->
-<g id="node68" class="node">
+<g id="node67" class="node">
 <title>src/routes/admin&#45;recipes.jsx</title>
-<g id="a_node68"><a xlink:href="../../../src/routes/admin-recipes.jsx" xlink:title="admin&#45;recipes.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M557.83,-984.62C557.83,-984.62 475.92,-984.62 475.92,-984.62 472.71,-984.62 469.5,-981.42 469.5,-978.21 469.5,-978.21 469.5,-971.79 469.5,-971.79 469.5,-968.58 472.71,-965.38 475.92,-965.38 475.92,-965.38 557.83,-965.38 557.83,-965.38 561.04,-965.38 564.25,-968.58 564.25,-971.79 564.25,-971.79 564.25,-978.21 564.25,-978.21 564.25,-981.42 561.04,-984.62 557.83,-984.62"/>
-<text xml:space="preserve" text-anchor="start" x="477.5" y="-972.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;recipes.jsx</text>
+<g id="a_node67"><a xlink:href="../../../src/routes/admin-recipes.jsx" xlink:title="admin&#45;recipes.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M557.83,-953.62C557.83,-953.62 475.92,-953.62 475.92,-953.62 472.71,-953.62 469.5,-950.42 469.5,-947.21 469.5,-947.21 469.5,-940.79 469.5,-940.79 469.5,-937.58 472.71,-934.38 475.92,-934.38 475.92,-934.38 557.83,-934.38 557.83,-934.38 561.04,-934.38 564.25,-937.58 564.25,-940.79 564.25,-940.79 564.25,-947.21 564.25,-947.21 564.25,-950.42 561.04,-953.62 557.83,-953.62"/>
+<text xml:space="preserve" text-anchor="start" x="477.5" y="-941.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;recipes.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/admin&#45;recipes.jsx&#45;&gt;src/framework/contexts.js -->
-<g id="edge92" class="edge">
+<g id="edge90" class="edge">
 <title>src/routes/admin&#45;recipes.jsx&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M564.43,-978.34C581.7,-977.08 600.13,-972.38 612.75,-960 627.25,-945.77 609.96,-932.21 620.75,-915 627.75,-903.84 638.89,-894.72 649.55,-887.86"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="655.44,-884.32 651.07,-890.63 654.79,-885.3 649.7,-888.36 649.44,-887.93 649.19,-887.5 654.27,-884.44 647.82,-885.23 655.44,-884.32"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M564.37,-944.74C580.85,-943.01 598.75,-938.66 612.75,-929 618.65,-924.93 615.96,-920.33 620.75,-915 630.02,-904.68 642.22,-895.38 653.04,-888.17"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="658.93,-884.39 654.74,-890.82 658.3,-885.39 653.3,-888.59 653.03,-888.17 652.76,-887.75 657.76,-884.55 651.33,-885.52 658.93,-884.39"/>
 </g>
 <!-- src/routes/admin&#45;recipes.jsx&#45;&gt;src/pages -->
-<g id="edge91" class="edge">
+<g id="edge89" class="edge">
 <title>src/routes/admin&#45;recipes.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M564.75,-971.35C582.06,-972.56 600.44,-977.31 612.75,-990 622.58,-1000.13 617.81,-1039.2 620.75,-1053 634.55,-1117.78 659.86,-1192.3 671.96,-1226.32"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="674.31,-1232.87 668.98,-1227.34 673.48,-1232.03 671.48,-1226.45 671.95,-1226.28 672.42,-1226.11 674.42,-1231.7 674.91,-1225.21 674.31,-1232.87"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M564.53,-940.05C582.03,-941.17 600.59,-945.94 612.75,-959 627.03,-974.35 616.81,-1032.41 620.75,-1053 633.2,-1118.06 659.17,-1192.44 671.7,-1226.37"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="674.13,-1232.91 668.74,-1227.45 673.29,-1232.08 671.22,-1226.52 671.69,-1226.35 672.16,-1226.17 674.23,-1231.74 674.64,-1225.25 674.13,-1232.91"/>
 </g>
 <!-- src/routes/admin&#45;roles.jsx -->
-<g id="node69" class="node">
+<g id="node68" class="node">
 <title>src/routes/admin&#45;roles.jsx</title>
-<g id="a_node69"><a xlink:href="../../../src/routes/admin-roles.jsx" xlink:title="admin&#45;roles.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M552.21,-1015.62C552.21,-1015.62 481.54,-1015.62 481.54,-1015.62 478.33,-1015.62 475.12,-1012.42 475.12,-1009.21 475.12,-1009.21 475.12,-1002.79 475.12,-1002.79 475.12,-999.58 478.33,-996.38 481.54,-996.38 481.54,-996.38 552.21,-996.38 552.21,-996.38 555.42,-996.38 558.62,-999.58 558.62,-1002.79 558.62,-1002.79 558.62,-1009.21 558.62,-1009.21 558.62,-1012.42 555.42,-1015.62 552.21,-1015.62"/>
-<text xml:space="preserve" text-anchor="start" x="483.12" y="-1003.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;roles.jsx</text>
+<g id="a_node68"><a xlink:href="../../../src/routes/admin-roles.jsx" xlink:title="admin&#45;roles.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M552.21,-984.62C552.21,-984.62 481.54,-984.62 481.54,-984.62 478.33,-984.62 475.12,-981.42 475.12,-978.21 475.12,-978.21 475.12,-971.79 475.12,-971.79 475.12,-968.58 478.33,-965.38 481.54,-965.38 481.54,-965.38 552.21,-965.38 552.21,-965.38 555.42,-965.38 558.62,-968.58 558.62,-971.79 558.62,-971.79 558.62,-978.21 558.62,-978.21 558.62,-981.42 555.42,-984.62 552.21,-984.62"/>
+<text xml:space="preserve" text-anchor="start" x="483.12" y="-972.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;roles.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/admin&#45;roles.jsx&#45;&gt;src/framework/contexts.js -->
-<g id="edge94" class="edge">
+<g id="edge92" class="edge">
 <title>src/routes/admin&#45;roles.jsx&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M559.05,-1010.06C577.99,-1009.57 599.2,-1005.27 612.75,-991 624.44,-978.68 612.25,-929.7 620.75,-915 627.3,-903.68 638.26,-894.57 648.9,-887.77"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="654.8,-884.26 650.39,-890.55 654.14,-885.24 649.04,-888.27 648.78,-887.84 648.53,-887.41 653.63,-884.38 647.17,-885.13 654.8,-884.26"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M559.09,-978.62C577.81,-977.97 598.82,-973.66 612.75,-960 627.25,-945.77 609.96,-932.21 620.75,-915 627.75,-903.84 638.89,-894.72 649.55,-887.86"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="655.44,-884.32 651.07,-890.63 654.79,-885.3 649.7,-888.36 649.44,-887.93 649.19,-887.5 654.27,-884.44 647.82,-885.23 655.44,-884.32"/>
 </g>
 <!-- src/routes/admin&#45;roles.jsx&#45;&gt;src/pages -->
-<g id="edge93" class="edge">
+<g id="edge91" class="edge">
 <title>src/routes/admin&#45;roles.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M558.68,-1002.81C577.31,-1003.56 598.36,-1007.83 612.75,-1021 623.56,-1030.9 616.85,-1038.87 620.75,-1053 638.36,-1116.85 661.83,-1191.82 672.72,-1226.13"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="674.82,-1232.73 669.7,-1227.02 674.02,-1231.87 672.22,-1226.22 672.7,-1226.06 673.17,-1225.91 674.97,-1231.57 675.7,-1225.11 674.82,-1232.73"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M558.92,-971.06C577.82,-971.58 599.05,-975.88 612.75,-990 622.58,-1000.13 617.81,-1039.2 620.75,-1053 634.55,-1117.78 659.86,-1192.3 671.96,-1226.32"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="674.31,-1232.87 668.98,-1227.34 673.48,-1232.03 671.48,-1226.45 671.95,-1226.28 672.42,-1226.11 674.42,-1231.7 674.91,-1225.21 674.31,-1232.87"/>
 </g>
 <!-- src/routes/admin&#45;settings.jsx -->
-<g id="node70" class="node">
+<g id="node69" class="node">
 <title>src/routes/admin&#45;settings.jsx</title>
-<g id="a_node70"><a xlink:href="../../../src/routes/admin-settings.jsx" xlink:title="admin&#45;settings.jsx">
-<path fill="#3a8bc1" stroke="#216182" d="M559.71,-1046.62C559.71,-1046.62 474.04,-1046.62 474.04,-1046.62 470.83,-1046.62 467.62,-1043.42 467.62,-1040.21 467.62,-1040.21 467.62,-1033.79 467.62,-1033.79 467.62,-1030.58 470.83,-1027.38 474.04,-1027.38 474.04,-1027.38 559.71,-1027.38 559.71,-1027.38 562.92,-1027.38 566.12,-1030.58 566.12,-1033.79 566.12,-1033.79 566.12,-1040.21 566.12,-1040.21 566.12,-1043.42 562.92,-1046.62 559.71,-1046.62"/>
-<text xml:space="preserve" text-anchor="start" x="475.62" y="-1034.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;settings.jsx</text>
+<g id="a_node69"><a xlink:href="../../../src/routes/admin-settings.jsx" xlink:title="admin&#45;settings.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M559.71,-1015.62C559.71,-1015.62 474.04,-1015.62 474.04,-1015.62 470.83,-1015.62 467.62,-1012.42 467.62,-1009.21 467.62,-1009.21 467.62,-1002.79 467.62,-1002.79 467.62,-999.58 470.83,-996.38 474.04,-996.38 474.04,-996.38 559.71,-996.38 559.71,-996.38 562.92,-996.38 566.12,-999.58 566.12,-1002.79 566.12,-1002.79 566.12,-1009.21 566.12,-1009.21 566.12,-1012.42 562.92,-1015.62 559.71,-1015.62"/>
+<text xml:space="preserve" text-anchor="start" x="475.62" y="-1003.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;settings.jsx</text>
 </a>
 </g>
 </g>
 <!-- src/routes/admin&#45;settings.jsx&#45;&gt;src/framework/contexts.js -->
-<g id="edge96" class="edge">
+<g id="edge94" class="edge">
 <title>src/routes/admin&#45;settings.jsx&#45;&gt;src/framework/contexts.js</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M566.56,-1040.87C583.48,-1039.53 601.11,-1034.63 612.75,-1022 628.9,-1004.46 609.12,-935.82 620.75,-915 627.08,-903.67 637.89,-894.6 648.48,-887.82"/>
-<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="654.35,-884.34 649.94,-890.62 653.69,-885.31 648.59,-888.34 648.33,-887.91 648.08,-887.48 653.18,-884.45 646.73,-885.2 654.35,-884.34"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M566.36,-1009.68C583.26,-1008.32 600.92,-1003.46 612.75,-991 624.44,-978.68 612.25,-929.7 620.75,-915 627.3,-903.68 638.26,-894.57 648.9,-887.77"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="654.8,-884.26 650.39,-890.55 654.14,-885.24 649.04,-888.27 648.78,-887.84 648.53,-887.41 653.63,-884.38 647.17,-885.13 654.8,-884.26"/>
 </g>
 <!-- src/routes/admin&#45;settings.jsx&#45;&gt;src/pages -->
-<g id="edge95" class="edge">
+<g id="edge93" class="edge">
 <title>src/routes/admin&#45;settings.jsx&#45;&gt;src/pages</title>
-<path fill="none" stroke="#3e6c67" stroke-width="2" d="M566.41,-1034.97C582.72,-1036.63 599.99,-1041.27 612.75,-1052 666,-1096.76 676.39,-1186.48 678.34,-1225.79"/>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M566.44,-1003.33C582.94,-1004.89 600.33,-1009.63 612.75,-1021 623.56,-1030.9 616.85,-1038.87 620.75,-1053 638.36,-1116.85 661.83,-1191.82 672.72,-1226.13"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="674.82,-1232.73 669.7,-1227.02 674.02,-1231.87 672.22,-1226.22 672.7,-1226.06 673.17,-1225.91 674.97,-1231.57 675.7,-1225.11 674.82,-1232.73"/>
+</g>
+<!-- src/routes/admin&#45;taxonomy.jsx -->
+<g id="node70" class="node">
+<title>src/routes/admin&#45;taxonomy.jsx</title>
+<g id="a_node70"><a xlink:href="../../../src/routes/admin-taxonomy.jsx" xlink:title="admin&#45;taxonomy.jsx">
+<path fill="#3a8bc1" stroke="#216182" d="M563.46,-1046.62C563.46,-1046.62 470.29,-1046.62 470.29,-1046.62 467.08,-1046.62 463.88,-1043.42 463.88,-1040.21 463.88,-1040.21 463.88,-1033.79 463.88,-1033.79 463.88,-1030.58 467.08,-1027.38 470.29,-1027.38 470.29,-1027.38 563.46,-1027.38 563.46,-1027.38 566.67,-1027.38 569.88,-1030.58 569.88,-1033.79 569.88,-1033.79 569.88,-1040.21 569.88,-1040.21 569.88,-1043.42 566.67,-1046.62 563.46,-1046.62"/>
+<text xml:space="preserve" text-anchor="start" x="471.88" y="-1034.08" font-family="Helvetica,sans-Serif" font-size="9.00" fill="#ffffff">admin&#45;taxonomy.jsx</text>
+</a>
+</g>
+</g>
+<!-- src/routes/admin&#45;taxonomy.jsx&#45;&gt;src/framework/contexts.js -->
+<g id="edge96" class="edge">
+<title>src/routes/admin&#45;taxonomy.jsx&#45;&gt;src/framework/contexts.js</title>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M570.02,-1040.55C585.85,-1038.83 601.9,-1033.78 612.75,-1022 628.9,-1004.46 609.12,-935.82 620.75,-915 627.08,-903.67 637.89,-894.6 648.48,-887.82"/>
+<polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="654.35,-884.34 649.94,-890.62 653.69,-885.31 648.59,-888.34 648.33,-887.91 648.08,-887.48 653.18,-884.45 646.73,-885.2 654.35,-884.34"/>
+</g>
+<!-- src/routes/admin&#45;taxonomy.jsx&#45;&gt;src/pages -->
+<g id="edge95" class="edge">
+<title>src/routes/admin&#45;taxonomy.jsx&#45;&gt;src/pages</title>
+<path fill="none" stroke="#3e6c67" stroke-width="2" d="M570.34,-1035.43C585.45,-1037.41 601.01,-1042.13 612.75,-1052 666,-1096.76 676.39,-1186.48 678.34,-1225.79"/>
 <polygon fill="#3e6c67" stroke="#3e6c67" stroke-width="2" points="678.6,-1232.62 675.19,-1225.74 678.06,-1231.58 677.84,-1225.65 678.34,-1225.63 678.84,-1225.61 679.06,-1231.54 681.48,-1225.51 678.6,-1232.62"/>
 </g>
 <!-- src/routes/admin&#45;users.jsx -->

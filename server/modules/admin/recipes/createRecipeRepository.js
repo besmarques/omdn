@@ -11,6 +11,15 @@ export default function createRecipeRepository(db, { contentType = 'recipe', tem
 				]);
 				if (!category) throw new RangeError(`The selected category does not belong to this ${contentType}`);
 			}
+			const tagIds = record.tagIds ?? [];
+			if (tagIds.length > 0) {
+				const placeholders = tagIds.map(() => '?').join(', ');
+				const [tags] = await connection.execute(`SELECT id FROM tags WHERE content_type = ? AND id IN (${placeholders})`, [
+					contentType,
+					...tagIds,
+				]);
+				if (tags.length !== new Set(tagIds).size) throw new RangeError(`One or more selected tags do not belong to this ${contentType}`);
+			}
 			const published = record.publication === 'publish';
 			const scheduled = record.publication === 'schedule';
 			const [authorResult] = await connection.execute(
@@ -38,6 +47,9 @@ export default function createRecipeRepository(db, { contentType = 'recipe', tem
 					postResult.insertId,
 					record.categoryId,
 				]);
+			}
+			for (const tagId of new Set(tagIds)) {
+				await connection.execute(`INSERT INTO post_tags (post_id, tag_id) VALUES (?, ?)`, [postResult.insertId, tagId]);
 			}
 			const [revisionResult] = await connection.execute(
 				`INSERT INTO post_revisions (

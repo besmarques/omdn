@@ -765,6 +765,10 @@ Categories are scoped by `categories.content_type`, and post creation validates
 that the selected category belongs to the post type before writing both the
 primary category and many-to-many assignment. Archive SEO is stored on the
 `content_types` registry and consumed by the public archive SSR loaders.
+Tags are scoped the same way and selected category/tag identifiers are rejected
+when they do not belong to the post's content type. One parameterized taxonomy
+screen serves recipe/article category and tag routes; there is no global
+cross-type taxonomy management page.
 
 Tiptap does not control the recipe document. Normal fields continue to own the
 title, timings, yield, ingredients, instructions, media references, and

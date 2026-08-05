@@ -314,7 +314,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 		});
 
 		await test.step('manage typed content, categories, and archive SEO', async () => {
-			await page.getByRole('link', { name: 'Recipes', exact: true }).click();
+			await page.getByRole('link', { name: 'All recipes', exact: true }).click();
 			await expect(page.getByRole('heading', { name: 'Recipes', exact: true })).toBeVisible();
 			await expect(page.getByText('Playwright Christmas cake')).toBeVisible();
 			await expect(page.getByText('Playwright Christmas traditions')).toHaveCount(0);
@@ -325,15 +325,21 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByRole('button', { name: 'Save archive SEO' }).click();
 			expect((await seoResponse).status()).toBe(200);
 
-			await page.getByRole('link', { name: 'Categories' }).click();
-			const recipeCategories = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Recipe categories' }) });
-			await recipeCategories.getByLabel('Name').fill('Christmas cakes');
-			await recipeCategories.getByLabel('Slug').fill('christmas-cakes');
-			await recipeCategories.getByLabel('Description').fill('Cake recipes for Christmas.');
+			await page.getByRole('link', { name: 'Recipe categories' }).click();
+			await page.getByLabel('Name').fill('Christmas cakes');
+			await page.getByLabel('Slug').fill('christmas-cakes');
+			await page.getByLabel('Description').fill('Cake recipes for Christmas.');
 			const categoryResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith('/recipe/categories'));
-			await recipeCategories.getByRole('button', { name: 'Create category' }).click();
+			await page.getByRole('button', { name: 'Create category' }).click();
 			expect((await categoryResponse).status()).toBe(201);
-			await expect(recipeCategories.getByText('christmas-cakes')).toBeVisible();
+			await expect(page.getByText('christmas-cakes')).toBeVisible();
+
+			await page.getByRole('link', { name: 'Recipe tags' }).click();
+			await page.getByLabel('Name').fill('Traditional');
+			const tagResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith('/recipe/tags'));
+			await page.getByRole('button', { name: 'Create tag' }).click();
+			expect((await tagResponse).status()).toBe(201);
+			await expect(page.getByText('Traditional')).toBeVisible();
 
 			await page.goto('/recipes');
 			await expect(page).toHaveTitle('Tested Christmas recipe archive');
@@ -355,6 +361,7 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByLabel('Yield quantity').fill('6');
 			await page.getByLabel('Yield unit').fill('servings');
 			await page.getByLabel('Category').selectOption({ label: 'Christmas cakes' });
+			await page.getByLabel('Traditional').check();
 			await page.getByLabel('Publication').selectOption('schedule');
 			const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
 			await page.getByLabel('Publication date and time').fill(tomorrow);
@@ -369,17 +376,22 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			});
 			await expect(page.getByRole('status')).toContainText('Recipe scheduled for');
 			const [[scheduled]] = await database.execute(
-				`SELECT posts.status, publication_schedules.status AS schedule_status, categories.name AS category_name
+				`SELECT posts.status, publication_schedules.status AS schedule_status, categories.name AS category_name,
+				        GROUP_CONCAT(tags.name ORDER BY tags.name) AS tag_names
 				 FROM posts
 				 INNER JOIN route_slugs ON route_slugs.resource_id = posts.id AND route_slugs.resource_type = 'post'
 				 INNER JOIN publication_schedules ON publication_schedules.post_id = posts.id
 				 INNER JOIN categories ON categories.id = posts.primary_category_id
-				 WHERE route_slugs.slug = 'scheduled-playwright-pudding'`,
+				 LEFT JOIN post_tags ON post_tags.post_id = posts.id
+				 LEFT JOIN tags ON tags.id = post_tags.tag_id
+				 WHERE route_slugs.slug = 'scheduled-playwright-pudding'
+				 GROUP BY posts.id, posts.status, publication_schedules.status, categories.name`,
 			);
 
 			expect(scheduled.status).toBe('scheduled');
 			expect(scheduled.schedule_status).toBe('pending');
 			expect(scheduled.category_name).toBe('Christmas cakes');
+			expect(scheduled.tag_names).toBe('Traditional');
 			const privateRecipeResponse = await page.request.get('/api/recipes/scheduled-playwright-pudding');
 			expect(privateRecipeResponse.status()).toBe(404);
 			await database.execute(

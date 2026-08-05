@@ -10,6 +10,7 @@ export default function createAdminRoutes({ articleController, contentTypeContro
 	router.post('/articles', requirePermission('posts.create'), articleController);
 	router.get('/content-types/:contentType', contentTypeController.get);
 	router.post('/content-types/:contentType/categories', contentTypeController.createCategory);
+	router.post('/content-types/:contentType/tags', contentTypeController.createTag);
 	router.patch('/content-types/:contentType/archive-seo', contentTypeController.updateArchiveSeo);
 
 	return router;

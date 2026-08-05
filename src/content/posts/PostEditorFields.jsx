@@ -8,6 +8,7 @@ import { Textarea } from '../../components/ui/textarea';
 export default function PostEditorFields({
 	canPublish,
 	categories = [],
+	tags = [],
 	description,
 	descriptionHtml,
 	excerpt,
@@ -61,6 +62,16 @@ export default function PostEditorFields({
 					))}
 				</NativeSelect>
 			</FormField>
+			{tags.length > 0 && (
+				<fieldset className="grid gap-2">
+					<legend>Tags</legend>
+					{tags.map((tag) => (
+						<label key={tag.id}>
+							<input type="checkbox" name="tagIds" value={tag.id} /> {tag.name}
+						</label>
+					))}
+				</fieldset>
+			)}
 			<section aria-labelledby="featured-image-heading">
 				<h2 id="featured-image-heading">Featured image</h2>
 				<p>Image selection will be enabled by the shared media library. Arbitrary image URLs are not accepted.</p>

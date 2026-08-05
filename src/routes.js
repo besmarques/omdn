@@ -30,7 +30,7 @@ export default [
 		route('admin/security', 'routes/account-security.jsx'),
 		route('admin/recipes', 'routes/admin-recipes.jsx'),
 		route('admin/articles', 'routes/admin-articles.jsx'),
-		route('admin/categories', 'routes/admin-categories.jsx'),
+		route('admin/:contentType/:taxonomy', 'routes/admin-taxonomy.jsx'),
 		route('admin/users', 'routes/admin-users.jsx'),
 		route('admin/roles', 'routes/admin-roles.jsx'),
 		route('admin/settings', 'routes/admin-settings.jsx'),

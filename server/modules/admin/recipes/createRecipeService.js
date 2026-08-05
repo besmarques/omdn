@@ -52,6 +52,7 @@ export default function createRecipeService(repository, { now = () => new Date()
 		return repository({
 			actor,
 			categoryId: input.categoryId,
+			tagIds: input.tagIds,
 			createdAt: now(),
 			excerpt: input.excerpt || source.description,
 			isPillar: input.isPillar,

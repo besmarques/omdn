@@ -13,6 +13,7 @@ const categorySchema = z
 	})
 	.strict();
 const archiveSeoSchema = z.object({ description: z.string().trim().max(320), title: z.string().trim().max(255) }).strict();
+const tagSchema = z.object({ name: z.string().trim().min(1).max(120) }).strict();
 
 function canEditAll(req) {
 	return req.auth.permissions.some((permission) => ['posts.edit_all', 'posts.review_all'].includes(permission));
@@ -66,5 +67,20 @@ export default function createAdminContentTypeController(repository) {
 		}
 	}
 
-	return { createCategory, get, updateArchiveSeo };
+	async function createTag(req, res, next) {
+		const type = typeSchema.safeParse(req.params.contentType);
+		const input = tagSchema.safeParse(req.body);
+		if (!type.success) return res.status(404).json({ status: false, message: 'Content type not found' });
+		if (!canEditAll(req)) return res.status(403).json({ status: false, message: 'Forbidden' });
+		if (!input.success) return res.status(400).json({ status: false, message: 'Invalid tag', errors: input.error.flatten().fieldErrors });
+		try {
+			return res.status(201).json({ status: true, data: await repository.createTag(type.data, input.data) });
+		} catch (error) {
+			if (error.code === 'ER_DUP_ENTRY')
+				return res.status(409).json({ status: false, message: 'That tag already exists for this content type' });
+			return next(error);
+		}
+	}
+
+	return { createCategory, createTag, get, updateArchiveSeo };
 }

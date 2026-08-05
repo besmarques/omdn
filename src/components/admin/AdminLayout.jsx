@@ -54,18 +54,46 @@ export default function AdminLayout({ account }) {
 				<aside className="border-r bg-background p-4">
 					<nav aria-label="Dashboard navigation" className="grid gap-2">
 						<Link to="/admin">Dashboard</Link>
-						{canManagePosts && <Link to="/admin/recipes">Recipes</Link>}
-						{canManagePosts && <Link to="/admin/articles">Articles</Link>}
-						{account.permissions.includes('posts.edit_all') && <Link to="/admin/categories">Categories</Link>}
-						{canCreatePosts && (
-							<Link reloadDocument to="/admin/recipes/new">
-								Add recipe
-							</Link>
-						)}
-						{canCreatePosts && (
-							<Link reloadDocument to="/admin/articles/new">
-								Add article
-							</Link>
+						{canManagePosts && (
+							<section>
+								<h2 className="font-semibold">Content</h2>
+								<div className="ml-3 mt-2 grid gap-3">
+									<section>
+										<h3 className="font-medium">Recipes</h3>
+										<div className="ml-3 grid gap-1">
+											<Link to="/admin/recipes">All recipes</Link>
+											{canCreatePosts && (
+												<Link reloadDocument to="/admin/recipes/new">
+													Add recipe
+												</Link>
+											)}
+											{account.permissions.includes('posts.edit_all') && (
+												<>
+													<Link to="/admin/recipe/categories">Recipe categories</Link>
+													<Link to="/admin/recipe/tags">Recipe tags</Link>
+												</>
+											)}
+										</div>
+									</section>
+									<section>
+										<h3 className="font-medium">Articles</h3>
+										<div className="ml-3 grid gap-1">
+											<Link to="/admin/articles">All articles</Link>
+											{canCreatePosts && (
+												<Link reloadDocument to="/admin/articles/new">
+													Add article
+												</Link>
+											)}
+											{account.permissions.includes('posts.edit_all') && (
+												<>
+													<Link to="/admin/article/categories">Article categories</Link>
+													<Link to="/admin/article/tags">Article tags</Link>
+												</>
+											)}
+										</div>
+									</section>
+								</div>
+							</section>
 						)}
 						{account.permissions.includes('users.manage') && <Link to="/admin/users">Users</Link>}
 						{account.permissions.includes('roles.manage') && <Link to="/admin/roles">Roles</Link>}

@@ -62,6 +62,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		const result = await run(() =>
 			createRecipeMutation.mutateAsync({
 				...(form.get('categoryId') ? { categoryId: Number(form.get('categoryId')) } : {}),
+				tagIds: form.getAll('tagIds').map(Number),
 				cookMinutes: Number(form.get('cookMinutes')),
 				description: form.get('description'),
 				descriptionHtml: form.get('descriptionHtml'),
@@ -127,6 +128,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 			<PostEditorFields
 				canPublish={canPublish}
 				categories={contentTypeData?.categories ?? []}
+				tags={contentTypeData?.tags ?? []}
 				description={description}
 				descriptionHtml={descriptionHtml}
 				excerpt={excerpt}

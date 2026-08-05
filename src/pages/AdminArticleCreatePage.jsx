@@ -31,6 +31,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 		const result = await run(() =>
 			mutation.mutateAsync({
 				...(form.get('categoryId') ? { categoryId: Number(form.get('categoryId')) } : {}),
+				tagIds: form.getAll('tagIds').map(Number),
 				description,
 				descriptionHtml,
 				excerpt,
@@ -78,6 +79,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 			<PostEditorFields
 				canPublish={canPublish}
 				categories={contentTypeData?.categories ?? []}
+				tags={contentTypeData?.tags ?? []}
 				description={description}
 				descriptionHtml={descriptionHtml}
 				excerpt={excerpt}

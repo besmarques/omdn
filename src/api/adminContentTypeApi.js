@@ -6,6 +6,9 @@ export function getAdminContentType(contentType) {
 export function createAdminCategory(contentType, category) {
 	return requestApi(`/api/admin/content-types/${contentType}/categories`, { method: 'POST', body: JSON.stringify(category) });
 }
+export function createAdminTag(contentType, tag) {
+	return requestApi(`/api/admin/content-types/${contentType}/tags`, { method: 'POST', body: JSON.stringify(tag) });
+}
 export function updateArchiveSeo(contentType, seo) {
 	return requestApi(`/api/admin/content-types/${contentType}/archive-seo`, { method: 'PATCH', body: JSON.stringify(seo) });
 }

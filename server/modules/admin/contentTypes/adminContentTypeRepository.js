@@ -2,7 +2,7 @@ export default function createAdminContentTypeRepository(db) {
 	async function get(contentType, { ownerUserId = null } = {}) {
 		const ownerClause = ownerUserId === null ? '' : 'AND posts.owner_user_id = ?';
 		const parameters = ownerUserId === null ? [contentType] : [contentType, ownerUserId];
-		const [[type], [posts], [categories]] = await Promise.all([
+		const [[type], [posts], [categories], [tags]] = await Promise.all([
 			db.execute(`SELECT slug, label, archive_seo_title, archive_seo_description FROM content_types WHERE slug = ? AND is_enabled = 1`, [
 				contentType,
 			]),
@@ -29,6 +29,15 @@ export default function createAdminContentTypeRepository(db) {
 				 ORDER BY categories.name`,
 				[contentType],
 			),
+			db.execute(
+				`SELECT tags.id, tags.name, COUNT(post_tags.post_id) AS post_count
+				 FROM tags
+				 LEFT JOIN post_tags ON post_tags.tag_id = tags.id
+				 WHERE tags.content_type = ?
+				 GROUP BY tags.id, tags.name
+				 ORDER BY tags.name`,
+				[contentType],
+			),
 		]);
 
 		if (!type[0]) return null;
@@ -37,6 +46,7 @@ export default function createAdminContentTypeRepository(db) {
 			categories: categories.map((category) => ({ ...category, id: Number(category.id), post_count: Number(category.post_count) })),
 			contentType: { label: type[0].label, slug: type[0].slug },
 			posts: posts.map((post) => ({ ...post, id: Number(post.id) })),
+			tags: tags.map((tag) => ({ ...tag, id: Number(tag.id), post_count: Number(tag.post_count) })),
 		};
 	}
 
@@ -70,5 +80,14 @@ export default function createAdminContentTypeRepository(db) {
 		return result.affectedRows > 0;
 	}
 
-	return { createCategory, get, updateArchiveSeo };
+	async function createTag(contentType, tag) {
+		const [result] = await db.execute(`INSERT INTO tags (content_type, name, normalized_name) VALUES (?, ?, ?)`, [
+			contentType,
+			tag.name,
+			tag.name.toLocaleLowerCase(),
+		]);
+		return { id: Number(result.insertId), name: tag.name };
+	}
+
+	return { createCategory, createTag, get, updateArchiveSeo };
 }

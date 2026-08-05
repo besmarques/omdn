@@ -396,6 +396,9 @@ storage model; editors work with Recipes, Articles, and future concrete types.
 Their management pages filter by `content_type`. Categories carry the same
 type discriminator, and archive SEO lives on the content-type registry so a
 new type can provide editable archive metadata without hard-coding route text.
+Tags also carry `content_type`. The reusable `/admin/:contentType/:taxonomy`
+route validates both parameters and renders the shared taxonomy template, so
+new taxonomy screens must not be copied into recipe/article-specific pages.
 
 For a production page request, the current frontend works like this:
 

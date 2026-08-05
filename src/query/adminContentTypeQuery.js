@@ -1,5 +1,5 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createAdminCategory, getAdminContentType, updateArchiveSeo } from '../api/adminContentTypeApi';
+import { createAdminCategory, createAdminTag, getAdminContentType, updateArchiveSeo } from '../api/adminContentTypeApi';
 
 export const adminContentTypeKey = (contentType) => ['admin', 'content-type', contentType];
 export function useAdminContentType(contentType) {
@@ -19,6 +19,13 @@ export function useCreateCategory(contentType) {
 	const client = useQueryClient();
 	return useMutation({
 		mutationFn: (category) => createAdminCategory(contentType, category),
+		onSuccess: (result) => (result.ok ? client.invalidateQueries({ queryKey: adminContentTypeKey(contentType) }) : undefined),
+	});
+}
+export function useCreateTag(contentType) {
+	const client = useQueryClient();
+	return useMutation({
+		mutationFn: (tag) => createAdminTag(contentType, tag),
 		onSuccess: (result) => (result.ok ? client.invalidateQueries({ queryKey: adminContentTypeKey(contentType) }) : undefined),
 	});
 }
