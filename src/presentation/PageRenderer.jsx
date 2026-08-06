@@ -46,6 +46,7 @@ export default function PageRenderer({ page }) {
 		createElement(Template, {
 			content: page.content,
 			includeStructuredData: page.structuredData !== false,
+			media: page.media,
 		}),
 	);
 }

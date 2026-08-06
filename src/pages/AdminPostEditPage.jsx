@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import PostEditor from '../content/posts/PostEditor';
 import PostEditorFields from '../content/posts/PostEditorFields';
+import PostMediaFields from '../content/posts/PostMediaFields';
 import RecipeFields from '../content/recipes/RecipeFields';
 import SeoEditor from '../content/seo/SeoEditor';
 import { useAdminContentType, useAdminPost, useUpdateAdminPost } from '../query/adminContentTypeQuery';
@@ -44,6 +45,7 @@ function LoadedEditor({ contentType, post, taxonomies }) {
 	const [message, setMessage] = useState('');
 	const [ingredients, setIngredients] = useState(contentType === 'recipe' ? linesFromIngredients(source.ingredients) : '');
 	const [instructions, setInstructions] = useState(contentType === 'recipe' ? source.instructions.map(({ text }) => text).join('\n') : '');
+	const [media, setMedia] = useState(post.media);
 
 	async function submit(event) {
 		event.preventDefault();
@@ -55,6 +57,7 @@ function LoadedEditor({ contentType, post, taxonomies }) {
 			excerpt,
 			expectedLockVersion: post.lock_version,
 			isPillar: form.get('isPillar') === 'on',
+			media,
 			publication: 'draft',
 			seo: { description: form.get('seoDescription'), focusKeyword: form.get('focusKeyword'), title: form.get('seoTitle') },
 			slug,
@@ -107,6 +110,7 @@ function LoadedEditor({ contentType, post, taxonomies }) {
 				selectedCategoryId={post.primary_category_id}
 				selectedTagIds={post.tag_ids}
 			/>
+			<PostMediaFields onChange={setMedia} value={media} />
 			{contentType === 'recipe' && (
 				<RecipeFields
 					ingredients={ingredients}

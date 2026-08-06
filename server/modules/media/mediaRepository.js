@@ -90,7 +90,23 @@ export default function createMediaRepository(db) {
 		);
 		return variant ?? null;
 	}
-	return { create, findFile, getSettings, list, updateSettings };
+	async function findPublicFile(uuid, variantName) {
+		const [[variant]] = await db.execute(
+			`SELECT media_variants.storage_key, media_variants.mime_type
+			 FROM media_assets
+			 INNER JOIN media_variants ON media_variants.media_asset_id = media_assets.id AND media_variants.variant_name = ?
+			 WHERE media_assets.uuid = ? AND media_assets.status = 'ready'
+			   AND EXISTS (
+			     SELECT 1 FROM post_revision_media
+			     INNER JOIN post_revision_heads ON post_revision_heads.published_revision_id = post_revision_media.revision_id
+			     INNER JOIN posts ON posts.id = post_revision_heads.post_id
+			     WHERE post_revision_media.media_asset_id = media_assets.id AND posts.status = 'published' AND posts.trashed_at IS NULL
+			   )`,
+			[variantName, uuid],
+		);
+		return variant ?? null;
+	}
+	return { create, findFile, findPublicFile, getSettings, list, updateSettings };
 }
 
 function normalizeSettings(row) {

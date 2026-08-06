@@ -74,10 +74,6 @@ export default function PostEditorFields({
 					))}
 				</fieldset>
 			)}
-			<section aria-labelledby="featured-image-heading">
-				<h2 id="featured-image-heading">Featured image</h2>
-				<p>Image selection will be enabled by the shared media library. Arbitrary image URLs are not accepted.</p>
-			</section>
 			{canPublish && (
 				<>
 					<FormField label="Publication" name="publication">

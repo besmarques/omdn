@@ -56,6 +56,7 @@ export default function createRecipeService(repository, { now = () => new Date()
 			createdAt: now(),
 			excerpt: input.excerpt || source.description,
 			isPillar: input.isPillar,
+			media: input.media,
 			plainText: deriveRecipePlainText(source),
 			publication: input.publication,
 			publishAt,

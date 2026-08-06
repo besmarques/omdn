@@ -19,6 +19,9 @@ export function meta({ loaderData }) {
 	const { article, canonicalUrl } = loaderData;
 	const title = article.seo.title || `${article.title} | O Melhor do Natal`;
 	const description = article.seo.description || article.description;
+	const images = [article.media.featured, ...article.media.gallery]
+		.filter(Boolean)
+		.map((image) => new URL(image.variants.at(-1).url, canonicalUrl).href);
 	return [
 		{ title },
 		{ name: 'description', content: description },
@@ -27,11 +30,13 @@ export function meta({ loaderData }) {
 		{ property: 'og:title', content: title },
 		{ property: 'og:description', content: description },
 		{ property: 'og:url', content: canonicalUrl },
+		...(images[0] ? [{ property: 'og:image', content: images[0] }] : []),
 		{
 			'script:ld+json': createPostStructuredData(article.contentType, article.source, {
 				author: article.author.displayName,
 				datePublished: article.publishedAt,
 				url: canonicalUrl,
+				images,
 			}),
 		},
 	];
@@ -42,6 +47,7 @@ export default function ArticleRoute({ loaderData }) {
 		<PageRenderer
 			page={{
 				content: article.source,
+				media: article.media,
 				presentation: {
 					footer: { type: article.presentation.footer },
 					header: { type: article.presentation.header },

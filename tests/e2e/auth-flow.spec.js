@@ -297,6 +297,11 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			await page.getByLabel('Meta description').fill('Bake a festive Christmas cake with this tested recipe.');
 			await page.getByLabel('Focus keyword').fill('christmas cake recipe');
 			await page.getByLabel('This post is pillar content').check();
+			const mediaCard = page.locator('article').filter({ hasText: 'christmas-test.png' });
+			await mediaCard.getByRole('button', { name: 'Use as featured' }).click();
+			await mediaCard.getByLabel('Include in gallery').check();
+			await mediaCard.getByLabel('Featured alt text').fill('Featured Christmas cake');
+			await mediaCard.getByLabel('Gallery alt text').fill('Christmas cake gallery image');
 			await page.getByLabel('Publication').selectOption('publish');
 			const createResponsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/admin/recipes');
 			await page.getByRole('button', { name: 'Create recipe' }).click();
@@ -311,6 +316,11 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 				'Bake a festive Christmas cake with this tested recipe.',
 			);
 			await expect(page).toHaveTitle('Christmas cake recipe | O Melhor do Natal');
+			await expect(page.getByAltText('Featured Christmas cake')).toBeVisible();
+			await expect(page.getByRole('region', { name: 'Image gallery' })).toBeVisible();
+			await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /\/media\/.+\/large$/u);
+			const recipeStructuredData = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+			expect(recipeStructuredData.image).toHaveLength(2);
 			const [[created]] = await database.execute(
 				`SELECT posts.status, posts.is_pillar_content, post_revisions.excerpt, post_revisions.focus_keyword,
 				        COUNT(content_events.id) AS event_count
@@ -328,6 +338,13 @@ test('characterizes registration, authentication, TOTP, and admin access', async
 			expect(created.excerpt).toBe('A short festive cake summary.');
 			expect(created.focus_keyword).toBe('christmas cake recipe');
 			expect(Number(created.event_count)).toBe(1);
+			const [[revisionMedia]] = await database.execute(
+				`SELECT COUNT(*) AS total FROM post_revision_media
+				 INNER JOIN post_revision_heads ON post_revision_heads.published_revision_id = post_revision_media.revision_id
+				 INNER JOIN route_slugs ON route_slugs.resource_id = post_revision_heads.post_id
+				 WHERE route_slugs.slug = 'playwright-christmas-cake'`,
+			);
+			expect(Number(revisionMedia.total)).toBe(2);
 			await page.goto('/admin');
 		});
 

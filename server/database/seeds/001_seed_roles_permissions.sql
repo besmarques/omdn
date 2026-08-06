@@ -1,4 +1,4 @@
--- Active: 1785708046351@@127.0.0.1@3306@omdn
+-- Active: 1785887395933@@127.0.0.1@3306@omdn
 START TRANSACTION;
 
 INSERT INTO roles (slug, label)

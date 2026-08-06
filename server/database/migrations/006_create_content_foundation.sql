@@ -1,3 +1,4 @@
+-- Active: 1785887395933@@127.0.0.1@3306@omdn
 -- migrate:up transaction:false
 
 CREATE TABLE authors (

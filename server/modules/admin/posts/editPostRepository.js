@@ -1,3 +1,5 @@
+import { insertRevisionMedia } from './postMediaRepository.js';
+
 export default function createEditPostRepository(db) {
 	async function findById(contentType, id, { includeTrashed = false } = {}) {
 		const [[post]] = await db.execute(
@@ -15,6 +17,14 @@ export default function createEditPostRepository(db) {
 		);
 		if (!post) return null;
 		const [tags] = await db.execute(`SELECT tag_id FROM post_tags WHERE post_id = ? ORDER BY tag_id`, [id]);
+		const [media] = await db.execute(
+			`SELECT post_revision_media.media_asset_id AS id, post_revision_media.role, post_revision_media.alt_text,
+			        post_revision_media.sort_position
+			 FROM post_revision_media
+			 WHERE post_revision_media.revision_id = (SELECT current_revision_id FROM post_revision_heads WHERE post_id = ?)
+			 ORDER BY post_revision_media.role, post_revision_media.sort_position`,
+			[id],
+		);
 		return {
 			...post,
 			id: Number(post.id),
@@ -24,6 +34,15 @@ export default function createEditPostRepository(db) {
 			primary_category_id: post.primary_category_id ? Number(post.primary_category_id) : null,
 			source: typeof post.source === 'string' ? JSON.parse(post.source) : post.source,
 			tag_ids: tags.map(({ tag_id: tagId }) => Number(tagId)),
+			media: {
+				featured: media.find(({ role }) => role === 'featured')
+					? {
+							altText: media.find(({ role }) => role === 'featured').alt_text,
+							id: Number(media.find(({ role }) => role === 'featured').id),
+						}
+					: null,
+				gallery: media.filter(({ role }) => role === 'gallery').map((usage) => ({ altText: usage.alt_text, id: Number(usage.id) })),
+			},
 		};
 	}
 
@@ -89,10 +108,12 @@ export default function createEditPostRepository(db) {
 					record.sourceHash,
 				],
 			);
-			const published = post.status === 'published';
+			await insertRevisionMedia(connection, revision.insertId, record.media);
 			await connection.execute(
-				`UPDATE post_revision_heads SET current_revision_id = ?, published_revision_id = CASE WHEN ? THEN ? ELSE published_revision_id END WHERE post_id = ?`,
-				[revision.insertId, published, revision.insertId, record.id],
+				`UPDATE post_revision_heads
+	 			SET current_revision_id = ?
+	 			WHERE post_id = ?`,
+				[revision.insertId, record.id],
 			);
 			await connection.execute(
 				`UPDATE posts SET primary_category_id = ?, is_pillar_content = ?, lock_version = lock_version + 1 WHERE id = ?`,
@@ -117,6 +138,37 @@ export default function createEditPostRepository(db) {
 				]);
 			}
 			await connection.commit();
+			const eventType = 'post_revision_created';
+
+			const eventPayload = JSON.stringify({
+				actorUserId: Number(record.actor.id),
+				contentType: record.contentType,
+				postId: Number(record.id),
+				previousRevisionId: Number(post.current_revision_id),
+				revisionId: Number(revision.insertId),
+			});
+
+			const [outbox] = await connection.execute(
+				`INSERT INTO domain_outbox (
+		aggregate_type,
+		aggregate_id,
+		event_type,
+		payload
+	) VALUES ('post', ?, ?, ?)`,
+				[record.id, eventType, eventPayload],
+			);
+
+			await connection.execute(
+				`INSERT INTO content_events (
+		outbox_id,
+		post_id,
+		revision_id,
+		actor_user_id,
+		event_type,
+		metadata
+	) VALUES (?, ?, ?, ?, ?, ?)`,
+				[outbox.insertId, record.id, revision.insertId, record.actor.id, eventType, eventPayload],
+			);
 			return { id: record.id, lockVersion: record.expectedLockVersion + 1, slug: record.slug };
 		} catch (error) {
 			await connection.rollback();

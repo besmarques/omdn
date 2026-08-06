@@ -183,3 +183,12 @@ export async function seedPublishedRecipeFixture() {
 		await database.end();
 	}
 }
+
+export function createTestDatabasePool() {
+	return mysql.createPool({
+		...connectionOptions(),
+		waitForConnections: true,
+		connectionLimit: 4,
+		queueLimit: 0,
+	});
+}

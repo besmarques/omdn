@@ -10,6 +10,9 @@ import createAccountModule from '#server/modules/account/accountModule';
 import createAdminModule from '#server/modules/admin/adminModule';
 import createAuthModule from '#server/modules/auth/authModule';
 import createContentModule from '#server/modules/content/contentModule';
+import createLocalMediaStorage from '#server/modules/media/localMediaStorage';
+import createMediaRepository from '#server/modules/media/mediaRepository';
+import createPublicMediaController from '#server/modules/media/publicMediaController';
 
 import createApiRoutes from '#server/routes/apiRoutes';
 
@@ -38,6 +41,10 @@ export default function createApp(db, config, services, { frontend: providedFron
 	}
 
 	app.locals.applicationServices = services;
+	app.get(
+		'/media/:uuid/:variant',
+		createPublicMediaController(createMediaRepository(db), createLocalMediaStorage(config.mediaStoragePath ?? 'storage/media')),
+	);
 	app.use('/api', express.json());
 	app.use('/api', session.middleware);
 	app.use('/api', requireCsrfProtection);
@@ -69,6 +76,7 @@ export default function createApp(db, config, services, { frontend: providedFron
 	}
 
 	app.use('/api', apiErrorHandler);
+	app.use('/media', apiErrorHandler);
 
 	return app;
 }

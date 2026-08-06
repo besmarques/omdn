@@ -27,7 +27,6 @@ describe('shared post editor fields', () => {
 		expect(html).toContain('name="slug"');
 		expect(html).toContain('name="description"');
 		expect(html).toContain('name="excerpt"');
-		expect(html).toContain('Featured image');
 		expect(html).toContain('name="publication"');
 		expect(html).toContain('name="publishAt"');
 	});
