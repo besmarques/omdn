@@ -1,0 +1,649 @@
+diff --git a/server/database/migrations/006_create_content_foundation.sql b/server/database/migrations/006_create_content_foundation.sql
+index e4e32e9..c79f9f7 100644
+--- a/server/database/migrations/006_create_content_foundation.sql
++++ b/server/database/migrations/006_create_content_foundation.sql
+@@ -1,3 +1,4 @@
++-- Active: 1785887395933@@127.0.0.1@3306@omdn
+ -- migrate:up transaction:false
+ 
+ CREATE TABLE authors (
+diff --git a/server/database/seeds/001_seed_roles_permissions.sql b/server/database/seeds/001_seed_roles_permissions.sql
+index 9fd4c6f..830b0ea 100644
+--- a/server/database/seeds/001_seed_roles_permissions.sql
++++ b/server/database/seeds/001_seed_roles_permissions.sql
+@@ -1,4 +1,4 @@
+--- Active: 1785708046351@@127.0.0.1@3306@omdn
++-- Active: 1785887395933@@127.0.0.1@3306@omdn
+ START TRANSACTION;
+ 
+ INSERT INTO roles (slug, label)
+diff --git a/server/expressApp.js b/server/expressApp.js
+index 50186f0..c58a581 100644
+--- a/server/expressApp.js
++++ b/server/expressApp.js
+@@ -10,6 +10,9 @@ import createAccountModule from '#server/modules/account/accountModule';
+ import createAdminModule from '#server/modules/admin/adminModule';
+ import createAuthModule from '#server/modules/auth/authModule';
+ import createContentModule from '#server/modules/content/contentModule';
++import createLocalMediaStorage from '#server/modules/media/localMediaStorage';
++import createMediaRepository from '#server/modules/media/mediaRepository';
++import createPublicMediaController from '#server/modules/media/publicMediaController';
+ 
+ import createApiRoutes from '#server/routes/apiRoutes';
+ 
+@@ -38,6 +41,10 @@ export default function createApp(db, config, services, { frontend: providedFron
+ 	}
+ 
+ 	app.locals.applicationServices = services;
++	app.get(
++		'/media/:uuid/:variant',
++		createPublicMediaController(createMediaRepository(db), createLocalMediaStorage(config.mediaStoragePath ?? 'storage/media')),
++	);
+ 	app.use('/api', express.json());
+ 	app.use('/api', session.middleware);
+ 	app.use('/api', requireCsrfProtection);
+@@ -69,6 +76,7 @@ export default function createApp(db, config, services, { frontend: providedFron
+ 	}
+ 
+ 	app.use('/api', apiErrorHandler);
++	app.use('/media', apiErrorHandler);
+ 
+ 	return app;
+ }
+diff --git a/server/modules/admin/articles/createArticleSchema.js b/server/modules/admin/articles/createArticleSchema.js
+index 643f532..ae26bcb 100644
+--- a/server/modules/admin/articles/createArticleSchema.js
++++ b/server/modules/admin/articles/createArticleSchema.js
+@@ -1,5 +1,6 @@
+ import { z } from 'zod';
+ import { seoInputSchema } from '#content/seo/seoSchema.js';
++import { postMediaSchema } from '../posts/postMediaSchema.js';
+ 
+ const slug = z
+ 	.string()
+@@ -15,6 +16,7 @@ export const createArticleSchema = z
+ 		descriptionHtml: z.string().trim().min(1).max(20000),
+ 		excerpt: z.string().trim().max(1000).optional(),
+ 		isPillar: z.boolean().default(false),
++		media: postMediaSchema.default({ featured: null, gallery: [] }),
+ 		publication: z.enum(['draft', 'publish', 'schedule']).default('draft'),
+ 		publishAt: z.string().datetime({ offset: true }).optional(),
+ 		seo: seoInputSchema,
+diff --git a/server/modules/admin/articles/createArticleService.js b/server/modules/admin/articles/createArticleService.js
+index c19b9f3..895a9aa 100644
+--- a/server/modules/admin/articles/createArticleService.js
++++ b/server/modules/admin/articles/createArticleService.js
+@@ -25,6 +25,7 @@ export default function createArticleService(repository, { now = () => new Date(
+ 			createdAt: now(),
+ 			excerpt: input.excerpt || source.description,
+ 			isPillar: input.isPillar,
++			media: input.media,
+ 			plainText: deriveArticlePlainText(source),
+ 			publication: input.publication,
+ 			publishAt,
+diff --git a/server/modules/admin/posts/editPostRepository.js b/server/modules/admin/posts/editPostRepository.js
+index 6538cbc..9605c02 100644
+--- a/server/modules/admin/posts/editPostRepository.js
++++ b/server/modules/admin/posts/editPostRepository.js
+@@ -1,3 +1,5 @@
++import { insertRevisionMedia } from './postMediaRepository.js';
++
+ export default function createEditPostRepository(db) {
+ 	async function findById(contentType, id, { includeTrashed = false } = {}) {
+ 		const [[post]] = await db.execute(
+@@ -15,6 +17,14 @@ export default function createEditPostRepository(db) {
+ 		);
+ 		if (!post) return null;
+ 		const [tags] = await db.execute(`SELECT tag_id FROM post_tags WHERE post_id = ? ORDER BY tag_id`, [id]);
++		const [media] = await db.execute(
++			`SELECT post_revision_media.media_asset_id AS id, post_revision_media.role, post_revision_media.alt_text,
++			        post_revision_media.sort_position
++			 FROM post_revision_media
++			 WHERE post_revision_media.revision_id = (SELECT current_revision_id FROM post_revision_heads WHERE post_id = ?)
++			 ORDER BY post_revision_media.role, post_revision_media.sort_position`,
++			[id],
++		);
+ 		return {
+ 			...post,
+ 			id: Number(post.id),
+@@ -24,6 +34,15 @@ export default function createEditPostRepository(db) {
+ 			primary_category_id: post.primary_category_id ? Number(post.primary_category_id) : null,
+ 			source: typeof post.source === 'string' ? JSON.parse(post.source) : post.source,
+ 			tag_ids: tags.map(({ tag_id: tagId }) => Number(tagId)),
++			media: {
++				featured: media.find(({ role }) => role === 'featured')
++					? {
++							altText: media.find(({ role }) => role === 'featured').alt_text,
++							id: Number(media.find(({ role }) => role === 'featured').id),
++						}
++					: null,
++				gallery: media.filter(({ role }) => role === 'gallery').map((usage) => ({ altText: usage.alt_text, id: Number(usage.id) })),
++			},
+ 		};
+ 	}
+ 
+@@ -90,6 +109,7 @@ export default function createEditPostRepository(db) {
+ 				],
+ 			);
+ 			const published = post.status === 'published';
++			await insertRevisionMedia(connection, revision.insertId, record.media);
+ 			await connection.execute(
+ 				`UPDATE post_revision_heads SET current_revision_id = ?, published_revision_id = CASE WHEN ? THEN ? ELSE published_revision_id END WHERE post_id = ?`,
+ 				[revision.insertId, published, revision.insertId, record.id],
+diff --git a/server/modules/admin/recipes/createRecipeRepository.js b/server/modules/admin/recipes/createRecipeRepository.js
+index 3df6156..74a6428 100644
+--- a/server/modules/admin/recipes/createRecipeRepository.js
++++ b/server/modules/admin/recipes/createRecipeRepository.js
+@@ -1,3 +1,5 @@
++import { insertRevisionMedia } from '../posts/postMediaRepository.js';
++
+ export default function createRecipeRepository(db, { contentType = 'recipe', templateKey = 'recipe' } = {}) {
+ 	return async function createRecipe(record) {
+ 		const connection = await db.getConnection();
+@@ -74,6 +76,7 @@ export default function createRecipeRepository(db, { contentType = 'recipe', tem
+ 					record.sourceHash,
+ 				],
+ 			);
++			await insertRevisionMedia(connection, revisionResult.insertId, record.media);
+ 
+ 			await connection.execute(
+ 				`INSERT INTO post_revision_heads (post_id, current_revision_id, published_revision_id)
+diff --git a/server/modules/admin/recipes/createRecipeSchema.js b/server/modules/admin/recipes/createRecipeSchema.js
+index 02b6a96..4e10637 100644
+--- a/server/modules/admin/recipes/createRecipeSchema.js
++++ b/server/modules/admin/recipes/createRecipeSchema.js
+@@ -1,6 +1,7 @@
+ import { z } from 'zod';
+ 
+ import { seoInputSchema } from '#content/seo/seoSchema.js';
++import { postMediaSchema } from '../posts/postMediaSchema.js';
+ 
+ const slug = z
+ 	.string()
+@@ -41,6 +42,7 @@ export const createRecipeSchema = z
+ 			.max(100),
+ 		prepMinutes: z.number().int().nonnegative().max(10_000),
+ 		isPillar: z.boolean().default(false),
++		media: postMediaSchema.default({ featured: null, gallery: [] }),
+ 		publication: z.enum(['draft', 'publish', 'schedule']).default('draft'),
+ 		publishAt: z.string().datetime({ offset: true }).optional(),
+ 		seo: seoInputSchema,
+diff --git a/server/modules/admin/recipes/createRecipeService.js b/server/modules/admin/recipes/createRecipeService.js
+index b71a4dd..153c546 100644
+--- a/server/modules/admin/recipes/createRecipeService.js
++++ b/server/modules/admin/recipes/createRecipeService.js
+@@ -56,6 +56,7 @@ export default function createRecipeService(repository, { now = () => new Date()
+ 			createdAt: now(),
+ 			excerpt: input.excerpt || source.description,
+ 			isPillar: input.isPillar,
++			media: input.media,
+ 			plainText: deriveRecipePlainText(source),
+ 			publication: input.publication,
+ 			publishAt,
+diff --git a/server/modules/content/recipes/publicRecipeRepository.js b/server/modules/content/recipes/publicRecipeRepository.js
+index 52bc659..2d6950a 100644
+--- a/server/modules/content/recipes/publicRecipeRepository.js
++++ b/server/modules/content/recipes/publicRecipeRepository.js
+@@ -9,6 +9,7 @@ const publicRecipeSelection = `
+ 		categories.name AS primary_category_name,
+ 		canonical_slug.slug AS canonical_slug,
+ 		post_revisions.title,
++		post_revisions.id AS revision_id,
+ 		post_revisions.excerpt,
+ 		post_revisions.seo_title,
+ 		post_revisions.seo_description,
+@@ -47,6 +48,23 @@ function publicPostPredicate(contentType) {
+ 
+ export default function createPublicRecipeRepository(db, { contentType = 'recipe' } = {}) {
+ 	const publicRecipePredicate = publicPostPredicate(contentType);
++	async function attachMedia(rows) {
++		if (rows.length === 0) return rows;
++		const revisionIds = [...new Set(rows.map(({ revision_id: id }) => id))];
++		const placeholders = revisionIds.map(() => '?').join(', ');
++		const [media] = await db.execute(
++			`SELECT post_revision_media.revision_id, post_revision_media.role, post_revision_media.sort_position,
++			        post_revision_media.alt_text, media_assets.uuid, media_assets.width, media_assets.height,
++			        media_variants.variant_name, media_variants.width AS variant_width, media_variants.height AS variant_height
++			 FROM post_revision_media
++			 INNER JOIN media_assets ON media_assets.id = post_revision_media.media_asset_id AND media_assets.status = 'ready'
++			 INNER JOIN media_variants ON media_variants.media_asset_id = media_assets.id
++			 WHERE post_revision_media.revision_id IN (${placeholders})
++			 ORDER BY post_revision_media.revision_id, post_revision_media.role, post_revision_media.sort_position, media_variants.width`,
++			revisionIds,
++		);
++		return rows.map((row) => ({ ...row, media: media.filter(({ revision_id: id }) => Number(id) === Number(row.revision_id)) }));
++	}
+ 	async function findBySlug(slug) {
+ 		const [rows] = await db.execute(
+ 			`${publicRecipeSelection}
+@@ -63,8 +81,9 @@ export default function createPublicRecipeRepository(db, { contentType = 'recipe
+ 			return null;
+ 		}
+ 
++		const [row] = await attachMedia([rows[0]]);
+ 		return {
+-			...rows[0],
++			...row,
+ 			requested_slug_kind: rows[0].canonical_slug === slug ? 'canonical' : 'redirect',
+ 		};
+ 	}
+@@ -93,7 +112,7 @@ export default function createPublicRecipeRepository(db, { contentType = 'recipe
+ 			parameters,
+ 		);
+ 
+-		return rows;
++		return attachMedia(rows);
+ 	}
+ 
+ 	async function count() {
+@@ -115,7 +134,7 @@ export default function createPublicRecipeRepository(db, { contentType = 'recipe
+ 			[limit, offset],
+ 		);
+ 
+-		return rows;
++		return attachMedia(rows);
+ 	}
+ 
+ 	return {
+diff --git a/server/modules/content/recipes/publicRecipeService.js b/server/modules/content/recipes/publicRecipeService.js
+index b4547b4..df87e29 100644
+--- a/server/modules/content/recipes/publicRecipeService.js
++++ b/server/modules/content/recipes/publicRecipeService.js
+@@ -37,6 +37,27 @@ async function normalizeRecipe(row, { includeSource = false, parseSource = parse
+ 		source = { ...parsedSource, descriptionHtml: sanitizePostDescriptionHtml(parsedSource.descriptionHtml) };
+ 	}
+ 	const regionConfig = parseStoredJson(row.region_config, 'region configuration');
++	const usages = new Map();
++	for (const item of row.media ?? []) {
++		const key = `${item.role}:${item.sort_position}`;
++		const usage = usages.get(key) ?? {
++			altText: item.alt_text,
++			height: Number(item.height),
++			role: item.role,
++			sortPosition: Number(item.sort_position),
++			uuid: item.uuid,
++			variants: [],
++			width: Number(item.width),
++		};
++		usage.variants.push({
++			height: Number(item.variant_height),
++			name: item.variant_name,
++			url: `/media/${item.uuid}/${item.variant_name}`,
++			width: Number(item.variant_width),
++		});
++		usages.set(key, usage);
++	}
++	const media = [...usages.values()];
+ 
+ 	return {
+ 		contentType: row.content_type,
+@@ -68,6 +89,10 @@ async function normalizeRecipe(row, { includeSource = false, parseSource = parse
+ 			description: row.seo_description,
+ 			title: row.seo_title,
+ 		},
++		media: {
++			featured: media.find(({ role }) => role === 'featured') ?? null,
++			gallery: media.filter(({ role }) => role === 'gallery').sort((a, b) => a.sortPosition - b.sortPosition),
++		},
+ 		sourceSchemaVersion: Number(row.source_schema_version),
+ 		...(includeSource ? { source } : {}),
+ 	};
+diff --git a/server/modules/media/mediaRepository.js b/server/modules/media/mediaRepository.js
+index 05d1fcf..e43ddb9 100644
+--- a/server/modules/media/mediaRepository.js
++++ b/server/modules/media/mediaRepository.js
+@@ -90,7 +90,23 @@ export default function createMediaRepository(db) {
+ 		);
+ 		return variant ?? null;
+ 	}
+-	return { create, findFile, getSettings, list, updateSettings };
++	async function findPublicFile(uuid, variantName) {
++		const [[variant]] = await db.execute(
++			`SELECT media_variants.storage_key, media_variants.mime_type
++			 FROM media_assets
++			 INNER JOIN media_variants ON media_variants.media_asset_id = media_assets.id AND media_variants.variant_name = ?
++			 WHERE media_assets.uuid = ? AND media_assets.status = 'ready'
++			   AND EXISTS (
++			     SELECT 1 FROM post_revision_media
++			     INNER JOIN post_revision_heads ON post_revision_heads.published_revision_id = post_revision_media.revision_id
++			     INNER JOIN posts ON posts.id = post_revision_heads.post_id
++			     WHERE post_revision_media.media_asset_id = media_assets.id AND posts.status = 'published' AND posts.trashed_at IS NULL
++			   )`,
++			[variantName, uuid],
++		);
++		return variant ?? null;
++	}
++	return { create, findFile, findPublicFile, getSettings, list, updateSettings };
+ }
+ 
+ function normalizeSettings(row) {
+diff --git a/src/content/articles/ArticleTemplate.jsx b/src/content/articles/ArticleTemplate.jsx
+index e515fae..be77823 100644
+--- a/src/content/articles/ArticleTemplate.jsx
++++ b/src/content/articles/ArticleTemplate.jsx
+@@ -1,10 +1,12 @@
+ import { parseArticleSource } from './articleSchema';
++import PostMediaDisplay from '../posts/PostMediaDisplay';
+ 
+-export default function ArticleTemplate({ content }) {
++export default function ArticleTemplate({ content, media }) {
+ 	const article = parseArticleSource(content);
+ 	return (
+ 		<article>
+ 			<h1>{article.title}</h1>
++			<PostMediaDisplay media={media} />
+ 			{article.descriptionHtml ? <div dangerouslySetInnerHTML={{ __html: article.descriptionHtml }} /> : <p>{article.description}</p>}
+ 		</article>
+ 	);
+diff --git a/src/content/articles/articleSchema.js b/src/content/articles/articleSchema.js
+index 61e7370..c0a835c 100644
+--- a/src/content/articles/articleSchema.js
++++ b/src/content/articles/articleSchema.js
+@@ -32,6 +32,7 @@ export function createArticleStructuredData(source, metadata = {}) {
+ 		...(metadata.datePublished ? { datePublished: metadata.datePublished } : {}),
+ 		description: article.description,
+ 		headline: article.title,
++		...(metadata.images?.length ? { image: metadata.images } : {}),
+ 		...(metadata.url ? { mainEntityOfPage: metadata.url, url: metadata.url } : {}),
+ 	};
+ }
+diff --git a/src/content/posts/PostEditorFields.jsx b/src/content/posts/PostEditorFields.jsx
+index 16cc0a5..9190c6a 100644
+--- a/src/content/posts/PostEditorFields.jsx
++++ b/src/content/posts/PostEditorFields.jsx
+@@ -74,10 +74,6 @@ export default function PostEditorFields({
+ 					))}
+ 				</fieldset>
+ 			)}
+-			<section aria-labelledby="featured-image-heading">
+-				<h2 id="featured-image-heading">Featured image</h2>
+-				<p>Image selection will be enabled by the shared media library. Arbitrary image URLs are not accepted.</p>
+-			</section>
+ 			{canPublish && (
+ 				<>
+ 					<FormField label="Publication" name="publication">
+diff --git a/src/content/recipes/RecipeTemplate.jsx b/src/content/recipes/RecipeTemplate.jsx
+index c3e6fac..8a9a651 100644
+--- a/src/content/recipes/RecipeTemplate.jsx
++++ b/src/content/recipes/RecipeTemplate.jsx
+@@ -1,6 +1,7 @@
+ import { formatIngredient, parseRecipeArticleSource, serializeRecipeStructuredData } from './recipeSchema';
++import PostMediaDisplay from '../posts/PostMediaDisplay';
+ 
+-export default function RecipeTemplate({ content, includeStructuredData = true }) {
++export default function RecipeTemplate({ content, includeStructuredData = true, media }) {
+ 	const recipe = parseRecipeArticleSource(content);
+ 
+ 	return (
+@@ -9,6 +10,7 @@ export default function RecipeTemplate({ content, includeStructuredData = true }
+ 				<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeRecipeStructuredData(recipe) }} />
+ 			)}
+ 			<h1>{recipe.title}</h1>
++			<PostMediaDisplay media={media} />
+ 			{recipe.descriptionHtml ? <div dangerouslySetInnerHTML={{ __html: recipe.descriptionHtml }} /> : <p>{recipe.description}</p>}
+ 			<dl>
+ 				<div>
+diff --git a/src/content/recipes/recipeSchema.js b/src/content/recipes/recipeSchema.js
+index 0b0a773..fcad298 100644
+--- a/src/content/recipes/recipeSchema.js
++++ b/src/content/recipes/recipeSchema.js
+@@ -108,6 +108,7 @@ export function createRecipeStructuredData(source, metadata = {}) {
+ 		cookTime: `PT${recipe.cookMinutes}M`,
+ 		...(metadata.datePublished ? { datePublished: metadata.datePublished } : {}),
+ 		description: recipe.description,
++		...(metadata.images?.length ? { image: metadata.images } : {}),
+ 		name: recipe.title,
+ 		prepTime: `PT${recipe.prepMinutes}M`,
+ 		recipeIngredient: recipe.ingredients.map(formatIngredient),
+diff --git a/src/pages/AdminArticleCreatePage.jsx b/src/pages/AdminArticleCreatePage.jsx
+index 3db6410..cf53bb8 100644
+--- a/src/pages/AdminArticleCreatePage.jsx
++++ b/src/pages/AdminArticleCreatePage.jsx
+@@ -1,6 +1,8 @@
+ import { useState } from 'react';
+ import PostEditor from '../content/posts/PostEditor';
+ import PostEditorFields from '../content/posts/PostEditorFields';
++import PostMediaFields from '../content/posts/PostMediaFields';
++import { emptyPostMedia } from '../content/posts/postMedia';
+ import SeoEditor from '../content/seo/SeoEditor';
+ import { useCreateArticleMutation } from '../content/articles/queries/articleQueries';
+ import useAsyncAction from '../hooks/useAsyncAction';
+@@ -23,6 +25,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
+ 	const [description, setDescription] = useState('');
+ 	const [descriptionHtml, setDescriptionHtml] = useState('');
+ 	const [excerpt, setExcerpt] = useState('');
++	const [media, setMedia] = useState(emptyPostMedia);
+ 	const ready = useHydrated();
+ 	async function handleSubmit(event) {
+ 		event.preventDefault();
+@@ -36,6 +39,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
+ 				descriptionHtml,
+ 				excerpt,
+ 				isPillar: form.get('isPillar') === 'on',
++				media,
+ 				publication: canPublish ? publication : 'draft',
+ 				...(canPublish && publication === 'schedule' ? { publishAt: new Date(form.get('publishAt')).toISOString() } : {}),
+ 				seo: { description: form.get('seoDescription'), focusKeyword: form.get('focusKeyword'), title: form.get('seoTitle') },
+@@ -65,6 +69,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
+ 		setDescription('');
+ 		setDescriptionHtml('');
+ 		setExcerpt('');
++		setMedia(emptyPostMedia);
+ 	}
+ 	return (
+ 		<PostEditor
+@@ -95,6 +100,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
+ 				slug={slug}
+ 				title={title}
+ 			/>
++			<PostMediaFields onChange={setMedia} value={media} />
+ 			<SeoEditor
+ 				content={description}
+ 				description={description}
+diff --git a/src/pages/AdminPostEditPage.jsx b/src/pages/AdminPostEditPage.jsx
+index c105ca8..32c4346 100644
+--- a/src/pages/AdminPostEditPage.jsx
++++ b/src/pages/AdminPostEditPage.jsx
+@@ -2,6 +2,7 @@ import { useState } from 'react';
+ import { useNavigate } from 'react-router';
+ import PostEditor from '../content/posts/PostEditor';
+ import PostEditorFields from '../content/posts/PostEditorFields';
++import PostMediaFields from '../content/posts/PostMediaFields';
+ import RecipeFields from '../content/recipes/RecipeFields';
+ import SeoEditor from '../content/seo/SeoEditor';
+ import { useAdminContentType, useAdminPost, useUpdateAdminPost } from '../query/adminContentTypeQuery';
+@@ -44,6 +45,7 @@ function LoadedEditor({ contentType, post, taxonomies }) {
+ 	const [message, setMessage] = useState('');
+ 	const [ingredients, setIngredients] = useState(contentType === 'recipe' ? linesFromIngredients(source.ingredients) : '');
+ 	const [instructions, setInstructions] = useState(contentType === 'recipe' ? source.instructions.map(({ text }) => text).join('\n') : '');
++	const [media, setMedia] = useState(post.media);
+ 
+ 	async function submit(event) {
+ 		event.preventDefault();
+@@ -55,6 +57,7 @@ function LoadedEditor({ contentType, post, taxonomies }) {
+ 			excerpt,
+ 			expectedLockVersion: post.lock_version,
+ 			isPillar: form.get('isPillar') === 'on',
++			media,
+ 			publication: 'draft',
+ 			seo: { description: form.get('seoDescription'), focusKeyword: form.get('focusKeyword'), title: form.get('seoTitle') },
+ 			slug,
+@@ -107,6 +110,7 @@ function LoadedEditor({ contentType, post, taxonomies }) {
+ 				selectedCategoryId={post.primary_category_id}
+ 				selectedTagIds={post.tag_ids}
+ 			/>
++			<PostMediaFields onChange={setMedia} value={media} />
+ 			{contentType === 'recipe' && (
+ 				<RecipeFields
+ 					ingredients={ingredients}
+diff --git a/src/pages/AdminRecipeCreatePage.jsx b/src/pages/AdminRecipeCreatePage.jsx
+index 781927a..9aabe28 100644
+--- a/src/pages/AdminRecipeCreatePage.jsx
++++ b/src/pages/AdminRecipeCreatePage.jsx
+@@ -2,6 +2,8 @@ import { useState } from 'react';
+ 
+ import PostEditor from '../content/posts/PostEditor';
+ import PostEditorFields from '../content/posts/PostEditorFields';
++import PostMediaFields from '../content/posts/PostMediaFields';
++import { emptyPostMedia } from '../content/posts/postMedia';
+ import RecipeFields from '../content/recipes/RecipeFields';
+ import { useCreateRecipeMutation } from '../content/recipes/queries/recipeQueries';
+ import SeoEditor from '../content/seo/SeoEditor';
+@@ -52,6 +54,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
+ 	const [excerpt, setExcerpt] = useState('');
+ 	const [ingredients, setIngredients] = useState('');
+ 	const [instructions, setInstructions] = useState('');
++	const [media, setMedia] = useState(emptyPostMedia);
+ 	const [formVersion, setFormVersion] = useState(0);
+ 	const ready = useHydrated();
+ 
+@@ -71,6 +74,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
+ 				ingredients: parseIngredients(form.get('ingredients')),
+ 				instructions: parseInstructions(form.get('instructions')),
+ 				isPillar: form.get('isPillar') === 'on',
++				media,
+ 				prepMinutes: Number(form.get('prepMinutes')),
+ 				publication: canPublish ? form.get('publication') : 'draft',
+ 				...(canPublish && form.get('publication') === 'schedule' ? { publishAt: new Date(form.get('publishAt')).toISOString() } : {}),
+@@ -112,6 +116,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
+ 		setExcerpt('');
+ 		setIngredients('');
+ 		setInstructions('');
++		setMedia(emptyPostMedia);
+ 		setFormVersion((version) => version + 1);
+ 	}
+ 
+@@ -144,6 +149,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
+ 				slug={slug}
+ 				title={title}
+ 			/>
++			<PostMediaFields onChange={setMedia} value={media} />
+ 			<RecipeFields
+ 				ingredients={ingredients}
+ 				instructions={instructions}
+diff --git a/src/presentation/PageRenderer.jsx b/src/presentation/PageRenderer.jsx
+index 685758f..56afe29 100644
+--- a/src/presentation/PageRenderer.jsx
++++ b/src/presentation/PageRenderer.jsx
+@@ -46,6 +46,7 @@ export default function PageRenderer({ page }) {
+ 		createElement(Template, {
+ 			content: page.content,
+ 			includeStructuredData: page.structuredData !== false,
++			media: page.media,
+ 		}),
+ 	);
+ }
+diff --git a/src/routes/article.jsx b/src/routes/article.jsx
+index 7cf32b1..fdd918f 100644
+--- a/src/routes/article.jsx
++++ b/src/routes/article.jsx
+@@ -19,6 +19,9 @@ export function meta({ loaderData }) {
+ 	const { article, canonicalUrl } = loaderData;
+ 	const title = article.seo.title || `${article.title} | O Melhor do Natal`;
+ 	const description = article.seo.description || article.description;
++	const images = [article.media.featured, ...article.media.gallery]
++		.filter(Boolean)
++		.map((image) => new URL(image.variants.at(-1).url, canonicalUrl).href);
+ 	return [
+ 		{ title },
+ 		{ name: 'description', content: description },
+@@ -27,11 +30,13 @@ export function meta({ loaderData }) {
+ 		{ property: 'og:title', content: title },
+ 		{ property: 'og:description', content: description },
+ 		{ property: 'og:url', content: canonicalUrl },
++		...(images[0] ? [{ property: 'og:image', content: images[0] }] : []),
+ 		{
+ 			'script:ld+json': createPostStructuredData(article.contentType, article.source, {
+ 				author: article.author.displayName,
+ 				datePublished: article.publishedAt,
+ 				url: canonicalUrl,
++				images,
+ 			}),
+ 		},
+ 	];
+@@ -42,6 +47,7 @@ export default function ArticleRoute({ loaderData }) {
+ 		<PageRenderer
+ 			page={{
+ 				content: article.source,
++				media: article.media,
+ 				presentation: {
+ 					footer: { type: article.presentation.footer },
+ 					header: { type: article.presentation.header },
+diff --git a/src/routes/recipe.jsx b/src/routes/recipe.jsx
+index 9ae68b7..b70ad59 100644
+--- a/src/routes/recipe.jsx
++++ b/src/routes/recipe.jsx
+@@ -40,6 +40,9 @@ export function meta({ loaderData }) {
+ 	const { canonicalUrl: url, recipe } = loaderData;
+ 	const title = recipe.seo.title || `${recipe.title} | O Melhor do Natal`;
+ 	const description = recipe.seo.description || recipe.description;
++	const images = [recipe.media.featured, ...recipe.media.gallery]
++		.filter(Boolean)
++		.map((image) => new URL(image.variants.at(-1).url, url).href);
+ 
+ 	return [
+ 		{ title },
+@@ -49,11 +52,13 @@ export function meta({ loaderData }) {
+ 		{ property: 'og:title', content: title },
+ 		{ property: 'og:description', content: description },
+ 		{ property: 'og:url', content: url },
++		...(images[0] ? [{ property: 'og:image', content: images[0] }] : []),
+ 		{
+ 			'script:ld+json': createPostStructuredData(recipe.contentType, recipe.source, {
+ 				author: recipe.author.displayName,
+ 				datePublished: recipe.publishedAt,
+ 				url,
++				images,
+ 			}),
+ 		},
+ 	];
+@@ -67,6 +72,7 @@ export default function RecipeRoute({ loaderData }) {
+ 		<PageRenderer
+ 			page={{
+ 				content: source,
++				media: recipe.media,
+ 				presentation: {
+ 					footer: { type: presentation.footer },
+ 					header: { type: presentation.header },
+diff --git a/tests/e2e/auth-flow.spec.js b/tests/e2e/auth-flow.spec.js
+index e059fb9..9b3d3a9 100644
+--- a/tests/e2e/auth-flow.spec.js
++++ b/tests/e2e/auth-flow.spec.js
+@@ -297,6 +297,11 @@ test('characterizes registration, authentication, TOTP, and admin access', async
+ 			await page.getByLabel('Meta description').fill('Bake a festive Christmas cake with this tested recipe.');
+ 			await page.getByLabel('Focus keyword').fill('christmas cake recipe');
+ 			await page.getByLabel('This post is pillar content').check();
++			const mediaCard = page.locator('article').filter({ hasText: 'christmas-test.png' });
++			await mediaCard.getByRole('button', { name: 'Use as featured' }).click();
++			await mediaCard.getByLabel('Include in gallery').check();
++			await mediaCard.getByLabel('Featured alt text').fill('Featured Christmas cake');
++			await mediaCard.getByLabel('Gallery alt text').fill('Christmas cake gallery image');
+ 			await page.getByLabel('Publication').selectOption('publish');
+ 			const createResponsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/admin/recipes');
+ 			await page.getByRole('button', { name: 'Create recipe' }).click();
+@@ -311,6 +316,11 @@ test('characterizes registration, authentication, TOTP, and admin access', async
+ 				'Bake a festive Christmas cake with this tested recipe.',
+ 			);
+ 			await expect(page).toHaveTitle('Christmas cake recipe | O Melhor do Natal');
++			await expect(page.getByAltText('Featured Christmas cake')).toBeVisible();
++			await expect(page.getByRole('region', { name: 'Image gallery' })).toBeVisible();
++			await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /\/media\/.+\/large$/u);
++			const recipeStructuredData = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
++			expect(recipeStructuredData.image).toHaveLength(2);
+ 			const [[created]] = await database.execute(
+ 				`SELECT posts.status, posts.is_pillar_content, post_revisions.excerpt, post_revisions.focus_keyword,
+ 				        COUNT(content_events.id) AS event_count
+@@ -328,6 +338,13 @@ test('characterizes registration, authentication, TOTP, and admin access', async
+ 			expect(created.excerpt).toBe('A short festive cake summary.');
+ 			expect(created.focus_keyword).toBe('christmas cake recipe');
+ 			expect(Number(created.event_count)).toBe(1);
++			const [[revisionMedia]] = await database.execute(
++				`SELECT COUNT(*) AS total FROM post_revision_media
++				 INNER JOIN post_revision_heads ON post_revision_heads.published_revision_id = post_revision_media.revision_id
++				 INNER JOIN route_slugs ON route_slugs.resource_id = post_revision_heads.post_id
++				 WHERE route_slugs.slug = 'playwright-christmas-cake'`,
++			);
++			expect(Number(revisionMedia.total)).toBe(2);
+ 			await page.goto('/admin');
+ 		});
+ 

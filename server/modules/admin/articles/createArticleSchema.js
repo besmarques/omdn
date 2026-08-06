@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { seoInputSchema } from '#content/seo/seoSchema.js';
+import { postMediaSchema } from '../posts/postMediaSchema.js';
 
 const slug = z
 	.string()
@@ -15,6 +16,7 @@ export const createArticleSchema = z
 		descriptionHtml: z.string().trim().min(1).max(20000),
 		excerpt: z.string().trim().max(1000).optional(),
 		isPillar: z.boolean().default(false),
+		media: postMediaSchema.default({ featured: null, gallery: [] }),
 		publication: z.enum(['draft', 'publish', 'schedule']).default('draft'),
 		publishAt: z.string().datetime({ offset: true }).optional(),
 		seo: seoInputSchema,

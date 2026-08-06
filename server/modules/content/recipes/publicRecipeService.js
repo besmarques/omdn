@@ -37,6 +37,27 @@ async function normalizeRecipe(row, { includeSource = false, parseSource = parse
 		source = { ...parsedSource, descriptionHtml: sanitizePostDescriptionHtml(parsedSource.descriptionHtml) };
 	}
 	const regionConfig = parseStoredJson(row.region_config, 'region configuration');
+	const usages = new Map();
+	for (const item of row.media ?? []) {
+		const key = `${item.role}:${item.sort_position}`;
+		const usage = usages.get(key) ?? {
+			altText: item.alt_text,
+			height: Number(item.height),
+			role: item.role,
+			sortPosition: Number(item.sort_position),
+			uuid: item.uuid,
+			variants: [],
+			width: Number(item.width),
+		};
+		usage.variants.push({
+			height: Number(item.variant_height),
+			name: item.variant_name,
+			url: `/media/${item.uuid}/${item.variant_name}`,
+			width: Number(item.variant_width),
+		});
+		usages.set(key, usage);
+	}
+	const media = [...usages.values()];
 
 	return {
 		contentType: row.content_type,
@@ -67,6 +88,10 @@ async function normalizeRecipe(row, { includeSource = false, parseSource = parse
 		seo: {
 			description: row.seo_description,
 			title: row.seo_title,
+		},
+		media: {
+			featured: media.find(({ role }) => role === 'featured') ?? null,
+			gallery: media.filter(({ role }) => role === 'gallery').sort((a, b) => a.sortPosition - b.sortPosition),
 		},
 		sourceSchemaVersion: Number(row.source_schema_version),
 		...(includeSource ? { source } : {}),

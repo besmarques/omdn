@@ -9,6 +9,7 @@ const publicRecipeSelection = `
 		categories.name AS primary_category_name,
 		canonical_slug.slug AS canonical_slug,
 		post_revisions.title,
+		post_revisions.id AS revision_id,
 		post_revisions.excerpt,
 		post_revisions.seo_title,
 		post_revisions.seo_description,
@@ -47,6 +48,23 @@ function publicPostPredicate(contentType) {
 
 export default function createPublicRecipeRepository(db, { contentType = 'recipe' } = {}) {
 	const publicRecipePredicate = publicPostPredicate(contentType);
+	async function attachMedia(rows) {
+		if (rows.length === 0) return rows;
+		const revisionIds = [...new Set(rows.map(({ revision_id: id }) => id))];
+		const placeholders = revisionIds.map(() => '?').join(', ');
+		const [media] = await db.execute(
+			`SELECT post_revision_media.revision_id, post_revision_media.role, post_revision_media.sort_position,
+			        post_revision_media.alt_text, media_assets.uuid, media_assets.width, media_assets.height,
+			        media_variants.variant_name, media_variants.width AS variant_width, media_variants.height AS variant_height
+			 FROM post_revision_media
+			 INNER JOIN media_assets ON media_assets.id = post_revision_media.media_asset_id AND media_assets.status = 'ready'
+			 INNER JOIN media_variants ON media_variants.media_asset_id = media_assets.id
+			 WHERE post_revision_media.revision_id IN (${placeholders})
+			 ORDER BY post_revision_media.revision_id, post_revision_media.role, post_revision_media.sort_position, media_variants.width`,
+			revisionIds,
+		);
+		return rows.map((row) => ({ ...row, media: media.filter(({ revision_id: id }) => Number(id) === Number(row.revision_id)) }));
+	}
 	async function findBySlug(slug) {
 		const [rows] = await db.execute(
 			`${publicRecipeSelection}
@@ -63,8 +81,9 @@ export default function createPublicRecipeRepository(db, { contentType = 'recipe
 			return null;
 		}
 
+		const [row] = await attachMedia([rows[0]]);
 		return {
-			...rows[0],
+			...row,
 			requested_slug_kind: rows[0].canonical_slug === slug ? 'canonical' : 'redirect',
 		};
 	}
@@ -93,7 +112,7 @@ export default function createPublicRecipeRepository(db, { contentType = 'recipe
 			parameters,
 		);
 
-		return rows;
+		return attachMedia(rows);
 	}
 
 	async function count() {
@@ -115,7 +134,7 @@ export default function createPublicRecipeRepository(db, { contentType = 'recipe
 			[limit, offset],
 		);
 
-		return rows;
+		return attachMedia(rows);
 	}
 
 	return {

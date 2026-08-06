@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import PostEditor from '../content/posts/PostEditor';
 import PostEditorFields from '../content/posts/PostEditorFields';
+import PostMediaFields from '../content/posts/PostMediaFields';
+import { emptyPostMedia } from '../content/posts/postMedia';
 import RecipeFields from '../content/recipes/RecipeFields';
 import { useCreateRecipeMutation } from '../content/recipes/queries/recipeQueries';
 import SeoEditor from '../content/seo/SeoEditor';
@@ -52,6 +54,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 	const [excerpt, setExcerpt] = useState('');
 	const [ingredients, setIngredients] = useState('');
 	const [instructions, setInstructions] = useState('');
+	const [media, setMedia] = useState(emptyPostMedia);
 	const [formVersion, setFormVersion] = useState(0);
 	const ready = useHydrated();
 
@@ -71,6 +74,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				ingredients: parseIngredients(form.get('ingredients')),
 				instructions: parseInstructions(form.get('instructions')),
 				isPillar: form.get('isPillar') === 'on',
+				media,
 				prepMinutes: Number(form.get('prepMinutes')),
 				publication: canPublish ? form.get('publication') : 'draft',
 				...(canPublish && form.get('publication') === 'schedule' ? { publishAt: new Date(form.get('publishAt')).toISOString() } : {}),
@@ -112,6 +116,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 		setExcerpt('');
 		setIngredients('');
 		setInstructions('');
+		setMedia(emptyPostMedia);
 		setFormVersion((version) => version + 1);
 	}
 
@@ -144,6 +149,7 @@ export default function AdminRecipeCreatePage({ canPublish }) {
 				slug={slug}
 				title={title}
 			/>
+			<PostMediaFields onChange={setMedia} value={media} />
 			<RecipeFields
 				ingredients={ingredients}
 				instructions={instructions}

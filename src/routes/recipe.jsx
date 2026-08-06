@@ -40,6 +40,9 @@ export function meta({ loaderData }) {
 	const { canonicalUrl: url, recipe } = loaderData;
 	const title = recipe.seo.title || `${recipe.title} | O Melhor do Natal`;
 	const description = recipe.seo.description || recipe.description;
+	const images = [recipe.media.featured, ...recipe.media.gallery]
+		.filter(Boolean)
+		.map((image) => new URL(image.variants.at(-1).url, url).href);
 
 	return [
 		{ title },
@@ -49,11 +52,13 @@ export function meta({ loaderData }) {
 		{ property: 'og:title', content: title },
 		{ property: 'og:description', content: description },
 		{ property: 'og:url', content: url },
+		...(images[0] ? [{ property: 'og:image', content: images[0] }] : []),
 		{
 			'script:ld+json': createPostStructuredData(recipe.contentType, recipe.source, {
 				author: recipe.author.displayName,
 				datePublished: recipe.publishedAt,
 				url,
+				images,
 			}),
 		},
 	];
@@ -67,6 +72,7 @@ export default function RecipeRoute({ loaderData }) {
 		<PageRenderer
 			page={{
 				content: source,
+				media: recipe.media,
 				presentation: {
 					footer: { type: presentation.footer },
 					header: { type: presentation.header },

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import PostEditor from '../content/posts/PostEditor';
 import PostEditorFields from '../content/posts/PostEditorFields';
+import PostMediaFields from '../content/posts/PostMediaFields';
+import { emptyPostMedia } from '../content/posts/postMedia';
 import SeoEditor from '../content/seo/SeoEditor';
 import { useCreateArticleMutation } from '../content/articles/queries/articleQueries';
 import useAsyncAction from '../hooks/useAsyncAction';
@@ -23,6 +25,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 	const [description, setDescription] = useState('');
 	const [descriptionHtml, setDescriptionHtml] = useState('');
 	const [excerpt, setExcerpt] = useState('');
+	const [media, setMedia] = useState(emptyPostMedia);
 	const ready = useHydrated();
 	async function handleSubmit(event) {
 		event.preventDefault();
@@ -36,6 +39,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 				descriptionHtml,
 				excerpt,
 				isPillar: form.get('isPillar') === 'on',
+				media,
 				publication: canPublish ? publication : 'draft',
 				...(canPublish && publication === 'schedule' ? { publishAt: new Date(form.get('publishAt')).toISOString() } : {}),
 				seo: { description: form.get('seoDescription'), focusKeyword: form.get('focusKeyword'), title: form.get('seoTitle') },
@@ -65,6 +69,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 		setDescription('');
 		setDescriptionHtml('');
 		setExcerpt('');
+		setMedia(emptyPostMedia);
 	}
 	return (
 		<PostEditor
@@ -95,6 +100,7 @@ export default function AdminArticleCreatePage({ canPublish }) {
 				slug={slug}
 				title={title}
 			/>
+			<PostMediaFields onChange={setMedia} value={media} />
 			<SeoEditor
 				content={description}
 				description={description}

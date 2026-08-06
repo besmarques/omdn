@@ -108,6 +108,7 @@ export function createRecipeStructuredData(source, metadata = {}) {
 		cookTime: `PT${recipe.cookMinutes}M`,
 		...(metadata.datePublished ? { datePublished: metadata.datePublished } : {}),
 		description: recipe.description,
+		...(metadata.images?.length ? { image: metadata.images } : {}),
 		name: recipe.title,
 		prepTime: `PT${recipe.prepMinutes}M`,
 		recipeIngredient: recipe.ingredients.map(formatIngredient),

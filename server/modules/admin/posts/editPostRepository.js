@@ -1,3 +1,5 @@
+import { insertRevisionMedia } from './postMediaRepository.js';
+
 export default function createEditPostRepository(db) {
 	async function findById(contentType, id, { includeTrashed = false } = {}) {
 		const [[post]] = await db.execute(
@@ -15,6 +17,14 @@ export default function createEditPostRepository(db) {
 		);
 		if (!post) return null;
 		const [tags] = await db.execute(`SELECT tag_id FROM post_tags WHERE post_id = ? ORDER BY tag_id`, [id]);
+		const [media] = await db.execute(
+			`SELECT post_revision_media.media_asset_id AS id, post_revision_media.role, post_revision_media.alt_text,
+			        post_revision_media.sort_position
+			 FROM post_revision_media
+			 WHERE post_revision_media.revision_id = (SELECT current_revision_id FROM post_revision_heads WHERE post_id = ?)
+			 ORDER BY post_revision_media.role, post_revision_media.sort_position`,
+			[id],
+		);
 		return {
 			...post,
 			id: Number(post.id),
@@ -24,6 +34,15 @@ export default function createEditPostRepository(db) {
 			primary_category_id: post.primary_category_id ? Number(post.primary_category_id) : null,
 			source: typeof post.source === 'string' ? JSON.parse(post.source) : post.source,
 			tag_ids: tags.map(({ tag_id: tagId }) => Number(tagId)),
+			media: {
+				featured: media.find(({ role }) => role === 'featured')
+					? {
+							altText: media.find(({ role }) => role === 'featured').alt_text,
+							id: Number(media.find(({ role }) => role === 'featured').id),
+						}
+					: null,
+				gallery: media.filter(({ role }) => role === 'gallery').map((usage) => ({ altText: usage.alt_text, id: Number(usage.id) })),
+			},
 		};
 	}
 
@@ -90,6 +109,7 @@ export default function createEditPostRepository(db) {
 				],
 			);
 			const published = post.status === 'published';
+			await insertRevisionMedia(connection, revision.insertId, record.media);
 			await connection.execute(
 				`UPDATE post_revision_heads SET current_revision_id = ?, published_revision_id = CASE WHEN ? THEN ? ELSE published_revision_id END WHERE post_id = ?`,
 				[revision.insertId, published, revision.insertId, record.id],

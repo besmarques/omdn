@@ -32,6 +32,7 @@ export function createArticleStructuredData(source, metadata = {}) {
 		...(metadata.datePublished ? { datePublished: metadata.datePublished } : {}),
 		description: article.description,
 		headline: article.title,
+		...(metadata.images?.length ? { image: metadata.images } : {}),
 		...(metadata.url ? { mainEntityOfPage: metadata.url, url: metadata.url } : {}),
 	};
 }

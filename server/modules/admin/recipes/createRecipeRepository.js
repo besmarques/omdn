@@ -1,3 +1,5 @@
+import { insertRevisionMedia } from '../posts/postMediaRepository.js';
+
 export default function createRecipeRepository(db, { contentType = 'recipe', templateKey = 'recipe' } = {}) {
 	return async function createRecipe(record) {
 		const connection = await db.getConnection();
@@ -74,6 +76,7 @@ export default function createRecipeRepository(db, { contentType = 'recipe', tem
 					record.sourceHash,
 				],
 			);
+			await insertRevisionMedia(connection, revisionResult.insertId, record.media);
 
 			await connection.execute(
 				`INSERT INTO post_revision_heads (post_id, current_revision_id, published_revision_id)

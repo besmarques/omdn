@@ -1,0 +1,32 @@
+ M server/database/migrations/006_create_content_foundation.sql
+ M server/database/seeds/001_seed_roles_permissions.sql
+ M server/expressApp.js
+ M server/modules/admin/articles/createArticleSchema.js
+ M server/modules/admin/articles/createArticleService.js
+ M server/modules/admin/posts/editPostRepository.js
+ M server/modules/admin/recipes/createRecipeRepository.js
+ M server/modules/admin/recipes/createRecipeSchema.js
+ M server/modules/admin/recipes/createRecipeService.js
+ M server/modules/content/recipes/publicRecipeRepository.js
+ M server/modules/content/recipes/publicRecipeService.js
+ M server/modules/media/mediaRepository.js
+ M src/content/articles/ArticleTemplate.jsx
+ M src/content/articles/articleSchema.js
+ M src/content/posts/PostEditorFields.jsx
+ M src/content/recipes/RecipeTemplate.jsx
+ M src/content/recipes/recipeSchema.js
+ M src/pages/AdminArticleCreatePage.jsx
+ M src/pages/AdminPostEditPage.jsx
+ M src/pages/AdminRecipeCreatePage.jsx
+ M src/presentation/PageRenderer.jsx
+ M src/routes/article.jsx
+ M src/routes/recipe.jsx
+ M tests/e2e/auth-flow.spec.js
+?? GIT_STATUS.txt
+?? server/database/migrations/012_add_revision_media.sql
+?? server/modules/admin/posts/postMediaRepository.js
+?? server/modules/admin/posts/postMediaSchema.js
+?? server/modules/media/publicMediaController.js
+?? src/content/posts/PostMediaDisplay.jsx
+?? src/content/posts/PostMediaFields.jsx
+?? src/content/posts/postMedia.js

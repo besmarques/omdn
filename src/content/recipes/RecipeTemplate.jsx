@@ -1,6 +1,7 @@
 import { formatIngredient, parseRecipeArticleSource, serializeRecipeStructuredData } from './recipeSchema';
+import PostMediaDisplay from '../posts/PostMediaDisplay';
 
-export default function RecipeTemplate({ content, includeStructuredData = true }) {
+export default function RecipeTemplate({ content, includeStructuredData = true, media }) {
 	const recipe = parseRecipeArticleSource(content);
 
 	return (
@@ -9,6 +10,7 @@ export default function RecipeTemplate({ content, includeStructuredData = true }
 				<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeRecipeStructuredData(recipe) }} />
 			)}
 			<h1>{recipe.title}</h1>
+			<PostMediaDisplay media={media} />
 			{recipe.descriptionHtml ? <div dangerouslySetInnerHTML={{ __html: recipe.descriptionHtml }} /> : <p>{recipe.description}</p>}
 			<dl>
 				<div>
