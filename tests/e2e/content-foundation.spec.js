@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 import createPublicRecipeRepository from '#server/modules/content/recipes/publicRecipeRepository';
 import createPublicRecipeService from '#server/modules/content/recipes/publicRecipeService';
 
-import { applyTestDatabaseSeeds, createTestDatabaseConnection } from './database.js';
+import { applyTestDatabaseSeeds, createTestDatabaseConnection, createTestDatabasePool } from './database.js';
+
+import createEditPostRepository from '#server/modules/admin/posts/editPostRepository';
 
 const contentTables = [
 	'authors',
@@ -281,6 +283,306 @@ test('enforces revision ownership, canonical slugs, active schedules, and deleti
 		await database.rollback().catch(() => {});
 		throw error;
 	} finally {
+		await database.end();
+	}
+});
+test('editing a published recipe creates a draft revision without replacing the published revision', async () => {
+	const database = createTestDatabasePool();
+	const editPosts = createEditPostRepository(database);
+	const publicRecipes = createPublicRecipeService(createPublicRecipeRepository(database));
+
+	let userId;
+	let authorId;
+	let categoryId;
+	let postId;
+
+	const publishedSource = {
+		cookMinutes: 15,
+		description: 'This is the currently published recipe.',
+		difficulty: 'easy',
+		ingredients: [
+			{
+				id: 'flour',
+				name: 'flour',
+				quantity: '200',
+				unit: 'g',
+			},
+		],
+		instructions: [
+			{
+				id: 'mix',
+				text: 'Mix the ingredients.',
+			},
+		],
+		kind: 'recipe',
+		prepMinutes: 10,
+		schemaVersion: 1,
+		title: 'Published recipe title',
+		yield: {
+			quantity: 8,
+			unit: 'servings',
+		},
+	};
+
+	const editedSource = {
+		...publishedSource,
+		description: 'These changes have only been saved in the editor.',
+		title: 'Unpublished edited title',
+	};
+
+	try {
+		const [userResult] = await database.execute(
+			`INSERT INTO users (
+				email,
+				display_name,
+				status,
+				email_verified_at
+			) VALUES (?, ?, 'active', CURRENT_TIMESTAMP(3))`,
+			['published-edit-test@example.com', 'Published Edit Test'],
+		);
+
+		userId = userResult.insertId;
+
+		const [authorResult] = await database.execute(
+			`INSERT INTO authors (
+				user_id,
+				display_name
+			) VALUES (?, ?)`,
+			[userId, 'Published Edit Test'],
+		);
+
+		authorId = authorResult.insertId;
+
+		const [categoryResult] = await database.execute(
+			`INSERT INTO categories (
+				content_type,
+				name,
+				normalized_name
+			) VALUES ('recipe', ?, ?)`,
+			['Published Edit Recipes', 'published-edit-recipes'],
+		);
+
+		categoryId = categoryResult.insertId;
+
+		const [postResult] = await database.execute(
+			`INSERT INTO posts (
+				owner_user_id,
+				author_id,
+				content_type,
+				status,
+				visibility,
+				primary_category_id,
+				published_at
+			) VALUES (?, ?, 'recipe', 'published', 'public', ?, CURRENT_TIMESTAMP(3))`,
+			[userId, authorId, categoryId],
+		);
+
+		postId = postResult.insertId;
+
+		const [revisionResult] = await database.execute(
+			`INSERT INTO post_revisions (
+				post_id,
+				revision_number,
+				created_by_user_id,
+				title,
+				excerpt,
+				seo_title,
+				seo_description,
+				focus_keyword,
+				layout_key,
+				template_key,
+				header_key,
+				footer_key,
+				region_config,
+				source,
+				source_schema_version,
+				render_version,
+				plain_text,
+				source_sha256
+			) VALUES (
+				?,
+				1,
+				?,
+				?,
+				?,
+				?,
+				?,
+				?,
+				'full-width',
+				'recipe',
+				'minimal',
+				'standard',
+				?,
+				?,
+				1,
+				1,
+				?,
+				?
+			)`,
+			[
+				postId,
+				userId,
+				publishedSource.title,
+				publishedSource.description,
+				`${publishedSource.title} | O Melhor do Natal`,
+				publishedSource.description,
+				'published recipe',
+				JSON.stringify({ sidebar: [] }),
+				JSON.stringify(publishedSource),
+				`${publishedSource.title}\n${publishedSource.description}`,
+				Buffer.alloc(32, 31),
+			],
+		);
+
+		const publishedRevisionId = revisionResult.insertId;
+
+		await database.execute(
+			`INSERT INTO post_revision_heads (
+				post_id,
+				current_revision_id,
+				published_revision_id
+			) VALUES (?, ?, ?)`,
+			[postId, publishedRevisionId, publishedRevisionId],
+		);
+
+		await database.execute(
+			`INSERT INTO post_categories (
+				post_id,
+				category_id
+			) VALUES (?, ?)`,
+			[postId, categoryId],
+		);
+
+		await database.execute(
+			`INSERT INTO route_slugs (
+				resource_type,
+				resource_id,
+				slug,
+				kind
+			) VALUES ('post', ?, ?, 'canonical')`,
+			[postId, 'published-edit-integrity-test'],
+		);
+
+		await expect(publicRecipes.getBySlug('published-edit-integrity-test')).resolves.toMatchObject({
+			recipe: {
+				source: {
+					title: 'Published recipe title',
+				},
+				title: 'Published recipe title',
+			},
+		});
+
+		await editPosts.update({
+			actor: {
+				id: Number(userId),
+			},
+			categoryId: Number(categoryId),
+			contentType: 'recipe',
+			expectedLockVersion: 1,
+			excerpt: editedSource.description,
+			id: Number(postId),
+			isPillar: false,
+			media: {
+				featured: null,
+				gallery: [],
+			},
+			plainText: `${editedSource.title}\n${editedSource.description}`,
+			seo: {
+				description: editedSource.description,
+				focusKeyword: 'edited recipe',
+				title: `${editedSource.title} | O Melhor do Natal`,
+			},
+			slug: 'published-edit-integrity-test',
+			source: editedSource,
+			sourceHash: Buffer.alloc(32, 32),
+			tagIds: [],
+		});
+
+		const [[heads]] = await database.execute(
+			`SELECT
+				current_revision_id,
+				published_revision_id
+			FROM post_revision_heads
+			WHERE post_id = ?`,
+			[postId],
+		);
+
+		const currentRevisionId = Number(heads.current_revision_id);
+
+		expect(currentRevisionId).not.toBe(Number(publishedRevisionId));
+		expect(Number(heads.published_revision_id)).toBe(Number(publishedRevisionId));
+
+		const [[currentRevision]] = await database.execute(
+			`SELECT title
+			FROM post_revisions
+			WHERE id = ?`,
+			[currentRevisionId],
+		);
+
+		const [[publishedRevision]] = await database.execute(
+			`SELECT title
+			FROM post_revisions
+			WHERE id = ?`,
+			[publishedRevisionId],
+		);
+
+		expect(currentRevision.title).toBe('Unpublished edited title');
+		expect(publishedRevision.title).toBe('Published recipe title');
+
+		await expect(publicRecipes.getBySlug('published-edit-integrity-test')).resolves.toMatchObject({
+			recipe: {
+				source: {
+					title: 'Published recipe title',
+				},
+				title: 'Published recipe title',
+			},
+		});
+	} finally {
+		if (postId) {
+			await database.execute(
+				`DELETE FROM route_slugs
+				WHERE resource_type = 'post'
+					AND resource_id = ?`,
+				[postId],
+			);
+
+			await database.execute(
+				`DELETE FROM post_revision_heads
+				WHERE post_id = ?`,
+				[postId],
+			);
+
+			await database.execute(
+				`DELETE FROM posts
+				WHERE id = ?`,
+				[postId],
+			);
+		}
+
+		if (categoryId) {
+			await database.execute(
+				`DELETE FROM categories
+				WHERE id = ?`,
+				[categoryId],
+			);
+		}
+
+		if (authorId) {
+			await database.execute(
+				`DELETE FROM authors
+				WHERE id = ?`,
+				[authorId],
+			);
+		}
+
+		if (userId) {
+			await database.execute(
+				`DELETE FROM users
+				WHERE id = ?`,
+				[userId],
+			);
+		}
+
 		await database.end();
 	}
 });

@@ -108,11 +108,12 @@ export default function createEditPostRepository(db) {
 					record.sourceHash,
 				],
 			);
-			const published = post.status === 'published';
 			await insertRevisionMedia(connection, revision.insertId, record.media);
 			await connection.execute(
-				`UPDATE post_revision_heads SET current_revision_id = ?, published_revision_id = CASE WHEN ? THEN ? ELSE published_revision_id END WHERE post_id = ?`,
-				[revision.insertId, published, revision.insertId, record.id],
+				`UPDATE post_revision_heads
+	 			SET current_revision_id = ?
+	 			WHERE post_id = ?`,
+				[revision.insertId, record.id],
 			);
 			await connection.execute(
 				`UPDATE posts SET primary_category_id = ?, is_pillar_content = ?, lock_version = lock_version + 1 WHERE id = ?`,
