@@ -38,13 +38,9 @@ describe('publication schedule repository', () => {
 
 		await expect(repository.publishNextDue()).resolves.toBe(true);
 
-		const outboxInsert = connection.execute.mock.calls.find(([sql]) =>
-			sql.includes('INSERT INTO domain_outbox'),
-		);
+		const outboxInsert = connection.execute.mock.calls.find(([sql]) => sql.includes('INSERT INTO domain_outbox'));
 
-		const contentEventInsert = connection.execute.mock.calls.find(([sql]) =>
-			sql.includes('INSERT INTO content_events'),
-		);
+		const contentEventInsert = connection.execute.mock.calls.find(([sql]) => sql.includes('INSERT INTO content_events'));
 
 		expect(outboxInsert).toBeDefined();
 		expect(contentEventInsert).toBeDefined();
