@@ -529,6 +529,48 @@ test('editing a published recipe creates a draft revision without replacing the 
 		expect(currentRevision.title).toBe('Unpublished edited title');
 		expect(publishedRevision.title).toBe('Published recipe title');
 
+		const [auditEvents] = await database.execute(
+			`SELECT
+		post_id,
+		revision_id,
+		actor_user_id,
+		event_type
+	FROM content_events
+	WHERE post_id = ?
+		AND revision_id = ?
+		AND event_type = 'post_revision_created'`,
+			[postId, currentRevisionId],
+		);
+
+		expect(auditEvents).toHaveLength(1);
+		expect(Number(auditEvents[0].post_id)).toBe(Number(postId));
+		expect(Number(auditEvents[0].revision_id)).toBe(currentRevisionId);
+		expect(Number(auditEvents[0].actor_user_id)).toBe(Number(userId));
+
+		const [outboxEvents] = await database.execute(
+			`SELECT
+		aggregate_type,
+		aggregate_id,
+		event_type,
+		payload
+	FROM domain_outbox
+	WHERE aggregate_type = 'post'
+		AND aggregate_id = ?
+		AND event_type = 'post_revision_created'`,
+			[postId],
+		);
+
+		expect(outboxEvents).toHaveLength(1);
+		expect(Number(outboxEvents[0].aggregate_id)).toBe(Number(postId));
+
+		const outboxPayload = typeof outboxEvents[0].payload === 'string' ? JSON.parse(outboxEvents[0].payload) : outboxEvents[0].payload;
+
+		expect(outboxPayload).toMatchObject({
+			actorUserId: Number(userId),
+			postId: Number(postId),
+			revisionId: currentRevisionId,
+		});
+
 		await expect(publicRecipes.getBySlug('published-edit-integrity-test')).resolves.toMatchObject({
 			recipe: {
 				source: {

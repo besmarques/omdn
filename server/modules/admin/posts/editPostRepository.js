@@ -138,6 +138,37 @@ export default function createEditPostRepository(db) {
 				]);
 			}
 			await connection.commit();
+			const eventType = 'post_revision_created';
+
+			const eventPayload = JSON.stringify({
+				actorUserId: Number(record.actor.id),
+				contentType: record.contentType,
+				postId: Number(record.id),
+				previousRevisionId: Number(post.current_revision_id),
+				revisionId: Number(revision.insertId),
+			});
+
+			const [outbox] = await connection.execute(
+				`INSERT INTO domain_outbox (
+		aggregate_type,
+		aggregate_id,
+		event_type,
+		payload
+	) VALUES ('post', ?, ?, ?)`,
+				[record.id, eventType, eventPayload],
+			);
+
+			await connection.execute(
+				`INSERT INTO content_events (
+		outbox_id,
+		post_id,
+		revision_id,
+		actor_user_id,
+		event_type,
+		metadata
+	) VALUES (?, ?, ?, ?, ?, ?)`,
+				[outbox.insertId, record.id, revision.insertId, record.actor.id, eventType, eventPayload],
+			);
 			return { id: record.id, lockVersion: record.expectedLockVersion + 1, slug: record.slug };
 		} catch (error) {
 			await connection.rollback();
