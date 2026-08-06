@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import createPublicationScheduleRepository from './publicationScheduleRepository';
 
 describe('publication schedule repository', () => {
-	it('emits article_published when publishing a scheduled article', async () => {
+	it('publishes a scheduled article with the correct event and increments lock_version', async () => {
 		const connection = {
 			beginTransaction: vi.fn().mockResolvedValue(undefined),
 			commit: vi.fn().mockResolvedValue(undefined),
@@ -38,13 +38,23 @@ describe('publication schedule repository', () => {
 
 		await expect(repository.publishNextDue()).resolves.toBe(true);
 
-		const outboxInsert = connection.execute.mock.calls.find(([sql]) => sql.includes('INSERT INTO domain_outbox'));
+		const postUpdate = connection.execute.mock.calls.find(([sql]) =>
+			sql.includes('UPDATE posts'),
+		);
 
-		const contentEventInsert = connection.execute.mock.calls.find(([sql]) => sql.includes('INSERT INTO content_events'));
+		const outboxInsert = connection.execute.mock.calls.find(([sql]) =>
+			sql.includes('INSERT INTO domain_outbox'),
+		);
 
+		const contentEventInsert = connection.execute.mock.calls.find(([sql]) =>
+			sql.includes('INSERT INTO content_events'),
+		);
+
+		expect(postUpdate).toBeDefined();
 		expect(outboxInsert).toBeDefined();
 		expect(contentEventInsert).toBeDefined();
 
+		expect(postUpdate[0]).toContain('lock_version = lock_version + 1');
 		expect(outboxInsert[1][1]).toBe('article_published');
 		expect(contentEventInsert[1][4]).toBe('article_published');
 	});

@@ -36,7 +36,8 @@ export default function createPublicationScheduleRepository(db) {
 					`UPDATE posts
 					 SET status = 'published',
 					     published_at = ?,
-					     archived_at = NULL
+					     archived_at = NULL,
+					 lock_version = lock_version + 1
 					 WHERE id = ?
 					   AND status = 'scheduled'`,
 					[schedule.publish_at, schedule.post_id],
